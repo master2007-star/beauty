@@ -1,5 +1,4 @@
 import { useState, type ImgHTMLAttributes } from 'react';
-import { PRODUCT_IMAGE_SOURCES } from '../data/productImages';
 
 interface ProductImageProps extends ImgHTMLAttributes<HTMLImageElement> {
   src: string;
@@ -8,15 +7,14 @@ interface ProductImageProps extends ImgHTMLAttributes<HTMLImageElement> {
 }
 
 /** Shared product media: fill the frame without stretching and recover from failed loads. */
-export function ProductImage({ src, alt, className = '', compact = false, onError, ...props }: ProductImageProps) {
+export function ProductImage({ src, alt, className = '', compact: _compact, onError, ...props }: ProductImageProps) {
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
-  const source = PRODUCT_IMAGE_SOURCES[src];
   const unavailable = !src || failedSrc === src;
 
   return (
     <span
       className={`relative block overflow-hidden bg-white ${className}`}
-      title={source?.note || props.title}
+      title={props.title}
       data-product-image={src}
     >
       {unavailable ? (
@@ -35,11 +33,6 @@ export function ProductImage({ src, alt, className = '', compact = false, onErro
             onError?.(event);
           }}
         />
-      )}
-      {!unavailable && !compact && source?.representation === 'representative' && (
-        <span className="absolute bottom-10 right-2 max-w-[calc(100%-1rem)] rounded bg-ivory/95 px-2 py-1 text-[11px] leading-tight text-espresso-800">
-          Representative image
-        </span>
       )}
     </span>
   );

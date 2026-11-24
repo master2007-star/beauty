@@ -1,17 +1,17 @@
 # Graph Report - price-comparison-website  (2026-11-25)
 
 ## Corpus Check
-- 153 files · ~147,166 words
+- 153 files · ~147,183 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 7 file(s) not represented in the graph (top: (none) 2, .css 2, .example 1)
 
 ## Summary
-- 1903 nodes · 4907 edges · 75 communities (51 shown, 24 thin omitted)
+- 1903 nodes · 4905 edges · 76 communities (51 shown, 25 thin omitted)
 - Extraction: 96% EXTRACTED · 4% INFERRED · 0% AMBIGUOUS · INFERRED: 209 edges (avg confidence: 0.92)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `39b3040e`
+- Built from commit: `389f23d1`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -69,7 +69,7 @@
 - PriceWise Beauty — Phase 1: Premium Frontend
 - post
 - PriceTrackingRecord
-- DiscoveryHomePage.tsx
+- HowToUseSection.tsx
 - TestPhase7RoutinesAndConflictDetection
 - test_phase7_api_and_services.py
 - DEPLOYMENT.md
@@ -82,6 +82,7 @@
 - stores.ts
 - tsconfig.json
 - verify_password
+- productImages.ts
 
 ## God Nodes (most connected - your core abstractions)
 1. `get_connection()` - 120 edges
@@ -100,17 +101,17 @@
   PHASE7_IMPLEMENTATION_REPORT.md → src/api/auth_deps.py
 - `11. Security & Compliance Findings` --references--> `validate_browser_url()`  [INFERRED]
   PHASE6_VERIFICATION_AUDIT_REPORT.md → src/workers/security_policy.py
-- `API Inventory:` --references--> `authenticate_user()`  [INFERRED]
-  PRE_PHASE6_PROJECT_AUDIT_REPORT.md → src/services/auth_service.py
 - `File & Folder Responsibilities:` --references--> `PriceAlert`  [INFERRED]
   PRE_PHASE6_PROJECT_AUDIT_REPORT.md → src/database/models.py
-- `Step 14: Explain Architecture & Technology Decisions` --references--> `PricePoint`  [INFERRED]
-  docs/DEMO_GUIDE.md → src/database/models.py
+- `14. Phase 6 Integration Readiness Assessment` --references--> `Offer`  [INFERRED]
+  PRE_PHASE6_PROJECT_AUDIT_REPORT.md → src/database/models.py
+- `File & Folder Responsibilities:` --references--> `Offer`  [INFERRED]
+  PRE_PHASE6_PROJECT_AUDIT_REPORT.md → src/database/models.py
 
 ## Import Cycles
 - 2-file cycle: `frontend/src/context/AuthContext.tsx -> frontend/src/context/WishlistContext.tsx -> frontend/src/context/AuthContext.tsx`
 
-## Communities (75 total, 24 thin omitted)
+## Communities (76 total, 25 thin omitted)
 
 ### Community 0 - "add_tracked_product"
 Cohesion: 0.05
@@ -133,8 +134,8 @@ Cohesion: 0.10
 Nodes (16): get_tracking_by_product_id(), add_to_wishlist(), get_user_wishlist(), get_wishlist_count(), is_in_wishlist(), remove_from_wishlist(), update_wishlist_note(), render_wishlist_view() (+8 more)
 
 ### Community 5 - "api.ts"
-Cohesion: 0.08
-Nodes (56): AuthContext, AuthContextType, AuthProvider(), COMMON_BRANDS, INGREDIENTS_AVOID, ProfilePage(), SKIN_CONCERNS, SKIN_TYPES (+48 more)
+Cohesion: 0.09
+Nodes (49): AuthContext, AuthContextType, AuthProvider(), COMMON_BRANDS, INGREDIENTS_AVOID, ProfilePage(), SKIN_CONCERNS, SKIN_TYPES (+41 more)
 
 ### Community 6 - "test_phase8_integration.py"
 Cohesion: 0.04
@@ -177,8 +178,8 @@ Cohesion: 0.08
 Nodes (21): ensure_database_ready(), migrate_db(), PlatformRatingSummary, ProductReview, ProductUsageGuide, WeightedReviewScore, update_user_profile(), add_product_review() (+13 more)
 
 ### Community 16 - "App.tsx"
-Cohesion: 0.16
-Nodes (25): App(), AppContent(), AuthModal(), BeautyUsageGuide(), Footer(), Navbar(), PriceTrackingModal(), ScrollToTop() (+17 more)
+Cohesion: 0.12
+Nodes (30): App(), AppContent(), AuthModal(), Footer(), Navbar(), PriceTrackingModal(), PriceTrackingModalProps, ProductImageProps (+22 more)
 
 ### Community 17 - "test_phase5_smart_advisor.py"
 Cohesion: 0.05
@@ -198,7 +199,7 @@ Nodes (8): api_remove_watchlist(), api_sync_watchlist(), get_health(), lifespan(
 
 ### Community 23 - "ProductDetailPage.tsx"
 Cohesion: 0.15
-Nodes (17): retailerHosts, verification, LiveRetailerPriceComparison(), LiveRetailerPriceComparisonProps, ProductDetailModal(), ReviewIntelligenceHub(), ReviewIntelligenceHubProps, SUPPORTED_PLATFORMS (+9 more)
+Nodes (20): retailerHosts, verification, BeautyUsageGuide(), LiveRetailerPriceComparison(), LiveRetailerPriceComparisonProps, ReviewIntelligenceHub(), ReviewIntelligenceHubProps, SUPPORTED_PLATFORMS (+12 more)
 
 ### Community 25 - "PriceWise AI Beauty — Pre-Phase 6 Complete Project Audit"
 Cohesion: 0.05
@@ -222,7 +223,7 @@ Nodes (5): extract_token_from_request(), get_current_user(), get_optional_curren
 
 ### Community 30 - "index.ts"
 Cohesion: 0.11
-Nodes (16): BeautyUsageGuideProps, PriceHistoryChartProps, TimeRange, REVIEWS_DATA, FilterOptions, KeyActiveDetail, MakeupPreferences, MakeupSubcategory (+8 more)
+Nodes (22): BeautyUsageGuideProps, CategoryGridProps, NavbarProps, PriceHistoryChartProps, TimeRange, CATEGORIES_DATA, CategoryInfo, DiscoveryHomePageProps (+14 more)
 
 ### Community 31 - "shopping.py"
 Cohesion: 0.21
@@ -242,7 +243,7 @@ Nodes (12): File & Folder Responsibilities:, AmazonIndiaAdapter, BaseRetailerAda
 
 ### Community 36 - "DiscoveryHomePage.tsx"
 Cohesion: 0.15
-Nodes (21): DealSectionProps, DupesSectionProps, HeroProps, OfficialProductLink(), PriceTrackingModalProps, ProductCard(), ProductCardProps, ProductDetailModalProps (+13 more)
+Nodes (23): CategoryGrid(), DealSection(), DealSectionProps, DupesSection(), DupesSectionProps, Hero(), HeroProps, HowToUseSection() (+15 more)
 
 ### Community 37 - "compilerOptions"
 Cohesion: 0.10
@@ -296,17 +297,17 @@ Nodes (10): 🔒 Demo Data Disclosure, 🎨 Design Identity & Palette, Developme
 Cohesion: 0.18
 Nodes (8): api_add_routine_item(), api_create_routine(), api_logout(), _serialize_routine(), AddRoutineItemRequest, CreateRoutineRequest, RoutineItemSchema, RoutineSchema
 
-### Community 53 - "DiscoveryHomePage.tsx"
-Cohesion: 0.19
-Nodes (17): CategoryGrid(), CategoryGridProps, DealSection(), DupesSection(), Hero(), HowToUseSection(), NavbarProps, ReviewShowcase() (+9 more)
+### Community 53 - "HowToUseSection.tsx"
+Cohesion: 0.60
+Nodes (3): AM_ROUTINE, PM_ROUTINE, RoutineStepGuide
 
 ### Community 58 - ".oxlintrc.json"
 Cohesion: 0.33
 Nodes (5): plugins, rules, react/only-export-components, react/rules-of-hooks, $schema
 
 ### Community 61 - "WishlistContext.tsx"
-Cohesion: 0.38
-Nodes (9): readWishlist(), WishlistContext, WishlistProvider(), clearWishlist(), save(), toggleWishlist(), WishlistState, addToWatchlist() (+1 more)
+Cohesion: 0.24
+Nodes (12): PriceContext, readWishlist(), WishlistContext, WishlistProvider(), clearWishlist(), save(), toggleWishlist(), WishlistState (+4 more)
 
 ### Community 62 - "get_connection"
 Cohesion: 0.08
@@ -317,22 +318,22 @@ Cohesion: 0.28
 Nodes (3): change_password(), hash_password(), verify_password()
 
 ## Knowledge Gaps
-- **24 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **25 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `get_connection()` connect `get_connection` to `add_tracked_product`, `analyze_product_deal`, `auth_service.py`, `json`, `add_to_wishlist`, `test_phase8_integration.py`, `app.py`, `get_products`, `live_comparison_engine.py`, `postgres.py`, `services/__init__.py`, `main.py`, `TestPhase6LivePriceEngine`, `LiveComparisonEngine`, `shopping.py`, `BaseRetailerAdapter`, `validate_browser_url`, `routine_service.py`, `User`, `TestDatabaseIntegrity`, `verify_password`?**
-  _High betweenness centrality (0.090) - this node is a cross-community bridge._
+  _High betweenness centrality (0.083) - this node is a cross-community bridge._
 - **Are the 23 inferred relationships involving `Product` (e.g. with `analyze_product_deal()` and `AlternativeRecommendation`) actually correct?**
   _`Product` has 23 INFERRED edges - model-reasoned connections that need verification._
 - **Should `add_tracked_product` be split into smaller, more focused modules?**
   _Cohesion score 0.048712871287128715 - nodes in this community are weakly interconnected._
-- **Why does `Offer` connect `analyze_product_deal` to `BaseRetailerAdapter`, `deal_service.py`, `_serialize_product_item`, `.check_rate_limit`, `get_products`, `live_comparison_engine.py`, `test_phase5_smart_advisor.py`, `Product`, `main.py`, `PriceWise AI Beauty — Pre-Phase 6 Complete Project Audit`?**
-  _High betweenness centrality (0.063) - this node is a cross-community bridge._
+- **Why does `Product` connect `Product` to `add_tracked_product`, `analyze_product_deal`, `test_phase8_integration.py`, `app.py`, `deal_service.py`, `get_products`, `api_add_watchlist`, `live_comparison_engine.py`, `test_phase5_smart_advisor.py`, `main.py`?**
+  _High betweenness centrality (0.043) - this node is a cross-community bridge._
 - **Are the 12 inferred relationships involving `Offer` (e.g. with `14. Phase 6 Integration Readiness Assessment` and `File & Folder Responsibilities:`) actually correct?**
   _`Offer` has 12 INFERRED edges - model-reasoned connections that need verification._
 - **Should `analyze_product_deal` be split into smaller, more focused modules?**
   _Cohesion score 0.05445665445665446 - nodes in this community are weakly interconnected._
-- **Why does `migrate_db()` connect `services/__init__.py` to `add_tracked_product`, `analyze_product_deal`, `auth_service.py`, `BaseRetailerAdapter`, `json`, `add_to_wishlist`, `test_phase8_integration.py`, `app.py`, `🎬 15-Step Live Demonstration Script`, `routine_service.py`, `User`, `get_connection`?**
-  _High betweenness centrality (0.046) - this node is a cross-community bridge._
+- **Why does `Offer` connect `analyze_product_deal` to `BaseRetailerAdapter`, `deal_service.py`, `_serialize_product_item`, `.check_rate_limit`, `get_products`, `live_comparison_engine.py`, `test_phase5_smart_advisor.py`, `Product`, `main.py`, `PriceWise AI Beauty — Pre-Phase 6 Complete Project Audit`?**
+  _High betweenness centrality (0.043) - this node is a cross-community bridge._

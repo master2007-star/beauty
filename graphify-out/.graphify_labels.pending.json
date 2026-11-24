@@ -52,7 +52,7 @@
   "50": "PriceWise Beauty — Phase 1: Premium Frontend",
   "51": "post",
   "52": "PriceTrackingRecord",
-  "53": "DiscoveryHomePage.tsx",
+  "53": "HowToUseSection.tsx",
   "54": "TestPhase7RoutinesAndConflictDetection",
   "55": "test_phase7_api_and_services.py",
   "56": "DEPLOYMENT.md",
@@ -73,5 +73,6 @@
   "71": "Any",
   "72": "get",
   "73": "Any",
-  "74": "put"
+  "74": "put",
+  "75": "productImages.ts"
 }

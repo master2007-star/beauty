@@ -120,9 +120,9 @@
     "semantic_hash": ""
   },
   "frontend/src/components/ProductImage.tsx": {
-    "mtime": 1795543591.2129152,
-    "seen": 1795543686.9803755,
-    "ast_hash": "43fd99d4283b6b797c16bb4f355a2af2",
+    "mtime": 1795546244.0102115,
+    "seen": 1795546253.3552682,
+    "ast_hash": "0a490e9adfd6e7d35f8c78ae16094e99",
     "semantic_hash": ""
   },
   "frontend/src/components/ReviewIntelligenceHub.tsx": {
@@ -1152,9 +1152,9 @@
     "semantic_hash": ""
   },
   "docs/DEPLOYMENT.md": {
-    "mtime": 1795543675.3518226,
-    "seen": 1795543686.9979699,
-    "ast_hash": "7d5a51499a697f05350270c330a12764",
+    "mtime": 1795545813.9882126,
+    "seen": 1795546253.3800447,
+    "ast_hash": "a3165b5ca80ab3d455ce78e7c8e053f9",
     "semantic_hash": ""
   },
   "frontend/public/404.html": {
