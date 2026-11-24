@@ -2,6 +2,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Trash2, ArrowRight, Heart } from 'lucide-react';
 import type { Product } from '../types';
+import { ProductImage } from './ProductImage';
 
 interface WishlistDrawerProps {
   isOpen: boolean;
@@ -99,7 +100,7 @@ export const WishlistDrawer: React.FC<WishlistDrawerProps> = ({
                       }}
                       className="w-16 h-16 rounded-xl overflow-hidden bg-ivory shrink-0 border border-rose-100 cursor-pointer"
                     >
-                      <img src={prod.image} alt={prod.name} className="w-full h-full object-cover" />
+                      <ProductImage src={prod.image} alt={prod.name} compact className="w-full h-full" />
                     </div>
 
                     <div className="flex-1 min-w-0">

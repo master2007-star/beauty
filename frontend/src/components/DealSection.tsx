@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Tag, AlertCircle, ArrowRight, Heart } from 'lucide-react';
 import type { Product } from '../types';
+import { ProductImage } from './ProductImage';
 
 interface DealSectionProps {
   deals: Product[];
@@ -66,7 +67,7 @@ export const DealSection: React.FC<DealSectionProps> = ({
                 <div>
                   <div className="flex items-start gap-4">
                     <div className="w-24 h-24 rounded-xl overflow-hidden bg-ivory shrink-0 border border-rose-100">
-                      <img
+                      <ProductImage compact
                         src={deal.image}
                         alt={deal.name}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform"

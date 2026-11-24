@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Search, Sparkles, ArrowDown, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import type { Product } from '../types';
+import { ProductImage } from './ProductImage';
 
 interface HeroProps {
+  spotlight: Product;
   onSearch: (query: string) => void;
   onExploreClick: () => void;
   onDupesClick: () => void;
 }
 
-export const Hero: React.FC<HeroProps> = ({ onSearch, onExploreClick, onDupesClick }) => {
+export const Hero: React.FC<HeroProps> = ({ spotlight, onSearch, onExploreClick, onDupesClick }) => {
   const [searchInput, setSearchInput] = useState('');
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -22,7 +25,7 @@ export const Hero: React.FC<HeroProps> = ({ onSearch, onExploreClick, onDupesCli
   const trendingTags = ['Sunscreen', 'Niacinamide', 'Ceramides', 'Lip Mask', 'Matte Foundation', 'Liquid Blush'];
 
   return (
-    <section id="hero" className="relative pt-28 pb-16 sm:pt-36 sm:pb-24 overflow-hidden">
+    <section id="hero" className="relative pt-12 pb-16 sm:pt-16 sm:pb-20 overflow-hidden">
       {/* Background ambient lighting accents */}
       <div className="absolute top-10 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[500px] pointer-events-none opacity-40">
         <div className="absolute top-10 left-10 w-96 h-96 rounded-full bg-rose-200/50 blur-3xl" />
@@ -31,9 +34,9 @@ export const Hero: React.FC<HeroProps> = ({ onSearch, onExploreClick, onDupesCli
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
           {/* Left Column: Text & Editorial Intro */}
-          <div className="lg:col-span-7 text-center lg:text-left space-y-6">
+          <div className="md:col-span-7 text-center md:text-left space-y-6">
             {/* Tagline Badge */}
             <motion.div
               initial={{ opacity: 0, y: 15 }}
@@ -50,7 +53,7 @@ export const Hero: React.FC<HeroProps> = ({ onSearch, onExploreClick, onDupesCli
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.1 }}
-              className="font-editorial text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-espresso-800 leading-[1.08]"
+              className="font-editorial text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-espresso-800 leading-[1.08]"
             >
               Discover Beauty. <br className="hidden sm:inline" />
               <span className="font-serif italic font-normal text-rose-500">Compare Smarter.</span>
@@ -63,7 +66,7 @@ export const Hero: React.FC<HeroProps> = ({ onSearch, onExploreClick, onDupesCli
               transition={{ duration: 0.7, delay: 0.2 }}
               className="text-base sm:text-lg text-espresso-600/90 max-w-xl mx-auto lg:mx-0 font-normal leading-relaxed"
             >
-              Find your favourite skincare and makeup at the best available prices. We compare real-time offers across India’s premier beauty retailers so you never overpay for your glow.
+              Find your favourite skincare and makeup, explore sample retailer prices, and discover beauty picks that fit your budget.
             </motion.p>
 
             {/* Search Input Bar */}
@@ -148,7 +151,7 @@ export const Hero: React.FC<HeroProps> = ({ onSearch, onExploreClick, onDupesCli
               </div>
               <div className="flex items-center space-x-1.5">
                 <ShieldCheck className="w-4 h-4 text-rose-500" />
-                <span>100% Authentic Listings</span>
+                <span>Exact-variant price checks</span>
               </div>
               <div className="flex items-center space-x-1.5">
                 <span className="font-semibold text-champagne-600">₹</span>
@@ -158,7 +161,7 @@ export const Hero: React.FC<HeroProps> = ({ onSearch, onExploreClick, onDupesCli
           </div>
 
           {/* Right Column: Editorial Hero Campaign Visual */}
-          <div className="lg:col-span-5 relative">
+          <div className="md:col-span-5 relative">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -170,10 +173,10 @@ export const Hero: React.FC<HeroProps> = ({ onSearch, onExploreClick, onDupesCli
 
               {/* Main campaign image card */}
               <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-rose-200/50 bg-white">
-                <img
-                  src="https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=1000&q=85"
-                  alt="PriceWise Beauty Editorial Campaign - Glowing Skin"
-                  className="w-full h-[440px] sm:h-[500px] object-cover object-center filter saturate-105"
+                <ProductImage compact
+                  src={spotlight.image}
+                  alt={`${spotlight.brand} ${spotlight.name}`}
+                  className="w-full h-[300px] sm:h-[360px] lg:h-[440px]"
                 />
 
                 {/* Editorial Overlay Pill */}
@@ -187,12 +190,12 @@ export const Hero: React.FC<HeroProps> = ({ onSearch, onExploreClick, onDupesCli
                       <h4 className="font-editorial text-lg font-bold text-espresso-800">
                         Dot & Key Watermelon Sunscreen
                       </h4>
-                      <p className="text-xs text-espresso-500">Lowest on Nykaa Demo at ₹465 (MRP ₹595)</p>
+                      <p className="text-xs text-espresso-600">{spotlight.price > 0 ? `${spotlight.priceStatus === 'live' ? 'Current listed price' : 'Demo price'} ₹${spotlight.price.toLocaleString('en-IN')}` : 'Current price could not be verified'}</p>
                     </div>
 
                     <div className="text-right">
                       <span className="inline-block bg-rose-500 text-ivory text-xs font-bold px-2.5 py-1 rounded-full">
-                        Save 22%
+                        {spotlight.originalPrice && spotlight.price > 0 && spotlight.originalPrice > spotlight.price ? `Save ${Math.round((spotlight.originalPrice - spotlight.price) / spotlight.originalPrice * 100)}%` : 'View product'}
                       </span>
                     </div>
                   </div>

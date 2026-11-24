@@ -16,9 +16,11 @@ import type {
   PlatformRatingSummary,
   WeightedReviewScore,
 } from '../types';
+import { getRetailerProductUrl, isProductSearchUrl } from '../utils/productLinks';
 
 interface ReviewIntelligenceHubProps {
   product: Product;
+  showPlatformRatings?: boolean;
 }
 
 const SUPPORTED_PLATFORMS: Array<'Nykaa' | 'Tira' | 'Amazon India' | 'Purplle' | 'Myntra'> = [
@@ -29,7 +31,7 @@ const SUPPORTED_PLATFORMS: Array<'Nykaa' | 'Tira' | 'Amazon India' | 'Purplle' |
   'Myntra',
 ];
 
-export const ReviewIntelligenceHub: React.FC<ReviewIntelligenceHubProps> = ({ product }) => {
+export const ReviewIntelligenceHub: React.FC<ReviewIntelligenceHubProps> = ({ product, showPlatformRatings = false }) => {
   // -------------------------------------------------------------
   // 1. Resolve Platform Ratings (with safe fallback generation)
   // -------------------------------------------------------------
@@ -63,9 +65,7 @@ export const ReviewIntelligenceHub: React.FC<ReviewIntelligenceHubProps> = ({ pr
       }
 
       // Explicitly mark platform as unlinked/unavailable (never treat as 0.0!)
-      const searchUrl = plat === 'Myntra'
-        ? `https://www.myntra.com/${encodeURIComponent(product.name)}`
-        : `https://www.google.com/search?q=${encodeURIComponent(product.brand + ' ' + product.name + ' ' + plat)}`;
+      const searchUrl = getRetailerProductUrl(product, plat);
 
       return {
         platform: plat,
@@ -287,6 +287,7 @@ export const ReviewIntelligenceHub: React.FC<ReviewIntelligenceHubProps> = ({ pr
       {/* ========================================================= */}
       {/* SECTION 1: Cross-Platform Rating Comparison               */}
       {/* ========================================================= */}
+      {showPlatformRatings && (
       <div className="bg-white rounded-3xl border border-rose-200/90 p-6 sm:p-8 shadow-soft-lift space-y-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-5 border-b border-rose-100">
@@ -433,12 +434,12 @@ export const ReviewIntelligenceHub: React.FC<ReviewIntelligenceHubProps> = ({ pr
                   </span>
 
                   <a
-                    href={plat.productUrl || 'https://www.google.com'}
+                    href={getRetailerProductUrl(product, plat.platform, plat.productUrl)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-rose-600 hover:text-rose-700 font-bold flex items-center space-x-0.5"
                   >
-                    <span>{isAvail ? 'View' : 'Search'}</span>
+                    <span>{isProductSearchUrl(getRetailerProductUrl(product, plat.platform, plat.productUrl)) ? 'Search' : 'View product'}</span>
                     <ExternalLink className="w-2.5 h-2.5" />
                   </a>
                 </div>
@@ -448,6 +449,7 @@ export const ReviewIntelligenceHub: React.FC<ReviewIntelligenceHubProps> = ({ pr
         </div>
       </div>
 
+      )}
       {/* ========================================================= */}
       {/* SECTION 2: Interactive Customer Reviews Hub               */}
       {/* ========================================================= */}
@@ -686,7 +688,7 @@ export const ReviewIntelligenceHub: React.FC<ReviewIntelligenceHubProps> = ({ pr
                   </div>
 
                   <a
-                    href={rev.sourceUrl || 'https://www.nykaa.com'}
+                    href={getRetailerProductUrl(product, rev.platform, rev.sourceUrl)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-rose-600 hover:text-rose-700 font-semibold flex items-center space-x-1 shrink-0"

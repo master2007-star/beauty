@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 
-import { PRODUCTS_DATA } from './data/products';
+import { PriceProvider, useCatalogue } from './context/PriceContext';
 import type { Product, ProductCategory, Subcategory } from './types';
 
 // Context
@@ -13,7 +13,6 @@ import { useWishlist } from './hooks/useWishlist';
 import { usePriceTracker } from './hooks/usePriceTracker';
 
 // Components & Pages
-import { CustomCursor } from './components/CustomCursor';
 import { Navbar } from './components/Navbar';
 import { ScrollToTop } from './components/ScrollToTop';
 import { WishlistDrawer } from './components/WishlistDrawer';
@@ -29,6 +28,8 @@ import { RoutinesPage } from './pages/RoutinesPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
 export const AppContent: React.FC = () => {
+  const { products: PRODUCTS_DATA } = useCatalogue();
+  const navigate = useNavigate();
   // Navigation & Filter State
   const [activeCategory, setActiveCategory] = useState<ProductCategory | 'all'>('all');
   const [activeSubcategory, setActiveSubcategory] = useState<Subcategory | 'all'>('all');
@@ -52,26 +53,23 @@ export const AppContent: React.FC = () => {
     const el = document.getElementById(sectionId);
     if (el) {
       el.scrollIntoView({ behavior: 'smooth' });
-    }
+    } else navigate(`/#${sectionId}`);
   };
 
   return (
     <div className="min-h-screen bg-ivory text-espresso-900 font-sans selection:bg-rose-200 selection:text-espresso-950 flex flex-col justify-between">
-      {/* Editorial Custom Cursor for Desktop */}
-      <CustomCursor />
-
       {/* Global Navigation Header */}
       <Navbar
         wishlistCount={wishlistCount}
         unreadAlertCount={unreadAlertCount}
         onOpenWishlist={() => setIsWishlistOpen(true)}
-        onSelectCategory={(cat) => setActiveCategory(cat)}
+        onSelectCategory={(cat) => { setActiveCategory(cat); setActiveSubcategory('all'); }}
         onScrollToSection={scrollToSection}
         activeCategory={activeCategory}
       />
 
       {/* Dynamic Route View */}
-      <div className="flex-1 pt-16">
+      <div className="flex-1 pt-[var(--site-header-height,5rem)]">
         <Routes>
           <Route
             path="/"
@@ -127,7 +125,7 @@ export const AppContent: React.FC = () => {
       <AnimatePresence>
         {selectedProduct && (
           <ProductDetailModal
-            product={selectedProduct}
+            product={PRODUCTS_DATA.find((product) => product.id === selectedProduct.id) || selectedProduct}
             onClose={() => setSelectedProduct(null)}
             isWishlisted={isWishlisted(selectedProduct.id)}
             onToggleWishlist={toggleWishlist}
@@ -147,10 +145,10 @@ export const AppContent: React.FC = () => {
 
 export const App: React.FC = () => {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
       <ScrollToTop />
       <AuthProvider>
-        <AppContent />
+        <PriceProvider><AppContent /></PriceProvider>
       </AuthProvider>
     </BrowserRouter>
   );

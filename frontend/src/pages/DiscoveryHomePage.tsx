@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, X } from 'lucide-react';
 
-import { PRODUCTS_DATA } from '../data/products';
+import { useCatalogue } from '../context/PriceContext';
 import { CATEGORIES_DATA } from '../data/categories';
 import type { Product, ProductCategory, Subcategory } from '../types';
 
@@ -35,6 +35,7 @@ export const DiscoveryHomePage: React.FC<DiscoveryHomePageProps> = ({
   setActiveSubcategory,
 }) => {
   const navigate = useNavigate();
+  const { products: PRODUCTS_DATA } = useCatalogue();
 
   // Search & Filter State
   const [searchQuery, setSearchQuery] = useState('');
@@ -48,7 +49,7 @@ export const DiscoveryHomePage: React.FC<DiscoveryHomePageProps> = ({
     const brandsSet = new Set<string>();
     PRODUCTS_DATA.forEach((p) => brandsSet.add(p.brand));
     return Array.from(brandsSet).sort();
-  }, []);
+  }, [PRODUCTS_DATA]);
 
   const skinTypes = [
     'All Skin Types',
@@ -107,11 +108,11 @@ export const DiscoveryHomePage: React.FC<DiscoveryHomePageProps> = ({
       }
       return (b.isTrending ? 1 : 0) - (a.isTrending ? 1 : 0);
     });
-  }, [activeCategory, activeSubcategory, selectedBrand, selectedSkinType, selectedBudget, searchQuery, sortBy]);
+  }, [PRODUCTS_DATA, activeCategory, activeSubcategory, selectedBrand, selectedSkinType, selectedBudget, searchQuery, sortBy]);
 
   const bestDeals = useMemo(() => {
     return PRODUCTS_DATA.filter((p) => p.isBestDeal || (p.originalPrice && p.originalPrice > p.price));
-  }, []);
+  }, [PRODUCTS_DATA]);
 
   const scrollToSection = (sectionId: string) => {
     const el = document.getElementById(sectionId);
@@ -144,6 +145,7 @@ export const DiscoveryHomePage: React.FC<DiscoveryHomePageProps> = ({
     <main>
       {/* 1. Hero Campaign Section */}
       <Hero
+        spotlight={PRODUCTS_DATA[0]}
         onSearch={(query: string) => setSearchQuery(query)}
         onExploreClick={() => scrollToSection('catalog')}
         onDupesClick={() => scrollToSection('dupes')}

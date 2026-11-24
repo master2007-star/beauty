@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Heart, ShieldAlert, ArrowUp } from 'lucide-react';
 
 export const Footer: React.FC = () => {
@@ -37,12 +38,12 @@ export const Footer: React.FC = () => {
               Skincare
             </h4>
             <ul className="space-y-2 text-xs text-espresso-200/70">
-              <li><a href="#categories" className="hover:text-rose-300 transition-colors">Face Wash & Cleansers</a></li>
-              <li><a href="#categories" className="hover:text-rose-300 transition-colors">Ceramide Moisturisers</a></li>
-              <li><a href="#categories" className="hover:text-rose-300 transition-colors">PA++++ Sunscreens</a></li>
-              <li><a href="#categories" className="hover:text-rose-300 transition-colors">Targeted Active Serums</a></li>
-              <li><a href="#categories" className="hover:text-rose-300 transition-colors">Exfoliating Toners</a></li>
-              <li><a href="#categories" className="hover:text-rose-300 transition-colors">Overnight Lip Care</a></li>
+              <li><Link to="/#categories" className="hover:text-rose-300 transition-colors">Face Wash & Cleansers</Link></li>
+              <li><Link to="/#categories" className="hover:text-rose-300 transition-colors">Ceramide Moisturisers</Link></li>
+              <li><Link to="/#categories" className="hover:text-rose-300 transition-colors">PA++++ Sunscreens</Link></li>
+              <li><Link to="/#categories" className="hover:text-rose-300 transition-colors">Targeted Active Serums</Link></li>
+              <li><Link to="/#categories" className="hover:text-rose-300 transition-colors">Exfoliating Toners</Link></li>
+              <li><Link to="/#categories" className="hover:text-rose-300 transition-colors">Overnight Lip Care</Link></li>
             </ul>
           </div>
 
@@ -52,12 +53,12 @@ export const Footer: React.FC = () => {
               Makeup
             </h4>
             <ul className="space-y-2 text-xs text-espresso-200/70">
-              <li><a href="#categories" className="hover:text-rose-300 transition-colors">Warm Undertone Foundations</a></li>
-              <li><a href="#categories" className="hover:text-rose-300 transition-colors">Crease-Proof Concealers</a></li>
-              <li><a href="#categories" className="hover:text-rose-300 transition-colors">Transfer-Proof Lipsticks</a></li>
-              <li><a href="#categories" className="hover:text-rose-300 transition-colors">Dewy Liquid Blushes</a></li>
-              <li><a href="#categories" className="hover:text-rose-300 transition-colors">Humidity-Resistant Mascaras</a></li>
-              <li><a href="#categories" className="hover:text-rose-300 transition-colors">Eyeshadow Palettes</a></li>
+              <li><Link to="/#categories" className="hover:text-rose-300 transition-colors">Warm Undertone Foundations</Link></li>
+              <li><Link to="/#categories" className="hover:text-rose-300 transition-colors">Crease-Proof Concealers</Link></li>
+              <li><Link to="/#categories" className="hover:text-rose-300 transition-colors">Transfer-Proof Lipsticks</Link></li>
+              <li><Link to="/#categories" className="hover:text-rose-300 transition-colors">Dewy Liquid Blushes</Link></li>
+              <li><Link to="/#categories" className="hover:text-rose-300 transition-colors">Humidity-Resistant Mascaras</Link></li>
+              <li><Link to="/#categories" className="hover:text-rose-300 transition-colors">Eyeshadow Palettes</Link></li>
             </ul>
           </div>
 

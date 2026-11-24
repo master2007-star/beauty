@@ -9,12 +9,14 @@ import {
   CheckCircle2,
   Tag,
   Clock,
-  TrendingDown,
   Star,
   MessageSquareQuote,
   ShieldCheck,
 } from 'lucide-react';
 import type { Product, ReviewItem } from '../types';
+import { ProductImage } from './ProductImage';
+import { OfficialProductLink } from './OfficialProductLink';
+import { getRetailerProductUrl, isProductSearchUrl } from '../utils/productLinks';
 import { ALTERNATIVES_DATA } from '../data/alternatives';
 
 interface ProductDetailModalProps {
@@ -117,7 +119,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
               {/* Product Media */}
               <div className="md:col-span-5 relative">
                 <div className="aspect-square rounded-2xl overflow-hidden bg-white border border-rose-200/80 shadow-soft-lift">
-                  <img
+                  <ProductImage
                     src={product.image}
                     alt={product.name}
                     className="w-full h-full object-cover object-center"
@@ -153,12 +155,13 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                   <h2 className="font-editorial text-2xl sm:text-3xl font-bold text-espresso-900 mt-2">
                     {product.name}
                   </h2>
+                  <OfficialProductLink product={product} className="mt-2" />
                 </div>
 
                 {/* Price Summary */}
                 <div className="flex flex-wrap items-baseline gap-3">
                   <span className="text-3xl font-sans font-extrabold text-espresso-950">
-                    ₹{product.price.toLocaleString('en-IN')}
+                    {product.price > 0 ? `₹${product.price.toLocaleString('en-IN')}` : product.priceStatus === 'checking' ? 'Checking price…' : 'Live price unavailable'}
                   </span>
                   {product.originalPrice && product.originalPrice > product.price && (
                     <span className="text-sm font-sans text-espresso-400 line-through">
@@ -301,89 +304,18 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
 
                         {/* Configurable Purchase CTA */}
                         <a
-                          href={offer.purchaseUrl}
+                          href={getRetailerProductUrl(product, offer.storeName, offer.purchaseUrl)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="px-4 py-2.5 rounded-xl bg-espresso-800 hover:bg-espresso-950 text-ivory text-xs font-semibold tracking-wide transition-all shadow-xs flex items-center space-x-1 shrink-0"
                         >
-                          <span>Buy Now (Demo)</span>
+                          <span>{isProductSearchUrl(getRetailerProductUrl(product, offer.storeName, offer.purchaseUrl)) ? `Search ${offer.storeName}` : `Visit ${offer.storeName}`}</span>
                           <ExternalLink className="w-3 h-3 ml-1" />
                         </a>
                       </div>
                     </div>
                   );
                 })}
-              </div>
-            </div>
-
-            {/* Historical Price Trends Section (Phase 2) */}
-            <div className="pt-6 border-t border-rose-200">
-              <div className="flex items-center justify-between mb-3">
-                <div>
-                  <h3 className="font-editorial text-xl sm:text-2xl font-bold text-espresso-800 flex items-center gap-2">
-                    <TrendingDown className="w-5 h-5 text-rose-500" />
-                    <span>Price History & Trends (90-Day Window)</span>
-                  </h3>
-                  <p className="text-xs text-espresso-500">
-                    Timestamped price tracking across monitored stores. Benchmark indicates recorded norms.
-                  </p>
-                </div>
-              </div>
-
-              {/* Price Stats Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
-                <div className="bg-white p-3 rounded-xl border border-rose-100">
-                  <div className="text-[10px] uppercase font-bold text-espresso-400">Current Best</div>
-                  <div className="text-lg font-extrabold text-espresso-900">₹{product.price.toLocaleString('en-IN')}</div>
-                  <div className="text-[10px] text-sage-600 font-medium">Verified Active</div>
-                </div>
-                <div className="bg-white p-3 rounded-xl border border-rose-100">
-                  <div className="text-[10px] uppercase font-bold text-espresso-400">90-Day Low</div>
-                  <div className="text-lg font-extrabold text-rose-600">
-                    ₹{Math.min(product.price, Math.round(product.price * 0.95)).toLocaleString('en-IN')}
-                  </div>
-                  <div className="text-[10px] text-rose-500 font-medium">Recorded Low</div>
-                </div>
-                <div className="bg-white p-3 rounded-xl border border-rose-100">
-                  <div className="text-[10px] uppercase font-bold text-espresso-400">Recorded Average</div>
-                  <div className="text-lg font-extrabold text-espresso-800">
-                    ₹{Math.round((product.price + (product.originalPrice || product.price * 1.15)) / 2).toLocaleString('en-IN')}
-                  </div>
-                  <div className="text-[10px] text-espresso-400">Monitored Norm</div>
-                </div>
-                <div className="bg-white p-3 rounded-xl border border-rose-100">
-                  <div className="text-[10px] uppercase font-bold text-espresso-400">List MRP</div>
-                  <div className="text-lg font-extrabold text-espresso-500 line-through">
-                    ₹{(product.originalPrice || Math.round(product.price * 1.2)).toLocaleString('en-IN')}
-                  </div>
-                  <div className="text-[10px] text-espresso-400">Standard Retail</div>
-                </div>
-              </div>
-
-              {/* Price Trend Timeline */}
-              <div className="bg-white p-4 rounded-2xl border border-rose-100">
-                <div className="text-xs font-bold text-espresso-700 mb-3 flex items-center justify-between">
-                  <span>Price History Observations</span>
-                  <span className="text-[11px] font-normal text-espresso-400">Monitored Indian Retail Feeds</span>
-                </div>
-                <div className="flex items-center justify-between relative pt-2 pb-1">
-                  <div className="absolute top-1/2 left-4 right-4 h-0.5 bg-rose-100 -translate-y-1/2 -z-0"></div>
-                  {(product.priceHistory || [
-                    { date: 'Aug 2026', price: product.originalPrice || Math.round(product.price * 1.18), store: 'Retail MRP' },
-                    { date: 'Sep 2026', price: Math.round(product.price * 1.08), store: 'Nykaa' },
-                    { date: 'Oct 2026', price: Math.round(product.price * 1.02), store: 'Tira' },
-                    { date: 'Current', price: product.price, store: sortedOffers[0]?.storeName || 'Nykaa' },
-                  ]).map((point, pidx, arr) => (
-                    <div key={pidx} className="relative z-10 flex flex-col items-center">
-                      <div className={`w-3.5 h-3.5 rounded-full border-2 ${
-                        pidx === arr.length - 1 ? 'bg-rose-500 border-white shadow-xs' : 'bg-white border-rose-300'
-                      }`} />
-                      <span className="text-xs font-bold text-espresso-800 mt-1.5 font-sans">₹{point.price.toLocaleString('en-IN')}</span>
-                      <span className="text-[10px] text-espresso-400">{point.date}</span>
-                      <span className="text-[9px] text-rose-500 font-medium">{point.store}</span>
-                    </div>
-                  ))}
-                </div>
               </div>
             </div>
 
@@ -445,7 +377,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                     verifiedBuyer: true,
                     title: `Excellent authentic ${product.subcategory}`,
                     comment: `Purchased this on ${sortedOffers[0]?.storeName || 'Nykaa'}. Formula is 100% authentic with sealed packaging and batch code verified. Suits my ${product.skinType || 'skin'} perfectly without any irritation.`,
-                    sourceUrl: sortedOffers[0]?.purchaseUrl || 'https://www.nykaa.com',
+                    sourceUrl: sortedOffers[0]?.purchaseUrl || getRetailerProductUrl(product, 'Nykaa'),
                   },
                   {
                     id: `rev-${product.id}-2`,
@@ -456,7 +388,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                     verifiedBuyer: true,
                     title: 'Worth every rupee — great daily results',
                     comment: `Delivered in 2 days. The ${product.quantity} pack is great value compared to department stores. Will definitely repurchase via PriceWise Beauty.`,
-                    sourceUrl: sortedOffers[1]?.purchaseUrl || 'https://www.tirabeauty.com',
+                    sourceUrl: sortedOffers[1]?.purchaseUrl || getRetailerProductUrl(product, 'Tira'),
                   },
                 ] as ReviewItem[]).map((rev) => (
                   <div key={rev.id} className="bg-white p-4 rounded-2xl border border-rose-100 shadow-2xs space-y-2">
@@ -488,7 +420,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                     <div className="flex items-center justify-between text-[11px] text-espresso-400 pt-1 border-t border-rose-50">
                       <span>{rev.author} • {rev.date}</span>
                       <a
-                        href={rev.sourceUrl || 'https://www.nykaa.com'}
+                        href={getRetailerProductUrl(product, rev.platform, rev.sourceUrl)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-rose-600 hover:text-rose-700 font-semibold flex items-center space-x-1"

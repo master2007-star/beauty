@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Sparkles, Heart, Search, Menu, X, Bell, User as UserIcon, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
@@ -29,9 +29,21 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLElement>(null);
 
   const { user, openAuthModal, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    const header = headerRef.current;
+    if (!header) return;
+    const measure = () => document.documentElement.style.setProperty('--site-header-height', `${header.getBoundingClientRect().height}px`);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(header);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -54,7 +66,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   const handleNavClick = (category: ProductCategory | 'all', sectionId: string) => {
     if (onSelectCategory && onScrollToSection) {
       onSelectCategory(category);
-      onScrollToSection(sectionId);
+      if (location.pathname === '/') onScrollToSection(sectionId);
+      else navigate(`/#${sectionId}`);
     } else {
       navigate(`/?category=${category}`);
     }
@@ -64,10 +77,11 @@ export const Navbar: React.FC<NavbarProps> = ({
   return (
     <>
       <header
+        ref={headerRef}
         className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
           isScrolled
-            ? 'glass-panel shadow-soft-lift py-3'
-            : 'bg-ivory/80 backdrop-blur-md py-5 border-b border-rose-100/60'
+            ? 'bg-ivory shadow-soft-lift py-3'
+            : 'bg-ivory py-5 border-b border-rose-100/60'
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

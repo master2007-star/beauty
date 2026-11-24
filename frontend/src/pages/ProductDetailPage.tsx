@@ -11,10 +11,11 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 
-import { PRODUCTS_DATA } from '../data/products';
+import { useCatalogue } from '../context/PriceContext';
+import { ProductImage } from '../components/ProductImage';
+import { OfficialProductLink } from '../components/OfficialProductLink';
 import { ALTERNATIVES_DATA } from '../data/alternatives';
 import { findProductBySlugOrId, generateProductSlug } from '../utils/slug';
-import { PriceHistoryChart } from '../components/PriceHistoryChart';
 import { PriceTrackingModal } from '../components/PriceTrackingModal';
 import { BeautyUsageGuide } from '../components/BeautyUsageGuide';
 import { ReviewIntelligenceHub } from '../components/ReviewIntelligenceHub';
@@ -23,6 +24,7 @@ import { useWishlist } from '../hooks/useWishlist';
 import { usePriceTracker } from '../hooks/usePriceTracker';
 
 export const ProductDetailPage: React.FC = () => {
+  const { products: PRODUCTS_DATA } = useCatalogue();
   const { slugOrId } = useParams<{ slugOrId: string }>();
   const navigate = useNavigate();
 
@@ -37,7 +39,7 @@ export const ProductDetailPage: React.FC = () => {
   // Lookup product
   const product = useMemo(() => {
     return findProductBySlugOrId(PRODUCTS_DATA, slugOrId || '');
-  }, [slugOrId]);
+  }, [slugOrId, PRODUCTS_DATA]);
 
   // Polished 404 Not Found State
   if (!product) {
@@ -79,7 +81,7 @@ export const ProductDetailPage: React.FC = () => {
 
   const handleShare = () => {
     const canonicalSlug = product.slug || generateProductSlug(product);
-    const fullUrl = `${window.location.origin}/product/${canonicalSlug}`;
+    const fullUrl = `${window.location.origin}${import.meta.env.BASE_URL}product/${canonicalSlug}`;
     navigator.clipboard.writeText(fullUrl).then(() => {
       setCopiedUrl(true);
       setTimeout(() => setCopiedUrl(false), 2500);
@@ -123,7 +125,7 @@ export const ProductDetailPage: React.FC = () => {
           {/* Left Column: Image & Size */}
           <div className="lg:col-span-5 space-y-4">
             <div className="aspect-square w-full rounded-3xl overflow-hidden bg-white border border-rose-200/90 shadow-luxury-card relative">
-              <img
+              <ProductImage
                 src={product.image}
                 alt={product.name}
                 className="w-full h-full object-cover object-center"
@@ -196,7 +198,7 @@ export const ProductDetailPage: React.FC = () => {
 
               <div className="flex items-baseline space-x-3">
                 <span className="text-3xl sm:text-4xl font-sans font-extrabold text-espresso-950">
-                  ₹{product.price.toLocaleString('en-IN')}
+                  {product.price > 0 ? `₹${product.price.toLocaleString('en-IN')}` : product.priceStatus === 'checking' ? 'Checking price…' : 'Live price unavailable'}
                 </span>
 
                 {product.originalPrice && product.originalPrice > product.price && (
@@ -215,6 +217,7 @@ export const ProductDetailPage: React.FC = () => {
 
               {/* Action Buttons: Wishlist, Price Alert, Share */}
               <div className="pt-2 flex flex-wrap gap-2.5">
+                <OfficialProductLink product={product} className="rounded-xl border border-rose-200 bg-white px-4 py-2.5 hover:bg-rose-50" />
                 <button
                   type="button"
                   onClick={() => toggleWishlist(product.id)}
@@ -283,17 +286,6 @@ export const ProductDetailPage: React.FC = () => {
           targetVariant={product.quantity}
           fallbackOffers={product.storeOffers}
         />
-
-        {/* Price History & Trends Section */}
-        <section className="space-y-3">
-          <PriceHistoryChart
-            priceHistory={product.priceHistory}
-            currentPrice={product.price}
-            originalPrice={product.originalPrice}
-            targetPrice={trackingRecord?.targetPrice}
-            productName={product.name}
-          />
-        </section>
 
         {/* Beauty Product Usage Guide & Ingredient Intelligence */}
         <BeautyUsageGuide product={product} />

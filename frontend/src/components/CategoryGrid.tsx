@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { CATEGORIES_DATA } from '../data/categories';
+import { ProductImage } from './ProductImage';
 import type { Subcategory, ProductCategory } from '../types';
 import { ArrowRight } from 'lucide-react';
 
@@ -91,7 +92,7 @@ export const CategoryGrid: React.FC<CategoryGridProps> = ({
               >
                 {/* Category Thumbnail */}
                 <div className="relative h-36 sm:h-44 overflow-hidden bg-ivory">
-                  <img
+                  <ProductImage compact
                     src={cat.image}
                     alt={cat.name}
                     className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"

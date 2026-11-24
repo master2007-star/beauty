@@ -12,6 +12,16 @@
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   </head>
   <body class="bg-ivory text-espresso-700 font-sans selection:bg-rose-200 selection:text-espresso-900 antialiased overflow-x-hidden">
+    <script>
+      // Restore a product/page route after GitHub Pages' static 404 redirect.
+      (() => {
+        const route = new URLSearchParams(location.search).get('__pw_route');
+        if (route && route.startsWith('/beauty/')) {
+          const target = new URL(route, location.origin);
+          if (target.origin === location.origin) history.replaceState(null, '', target.pathname + target.search + target.hash);
+        }
+      })();
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

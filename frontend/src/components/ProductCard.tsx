@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Heart, Star, Sparkles, Scale, Info } from 'lucide-react';
 import type { Product } from '../types';
+import { ProductImage } from './ProductImage';
+import { OfficialProductLink } from './OfficialProductLink';
 
 interface ProductCardProps {
   product: Product;
@@ -13,9 +15,6 @@ interface ProductCardProps {
   onViewAlternative?: (product: Product) => void;
 }
 
-// Resilient SVG fallback image in Warm Ivory & Dusty Rose
-const FALLBACK_BEAUTY_SVG = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400"><rect width="400" height="400" fill="%23FAF7F2"/><circle cx="200" cy="180" r="70" fill="%23F3E4E6" stroke="%23C98991" stroke-width="2"/><path d="M170 230 C170 230, 200 270, 230 230" fill="none" stroke="%23C98991" stroke-width="2.5"/><text x="200" y="320" font-family="serif" font-size="20" fill="%23302724" text-anchor="middle" font-weight="bold">PRICEWISE BEAUTY</text><text x="200" y="345" font-family="sans-serif" font-size="12" fill="%239E948F" text-anchor="middle">DEMO PRODUCT IMAGE</text></svg>`;
-
 export const ProductCard: React.FC<ProductCardProps> = ({
   product,
   isWishlisted,
@@ -24,8 +23,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   onComparePrices,
   onViewAlternative,
 }) => {
-  const [imgSrc, setImgSrc] = useState(product.image);
-
   // Find lowest price store
   const lowestOffer = product.storeOffers.reduce((min, o) => (o.price < min.price ? o : min), product.storeOffers[0]);
   const savingsAmount = product.originalPrice ? product.originalPrice - product.price : 0;
@@ -42,12 +39,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       className="group relative rounded-2xl bg-white border border-rose-100/90 hover:border-rose-300 shadow-soft-lift hover:shadow-luxury-card transition-all duration-300 flex flex-col overflow-hidden"
     >
       {/* Top Media Area */}
-      <div className="relative aspect-4/3 w-full bg-ivory-100 overflow-hidden">
+      <div className="relative aspect-[4/3] w-full bg-ivory-100 overflow-hidden">
         <Link to={productUrl} className="block w-full h-full">
-          <img
-            src={imgSrc}
+          <ProductImage
+            src={product.image}
             alt={product.name}
-            onError={() => setImgSrc(FALLBACK_BEAUTY_SVG)}
             className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
             loading="lazy"
           />
@@ -94,7 +90,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             {product.brandTier}
           </span>
           <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-white/85 text-espresso-600 border border-rose-100">
-            Demo Price
+            {product.priceStatus === 'live' ? 'Live Price' : product.priceStatus ? 'Live Check' : 'Demo Price'}
           </span>
         </div>
       </div>
@@ -139,10 +135,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         <div className="pt-3 mt-3 border-t border-rose-100/60">
           <div className="flex items-baseline justify-between">
             <div>
-              <span className="text-[11px] text-espresso-400 block font-normal">Lowest Available</span>
+              <span className="text-[11px] text-espresso-400 block font-normal">{product.priceStatus ? 'Current listed price' : 'Demo price'}</span>
               <div className="flex items-baseline space-x-2">
                 <span className="text-xl font-extrabold text-espresso-900 font-sans">
-                  ₹{product.price.toLocaleString('en-IN')}
+                  {product.price > 0 ? `₹${product.price.toLocaleString('en-IN')}` : product.priceStatus === 'checking' ? 'Checking price…' : 'Price unavailable'}
                 </span>
                 {product.originalPrice && product.originalPrice > product.price && (
                   <span className="text-xs text-espresso-400 line-through">
@@ -164,7 +160,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           {lowestOffer && (
             <div className="mt-2 flex items-center justify-between text-[11px] text-espresso-500 bg-ivory px-2.5 py-1 rounded-md border border-rose-100">
               <span>On <strong>{lowestOffer.storeName}</strong></span>
-              <span className="text-sage-600 font-medium">Free Delivery</span>
+              <span className="text-sage-600 font-medium">{lowestOffer.isShippingDisclosed === false ? 'Shipping at checkout' : lowestOffer.shippingFee === 0 ? 'Free Delivery' : 'Shipping extra'}</span>
             </div>
           )}
 
@@ -188,6 +184,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                 <span>Compare</span>
               </button>
             </div>
+
+            <OfficialProductLink product={product} className="justify-center py-1.5" />
 
             {hasAlternative && (
               <button

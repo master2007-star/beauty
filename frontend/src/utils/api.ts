@@ -16,6 +16,7 @@ import type {
 } from '../types';
 import { PRODUCTS_DATA } from '../data/products';
 import { findProductBySlugOrId } from './slug';
+import { getRetailerProductUrl } from './productLinks';
 
 // Read API base URL from Vite environment or default to local FastAPI port
 const getBaseApiUrl = (): string => {
@@ -85,6 +86,9 @@ export interface BackendProduct {
  * Fetch with automatic AbortSignal timeout.
  */
 async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutMs = DEFAULT_TIMEOUT_MS): Promise<Response> {
+  if (import.meta.env.VITE_DEMO_ONLY === 'true') {
+    throw new Error('This demo uses sample data. Account and cloud features require a connected backend.');
+  }
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
@@ -427,7 +431,7 @@ export async function getAutoLiveComparison(
           totalCost: o.total_cost,
           stockStatus: o.stock_status,
           inStock: o.in_stock,
-          purchaseUrl: o.purchase_url,
+          purchaseUrl: getRetailerProductUrl({ name: data.product_title, brand: data.brand }, o.retailer_name, o.purchase_url),
           variantDetected: o.variant_detected,
           matchClassification: (o.match_classification as LiveRetailerOffer['matchClassification']) || 'verified_match',
           isLowestListed: o.is_lowest_listed,

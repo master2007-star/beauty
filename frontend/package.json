@@ -7,6 +7,9 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
+    "check:images": "node scripts/check-product-images.mjs",
+    "check:categories": "node scripts/check-category-images.mjs",
+    "check:links": "node scripts/check-product-links.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

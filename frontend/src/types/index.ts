@@ -27,7 +27,7 @@ export type Subcategory = SkincareSubcategory | MakeupSubcategory | OtherSubcate
 
 export interface RetailerOffer {
   storeId: string;
-  storeName: 'Nykaa' | 'Tira' | 'Purplle' | 'Amazon India' | 'Myntra';
+  storeName: 'Nykaa' | 'Tira' | 'Purplle' | 'Amazon India' | 'Myntra' | `Official: ${string}`;
   storeLogo?: string;
   price: number;
   originalPrice?: number;
@@ -123,6 +123,11 @@ export interface Product {
   rating?: number;
   reviewCount?: number;
   image: string;
+  officialUrl?: string;
+  officialUrlKind?: 'brand' | 'retailer';
+  officialUrlNote?: string;
+  priceStatus?: 'live' | 'checking' | 'unavailable';
+  liveCheckedAt?: string;
   description: string;
   skinType?: string; // For skincare (e.g. "Oily, Combination, Acne-Prone")
   finish?: string; // For makeup (e.g. "Matte, Luminous, Dewy")

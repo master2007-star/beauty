@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Bell, ShieldAlert, CheckCircle2, Trash2 } from 'lucide-react';
 import type { Product, TrackedProduct } from '../types';
+import { ProductImage } from './ProductImage';
 
 interface PriceTrackingModalProps {
   isOpen: boolean;
@@ -21,16 +22,19 @@ export const PriceTrackingModal: React.FC<PriceTrackingModalProps> = ({
   onRemoveTracking,
 }) => {
   const currentPrice = product.price;
-  const initialTarget = existingRecord ? existingRecord.targetPrice : Math.round(currentPrice * 0.9);
-  const [targetInput, setTargetInput] = useState<string>(initialTarget.toString());
+  const initialTarget = existingRecord ? String(existingRecord.targetPrice) : currentPrice > 0 ? String(Math.round(currentPrice * 0.9)) : '';
+  const [targetInput, setTargetInput] = useState<string>(initialTarget);
   const [noteInput, setNoteInput] = useState<string>(existingRecord?.note || '');
   const [errorMsg, setErrorMsg] = useState<string>('');
+  useEffect(() => {
+    if (isOpen) { setTargetInput(initialTarget); setNoteInput(existingRecord?.note || ''); setErrorMsg(''); }
+  }, [isOpen, product.id, existingRecord?.targetPrice]);
 
   if (!isOpen) return null;
 
   const numericTarget = parseFloat(targetInput);
-  const isValidNumber = !isNaN(numericTarget) && numericTarget > 0;
-  const diff = isValidNumber ? numericTarget - currentPrice : 0;
+  const isValidNumber = Number.isFinite(numericTarget) && numericTarget > 0;
+  const diff = isValidNumber ? currentPrice - numericTarget : 0;
   const diffPct = isValidNumber && currentPrice > 0 ? Math.round(((currentPrice - numericTarget) / currentPrice) * 100) : 0;
 
   const handleSave = (e: React.FormEvent) => {
@@ -80,7 +84,7 @@ export const PriceTrackingModal: React.FC<PriceTrackingModalProps> = ({
 
           {/* Product Mini Banner */}
           <div className="flex items-center space-x-3 bg-white p-3 rounded-2xl border border-rose-100">
-            <img
+            <ProductImage compact
               src={product.image}
               alt={product.name}
               className="w-14 h-14 object-cover rounded-xl border border-rose-100"
@@ -95,7 +99,7 @@ export const PriceTrackingModal: React.FC<PriceTrackingModalProps> = ({
               <div className="flex items-baseline space-x-2 mt-0.5">
                 <span className="text-xs text-espresso-400">Current Lowest:</span>
                 <span className="text-sm font-extrabold text-espresso-950 font-sans">
-                  ₹{currentPrice.toLocaleString('en-IN')}
+                  {currentPrice > 0 ? `₹${currentPrice.toLocaleString('en-IN')}` : 'Price unavailable'}
                 </span>
               </div>
             </div>
@@ -126,7 +130,7 @@ export const PriceTrackingModal: React.FC<PriceTrackingModalProps> = ({
               </div>
 
               {/* Target Price Presets */}
-              <div className="flex items-center space-x-2 mt-2">
+              {currentPrice > 0 && <div className="flex flex-wrap items-center gap-2 mt-2">
                 <span className="text-[11px] text-espresso-400">Quick set:</span>
                 {[0.05, 0.1, 0.15, 0.2].map((pct) => {
                   const preset = Math.round(currentPrice * (1 - pct));
@@ -141,7 +145,8 @@ export const PriceTrackingModal: React.FC<PriceTrackingModalProps> = ({
                     </button>
                   );
                 })}
-              </div>
+              </div>}
+              {currentPrice <= 0 && <p className="mt-2 text-xs text-espresso-600">Enter your target manually. Alerts will be evaluated when a verified price is available.</p>}
 
               {errorMsg && (
                 <p className="text-xs text-rose-600 mt-1.5 font-medium">{errorMsg}</p>
@@ -149,7 +154,7 @@ export const PriceTrackingModal: React.FC<PriceTrackingModalProps> = ({
             </div>
 
             {/* Target Calculation Preview */}
-            {isValidNumber && (
+            {isValidNumber && currentPrice > 0 && (
               <div className="p-3 rounded-xl bg-ivory-100 border border-rose-100 text-xs space-y-1">
                 {diff <= 0 ? (
                   <div className="flex items-center space-x-1.5 text-sage-700 font-semibold">

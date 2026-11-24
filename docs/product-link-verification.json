@@ -1,0 +1,426 @@
+{
+  "verifiedAt": "2026-11-24",
+  "officialPages": {
+    "prod-01": {
+      "url": "https://www.dotandkey.com/products/watermelon-cooling-spf-50-face-sunscreen",
+      "kind": "product",
+      "note": "Current 50ml packaging; demo catalogue lists 50g.",
+      "httpStatus": 200,
+      "title": "Watermelon Sunscreen SPF 50+ PA++++ With New-Age UV Filters For Oily S",
+      "finalUrl": "https://www.dotandkey.com/products/watermelon-cooling-spf-50-face-sunscreen"
+    },
+    "prod-03": {
+      "url": "https://beminimalist.co/products/niacinamide-10-with-matmarine",
+      "kind": "product",
+      "note": "Current Niacinamide 10% packaging; demo formula lists Zinc PCA.",
+      "httpStatus": 200,
+      "title": "Niacinamide 10% + Zinc & Matmarine for Blemishes, Acne Marks, Oil Balancing & Dark Spot - Clarifying Face Serum for Acne Prone or Oily Skin | Minimalist",
+      "finalUrl": "https://beminimalist.co/products/niacinamide-10-with-matmarine"
+    },
+    "prod-04": {
+      "url": "https://www.cosrx.com/products/advanced-snail-96-mucin-power-essence-new-original",
+      "kind": "product",
+      "note": "",
+      "httpStatus": 200,
+      "title": "\n    COSRX Snail 96 Mucin Essence | Award-Winning Hydration &amp; Glow &ndash; COSRX Official\n  ",
+      "finalUrl": "https://www.cosrx.com/products/advanced-snail-96-mucin-power-essence-new-original"
+    },
+    "prod-06": {
+      "url": "https://www.dotandkey.com/products/dot-key-ceramides-hyaluronic-hydrating-face-cream-i-repairs-skin-barrier-intense-moisturization-sensitive-dry-skin-fragrance-free",
+      "kind": "product",
+      "note": "",
+      "httpStatus": 200,
+      "title": "Barrier Repair Moisturizer (Hyaluronic + Ceramides)",
+      "finalUrl": "https://www.dotandkey.com/products/dot-key-ceramides-hyaluronic-hydrating-face-cream-i-repairs-skin-barrier-intense-moisturization-sensitive-dry-skin-fragrance-free"
+    },
+    "prod-11": {
+      "url": "https://plumgoodness.com/products/green-tea-alcohol-free-pore-tightening-face-toner-for-oily-acne-prone-skin-1",
+      "kind": "product",
+      "note": "",
+      "httpStatus": 200,
+      "title": "Green Tea Alcohol Free Toner for Oily Skin with Glycolic Acid",
+      "finalUrl": "https://plumgoodness.com/products/green-tea-alcohol-free-pore-tightening-face-toner-for-oily-acne-prone-skin-1"
+    },
+    "prod-12": {
+      "url": "https://us.laneige.com/products/lip-sleeping-mask",
+      "kind": "product",
+      "note": "",
+      "httpStatus": 200,
+      "title": "Lip Sleeping Mask: Best Korean Overnight Lip Treatment\n | LANEIGE",
+      "finalUrl": "https://us.laneige.com/products/lip-sleeping-mask"
+    },
+    "prod-19": {
+      "url": "https://swissbeauty.in/products/ultra-blush-palette-swiss-beauty-cosmetics",
+      "kind": "product",
+      "note": "",
+      "httpStatus": 200,
+      "title": "Buy Swiss Beauty Ultra Blush Palette | BUY5 @ 1199",
+      "finalUrl": "https://swissbeauty.in/products/ultra-blush-palette-swiss-beauty-cosmetics"
+    },
+    "prod-21": {
+      "url": "https://www.simpleskincare.in/products/micellar-cleansing-water-with-vit-b3-b-c-200ml",
+      "kind": "product",
+      "note": "",
+      "httpStatus": 200,
+      "title": "Simple Kind To Skin Micellar Cleansing Water | Makeup Remover, 200ml",
+      "finalUrl": "https://www.simpleskincare.in/products/micellar-cleansing-water-with-vit-b3-b-c-200ml"
+    },
+    "prod-22": {
+      "url": "https://beminimalist.co/products/maleic-bond-repair-complex-05",
+      "kind": "product",
+      "note": "",
+      "httpStatus": 200,
+      "title": "Maleic Bond Repair Complex 5% Hair Serum with Argan Oil | Minimalist",
+      "finalUrl": "https://beminimalist.co/products/maleic-bond-repair-complex-05"
+    },
+    "prod-23": {
+      "url": "https://innovist.com/products/lactic-acid-zemea-vitamin-e-exfoliating-body-wash",
+      "kind": "product",
+      "note": "Current 236ml packaging; demo catalogue lists 250ml.",
+      "httpStatus": 200,
+      "title": "4% Salicylic & Lactic Acid Exfoliating Body Wash - Chemist at Play",
+      "finalUrl": "https://innovist.com/products/lactic-acid-zemea-vitamin-e-exfoliating-body-wash"
+    },
+    "prod-18": {
+      "url": "https://www.rarebeauty.com/products/soft-pinch-liquid-blush",
+      "kind": "product",
+      "note": "",
+      "httpStatus": 200,
+      "title": "Soft Pinch Liquid Blush | Long-Lasting Dewy & Matte Blushes",
+      "finalUrl": "https://www.rarebeauty.com/products/soft-pinch-liquid-blush"
+    },
+    "prod-20": {
+      "url": "https://hudabeauty.com/products/nude-obsessions-eyeshadow-palette-hb00323m",
+      "kind": "product",
+      "note": "",
+      "httpStatus": 200,
+      "title": "NUDE Obsessions Eyeshadow Palette | Huda Beauty",
+      "finalUrl": "https://hudabeauty.com/en-us/products/nude-obsessions-eyeshadow-palette-hb00323m"
+    },
+    "prod-08": {
+      "url": "https://www.clinique.com/product/1687/83690/skincare/moisturizers/moisture-surgetm-100h-auto-replenishing-hydrator",
+      "kind": "product",
+      "note": "",
+      "httpStatus": 200,
+      "title": "Now 30% Off: Moisture Surge™100H Auto-Replenishing Gel Moisturizer | Clinique",
+      "finalUrl": "https://www.clinique.com/products/moisture-surge-100h-auto-replenishing-hydrator"
+    },
+    "prod-16": {
+      "url": "https://www.maybelline.com/face-makeup/concealer/instant-age-rewind-eraser-dark-circles-concealer-treatment",
+      "kind": "product",
+      "note": "Shade Sand shown; catalogue does not specify a shade.",
+      "httpStatus": 200,
+      "title": "Instant Age Rewind® Eraser Multi-Use Concealer | Maybelline",
+      "finalUrl": "https://www.maybelline.com/face-makeup/concealer/instant-age-rewind-eraser-dark-circles-concealer-treatment"
+    },
+    "prod-10": {
+      "url": "https://www.sebamedindia.com/skin-products/sebamed-clear-face-cleansing-foam-41",
+      "kind": "product",
+      "note": "",
+      "httpStatus": 200,
+      "title": "Sebamed Clear Face Cleansing Foam | 50ml | Helps to reduce incidence of pimples",
+      "finalUrl": "https://www.sebamedindia.com/skin-products/sebamed-clear-face-cleansing-foam-41"
+    },
+    "prod-09": {
+      "url": "https://www.cetaphil.in/products/cleansers/gentle-skin-cleanser/8906005274105.html",
+      "kind": "product",
+      "note": "Choose the available pack size on the official site.",
+      "httpStatus": 200,
+      "title": "Buy Gentle Skin Cleanser for All Skin Types | Cetaphil",
+      "finalUrl": "https://www.cetaphil.in/products/cleansers/gentle-skin-cleanser/8906005274105.html"
+    },
+    "prod-14": {
+      "url": "https://www.maccosmetics.com/products/studio-fix-fluid-spf-15-24hr-matte-foundation-oil-control",
+      "kind": "product",
+      "note": "Choose your shade on the official site.",
+      "httpStatus": 200,
+      "title": "Studio Fix Fluid SPF 15 24HR Matte Foundation + Oil Control | MAC Cosmetics",
+      "finalUrl": "https://www.maccosmetics.com/products/studio-fix-fluid-spf-15-24hr-matte-foundation-oil-control"
+    },
+    "prod-13": {
+      "url": "https://www.maybelline.com/face-makeup/foundation-makeup/fit-me-matte-poreless-foundation",
+      "kind": "product",
+      "note": "Choose your shade on the official site.",
+      "httpStatus": 200,
+      "title": "Fit Me® Matte + Poreless Blurring Foundation | Maybelline",
+      "finalUrl": "https://www.maybelline.com/face-makeup/foundation-makeup/fit-me-matte-poreless-foundation"
+    },
+    "prod-02": {
+      "url": "https://thedermaco.com/products/1-hyaluronic-sunscreen-aqua-gel",
+      "kind": "product",
+      "note": "",
+      "httpStatus": 200,
+      "title": "1% Hyaluronic Sunscreen Aqua Gel 50g | Invivo-Tested\n &ndash; The Derma Co",
+      "finalUrl": "https://thedermaco.com/products/1-hyaluronic-sunscreen-aqua-gel"
+    },
+    "prod-05": {
+      "url": "https://www.kamaayurveda.in/in/kumkumadi-youth-revitalising-facial-oil.html",
+      "kind": "product",
+      "note": "Current Kumkumadi facial oil; select the available size.",
+      "httpStatus": 200,
+      "title": "Buy Kumkumadi Youth-Revitalising Facial Oil | Kama Ayurveda",
+      "finalUrl": "https://www.kamaayurveda.com/in/in/kumkumadi-youth-revitalising-facial-oil.html"
+    },
+    "prod-15": {
+      "url": "https://www.charlottetilbury.com/us/product/hollywood-flawless-filter-shade-2-fair",
+      "kind": "product",
+      "note": "Shade 2 Fair shown; choose your shade on the official site.",
+      "httpStatus": 200,
+      "finalUrl": "https://www.charlottetilbury.com/us/product/hollywood-flawless-filter-shade-2-fair",
+      "title": "2 Fair: Hollywood Flawless Filter Makeup: Face Illuminator  | Charlotte Tilbury"
+    },
+    "prod-07": {
+      "url": "https://www.nykaa.com/forest-essentials-soundarya-radiance-cream-with-24k-gold-and-spf25-config/p/255105?productId=255105&skuId=34182&pps=1",
+      "kind": "retailer",
+      "note": "Verified Nykaa product page; the brand website blocks automated access.",
+      "httpStatus": 200,
+      "finalUrl": "https://www.nykaa.com/forest-essentials-soundarya-radiance-cream-with-24k-gold-and-spf25-config/p/255105?productId=255105&skuId=34182&pps=1",
+      "title": "Buy Forest Essentials Soundarya Radiance Cream With 24K Gold And SPF25 Online"
+    },
+    "prod-17": {
+      "url": "https://www.nykaa.com/kay-matteinee-lip-crayon/p/573181?productId=573181&pps=2",
+      "kind": "retailer",
+      "note": "Kay Beauty product page on Nykaa; choose an available shade.",
+      "httpStatus": 200,
+      "finalUrl": "https://www.nykaa.com/kay-matteinee-lip-crayon/p/573181?productId=573181&pps=2",
+      "title": "Buy Kay Beauty Matteinee Matte Lip Crayon Lipstick Online"
+    }
+  },
+  "nykaaProductPages": {
+    "prod-08": {
+      "status": 200,
+      "title": "Clinique Moisture Surge 100h Auto-replenishing Hydrator (Moisturizer)",
+      "url": "https://www.nykaa.com/clinique-moisture-surge-100h-auto-replenishing-hydrator/p/1129289?productId=1129289&pps=1"
+    },
+    "prod-15": {
+      "status": 200,
+      "title": "Charlotte Tilbury Hollywood Filter",
+      "url": "https://www.nykaa.com/charlotte-tilbury-hollywood-filter/p/985214?productId=985214&skuId=959724&pps=1"
+    },
+    "prod-09": {
+      "status": 200,
+      "title": "Cetaphil Gentle Skin Cleanser For Normal, Dry Skin Hydrates And Softens",
+      "url": "https://www.nykaa.com/cetaphil-cleansing-lotion/p/22032?productId=22032&pps=1"
+    },
+    "prod-11": {
+      "status": 200,
+      "title": "Plum Green Tea Alcohol-Free Face Toner",
+      "url": "https://www.nykaa.com/plum-green-tea-toner-with-glycolic-acid-tightens-pores-fights-pimples-controls-oil-alcohol-free/p/17848586?productId=17848586&pps=1"
+    },
+    "prod-17": {
+      "status": 200,
+      "title": "Kay Beauty Matteinee Matte Lip Crayon Lipstick",
+      "url": "https://www.nykaa.com/kay-matteinee-lip-crayon/p/573181?productId=573181&pps=2"
+    },
+    "prod-03": {
+      "status": 200,
+      "title": "Minimalist 10% Niacinamide Face Serum With Matmarine + Zinc For Reducing Oil & Blemishes",
+      "url": "https://www.nykaa.com/minimalist-10percent-niacinamide-face-serum-with-matmarine-zinc-for-reducing-oil-blemishes/p/15022069?productId=15022069&pps=1"
+    },
+    "prod-10": {
+      "status": 200,
+      "title": "Sebamed Clear Face Cleansing Foam",
+      "url": "https://www.nykaa.com/sebamed-clear-face-cleansing-foam/p/4725?productId=4725&pps=1"
+    },
+    "prod-12": {
+      "status": 200,
+      "title": "LANEIGE Lip Sleeping Mask Berry",
+      "url": "https://www.nykaa.com/laneige-lip-sleeping-mask-berry/p/15227410?productId=15227410&pps=1"
+    },
+    "prod-07": {
+      "status": 200,
+      "title": "Forest Essentials Soundarya Radiance Cream With 24K Gold And SPF25",
+      "url": "https://www.nykaa.com/forest-essentials-soundarya-radiance-cream-with-24k-gold-and-spf25-config/p/255105?productId=255105&skuId=34182&pps=1"
+    },
+    "prod-23": {
+      "status": 200,
+      "title": "Chemist At Play Exfoliating Body Wash with 4% Lactic Acid, Salicylic Acid & Vit E, Treats Back Acne",
+      "url": "https://www.nykaa.com/chemist-at-play-exfoliating-body-wash/p/5597634?productId=5597634&pps=1"
+    },
+    "prod-05": {
+      "status": 200,
+      "title": "Kama Ayurveda Kumkumadi Thailam Miraculous Beauty Fluid Ayurvedic Night Serum",
+      "url": "https://www.nykaa.com/kama-ayurveda-kumkumadi-miraculous-beauty-fluid-ayurvedic-night-serum/p/1262946?productId=1262946&pps=1"
+    },
+    "prod-22": {
+      "status": 200,
+      "title": "Minimalist Maleic Bond Repair Complex 05% Hair Serum For Soft & Smooth Hair & Treats Split Ends & Breakage",
+      "url": "https://www.nykaa.com/minimalist-hair-repair-complex-5percent-serum/p/10039736?productId=10039736&pps=1"
+    },
+    "prod-06": {
+      "status": 200,
+      "title": "Dot & Key Hyaluronic + Ceramide Barrier Repair Hydrating Face Moisturizer Cream, Normal To Dry Skin",
+      "url": "https://www.nykaa.com/dot-key-ceramides-hyaluronic-barrier-repair-moisturizer/p/15692441?productId=15692441&skuId=7355208&pps=1"
+    },
+    "prod-20": {
+      "status": 200,
+      "title": "Huda Beauty Nude Obsessions Mini Eyeshadow Palette",
+      "url": "https://www.nykaa.com/huda-beauty-nude-obsessions-mini-eyeshadow-palette/p/692792?productId=692792&pps=1"
+    },
+    "prod-02": {
+      "status": 200,
+      "title": "The Derma Co 1% Hyaluronic Sunscreen SPF 50 PA++++ Aqua Gel For Normal To Oily... - In-Vivo tested",
+      "url": "https://www.nykaa.com/the-derma-co-1percent-hyaluronic-sunscreen-spf-50-aqua-gel-pa-broad-spectrum/p/15901861?productId=15901861&pps=3"
+    },
+    "prod-01": {
+      "status": 200,
+      "title": "Dot & Key Watermelon Cooling Sunscreen, SPF 50+ PA++++ In-Vivo Tested",
+      "url": "https://www.nykaa.com/dot-key-watermelon-hyaluronic-cooling-sunscreen-spf-50-pa/p/14072071?productId=14072071&pps=1"
+    },
+    "prod-18": {
+      "status": 200,
+      "title": "Rare Beauty Soft Pinch Dewy Liquid Blush",
+      "url": "https://www.nykaa.com/rare-beauty-soft-pinch-dewy-liquid-blush/p/26114771?productId=26114771&pps=2"
+    },
+    "prod-13": {
+      "status": 200,
+      "title": "Maybelline New York Fit Me Matte+Poreless 16H Oil Control Foundation with SPF 22 - 115 Ivory",
+      "url": "https://www.nykaa.com/maybelline-new-york-fit-me-matte-poreless-foundation/p/31074?productId=31074&pps=2"
+    },
+    "prod-19": {
+      "status": 200,
+      "title": "Swiss Beauty Ultra Blush Palette",
+      "url": "https://www.nykaa.com/swiss-beauty-ultra-blush-palette/p/8423344?productId=8423344&skuId=832320&pps=2"
+    },
+    "prod-14": {
+      "status": 200,
+      "title": "M.A.C Studio Fix Fluid SPF 15 Soft Matte Foundation With Hyaluronic Acid",
+      "url": "https://www.nykaa.com/m-a-cstudio-fix-fluid-spf-15-foundation/p/14327558?productId=14327558&pps=2"
+    },
+    "prod-21": {
+      "status": 200,
+      "title": "Simple Kind To Skin Micellar Water For Makeup Remover",
+      "url": "https://www.nykaa.com/simple-kind-to-skin-micellar-cleansing-water/p/947978?productId=947978&pps=1"
+    },
+    "prod-16": {
+      "status": 200,
+      "title": "Maybelline New York Instant Age Rewind Eraser Concealer-Conceal, Contour, Highlight",
+      "url": "https://www.nykaa.com/maybelline-new-york-instant-age-rewind-concealer/p/189967?productId=189967&pps=1"
+    },
+    "prod-04": {
+      "status": 200,
+      "title": "COSRX Advanced Snail 96 Mucin Power Essence",
+      "url": "https://www.nykaa.com/cosrx-advanced-snail-96-mucin-power-essence/p/757628?productId=757628&pps=1"
+    }
+  },
+  "otherRetailers": "Exact brand/product-name search URLs are used where a verified product-page URL is unavailable.",
+  "nykaaVariantMatches": {
+    "prod-04": {
+      "note": "Product family page; select an available size/shade on the retailer.",
+      "defaultVariant": 52809
+    },
+    "prod-02": {
+      "note": "Product family page; select an available size/shade on the retailer.",
+      "defaultVariant": 628
+    },
+    "prod-01": {
+      "note": "Product family page; select an available size/shade on the retailer.",
+      "defaultVariant": "30ml"
+    },
+    "prod-06": {
+      "matchedVariant": "100g",
+      "packSize": "100g",
+      "url": "https://www.nykaa.com/dot-key-ceramides-hyaluronic-barrier-repair-moisturizer/p/15692441?productId=15692441&skuId=7355208&pps=1"
+    },
+    "prod-03": {
+      "matchedVariant": "30ml",
+      "packSize": "30ml",
+      "url": "https://www.nykaa.com/minimalist-10percent-niacinamide-face-serum-with-matmarine-zinc-for-reducing-oil-blemishes/p/15022069?productId=15022069&pps=1&skuId=1067995"
+    },
+    "prod-07": {
+      "matchedVariant": "50g",
+      "packSize": "50g",
+      "url": "https://www.nykaa.com/forest-essentials-soundarya-radiance-cream-with-24k-gold-and-spf25-config/p/255105?productId=255105&skuId=34182&pps=1"
+    },
+    "prod-14": {
+      "matchedVariant": "NC 20",
+      "packSize": "30ml",
+      "url": "https://www.nykaa.com/m-a-cstudio-fix-fluid-spf-15-foundation/p/14327558?productId=14327558&pps=2&skuId=14327504"
+    },
+    "prod-05": {
+      "note": "Product family page; select an available size/shade on the retailer.",
+      "defaultVariant": "3ml"
+    },
+    "prod-11": {
+      "matchedVariant": "200ml",
+      "packSize": "200ml",
+      "url": "https://www.nykaa.com/plum-green-tea-toner-with-glycolic-acid-tightens-pores-fights-pimples-controls-oil-alcohol-free/p/17848586?productId=17848586&pps=1&skuId=23990"
+    },
+    "prod-08": {
+      "matchedVariant": "50ml",
+      "packSize": "50ml",
+      "url": "https://www.nykaa.com/clinique-moisture-surge-100h-auto-replenishing-hydrator/p/1129289?productId=1129289&pps=1&skuId=1129287"
+    },
+    "prod-13": {
+      "matchedVariant": "128 Warm Nude",
+      "packSize": "30ml",
+      "url": "https://www.nykaa.com/maybelline-new-york-fit-me-matte-poreless-foundation/p/31074?productId=31074&pps=2&skuId=520720"
+    },
+    "prod-10": {
+      "note": "Product family page; select an available size/shade on the retailer.",
+      "defaultVariant": 1660
+    },
+    "prod-09": {
+      "note": "Product family page; select an available size/shade on the retailer.",
+      "defaultVariant": "59ml"
+    },
+    "prod-16": {
+      "matchedVariant": "Caramel",
+      "packSize": "6ml",
+      "url": "https://www.nykaa.com/maybelline-new-york-instant-age-rewind-concealer/p/189967?productId=189967&pps=1&skuId=328470"
+    },
+    "prod-12": {
+      "note": "Product family page; select an available size/shade on the retailer.",
+      "defaultVariant": "8g"
+    },
+    "prod-21": {
+      "matchedVariant": "200ml",
+      "packSize": "200ml",
+      "url": "https://www.nykaa.com/simple-kind-to-skin-micellar-cleansing-water/p/947978?productId=947978&pps=1&skuId=390986"
+    },
+    "prod-23": {
+      "note": "Product family page; select an available size/shade on the retailer.",
+      "defaultVariant": "236ml"
+    },
+    "prod-15": {
+      "matchedVariant": "4 Medium",
+      "packSize": "30ml",
+      "url": "https://www.nykaa.com/charlotte-tilbury-hollywood-filter/p/985214?productId=985214&skuId=959726&pps=1"
+    },
+    "prod-22": {
+      "note": "Product family page; select an available size/shade on the retailer.",
+      "defaultVariant": 5642
+    },
+    "prod-19": {
+      "note": "Product family page; select an available size/shade on the retailer.",
+      "defaultVariant": "Shade 02"
+    },
+    "prod-18": {
+      "note": "Product family page; select an available size/shade on the retailer.",
+      "defaultVariant": "Happy"
+    },
+    "prod-17": {
+      "note": "Product family page; select an available size/shade on the retailer.",
+      "defaultVariant": "Wee Hours"
+    },
+    "prod-20": {
+      "matchedVariant": "Medium",
+      "packSize": "9.9g",
+      "url": "https://www.nykaa.com/huda-beauty-nude-obsessions-mini-eyeshadow-palette/p/692792?productId=692792&pps=1&skuId=692790"
+    }
+  },
+  "browserChecks": [
+    {
+      "localUrl": "http://127.0.0.1:5174/product/prod-03",
+      "action": "Official product page",
+      "destination": "https://beminimalist.co/products/niacinamide-10-with-matmarine",
+      "observed": "Niacinamide 10% Face Serum heading and product photograph visible."
+    },
+    {
+      "localUrl": "http://127.0.0.1:5174/product/prod-03",
+      "action": "Visit Nykaa",
+      "destination": "https://www.nykaa.com/minimalist-10percent-niacinamide-face-serum-with-matmarine-zinc-for-reducing-oil-blemishes/p/15022069?productId=15022069&pps=1&skuId=1067995",
+      "observed": "Niacinamide serum product page opened; generic default size was 20ml. URL now includes the matched 30ml variant."
+    }
+  ]
+}

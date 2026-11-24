@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Sparkles, ArrowRight, Percent } from 'lucide-react';
 import { ALTERNATIVES_DATA } from '../data/alternatives';
+import { ProductImage } from './ProductImage';
 
 interface DupesSectionProps {
   onSelectAlternative: (productId: string) => void;
@@ -58,7 +59,7 @@ export const DupesSection: React.FC<DupesSectionProps> = ({ onSelectAlternative 
                 {/* 1. Original Luxury Product (Left) */}
                 <div className="md:col-span-5 rounded-2xl bg-ivory/60 border border-rose-100 p-5 flex items-center space-x-4">
                   <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden bg-white shrink-0 border border-rose-200/60 shadow-xs">
-                    <img
+                    <ProductImage compact
                       src={dupe.originalProduct.image}
                       alt={dupe.originalProduct.name}
                       className="w-full h-full object-cover"
@@ -100,7 +101,7 @@ export const DupesSection: React.FC<DupesSectionProps> = ({ onSelectAlternative 
                   </div>
 
                   <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden bg-white shrink-0 border border-rose-200/80 shadow-xs">
-                    <img
+                    <ProductImage compact
                       src={dupe.alternativeProduct.image}
                       alt={dupe.alternativeProduct.name}
                       className="w-full h-full object-cover"

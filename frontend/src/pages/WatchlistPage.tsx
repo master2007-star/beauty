@@ -14,13 +14,15 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { removeFromWatchlist } from '../utils/api';
 
-import { PRODUCTS_DATA } from '../data/products';
+import { useCatalogue } from '../context/PriceContext';
+import { ProductImage } from '../components/ProductImage';
 import { useWishlist } from '../hooks/useWishlist';
 import { usePriceTracker } from '../hooks/usePriceTracker';
 import { PriceTrackingModal } from '../components/PriceTrackingModal';
 import type { Product } from '../types';
 
 export const WatchlistPage: React.FC = () => {
+  const { products: PRODUCTS_DATA } = useCatalogue();
   const navigate = useNavigate();
   const { user, openAuthModal } = useAuth();
   const { wishlist, toggleWishlist } = useWishlist();
@@ -163,7 +165,7 @@ export const WatchlistPage: React.FC = () => {
                     const currentPrice = product.price;
                     const targetPrice = tracking.targetPrice;
                     const diff = currentPrice - targetPrice;
-                    const isTargetReached = currentPrice <= targetPrice;
+                    const isTargetReached = currentPrice > 0 && currentPrice <= targetPrice;
 
                     return (
                       <div
@@ -171,7 +173,7 @@ export const WatchlistPage: React.FC = () => {
                         className="p-5 rounded-3xl bg-white border border-rose-200/90 shadow-soft-lift flex flex-col justify-between space-y-4"
                       >
                         <div className="flex items-start space-x-4">
-                          <img
+                          <ProductImage compact
                             src={product.image}
                             alt={product.name}
                             className="w-16 h-16 object-cover rounded-2xl border border-rose-100 shrink-0"
@@ -191,7 +193,7 @@ export const WatchlistPage: React.FC = () => {
                               <div>
                                 <span className="text-[10px] text-espresso-400 block">Current Lowest</span>
                                 <span className="text-base font-extrabold text-espresso-950 font-sans">
-                                  ₹{currentPrice.toLocaleString('en-IN')}
+                                  {currentPrice > 0 ? `₹${currentPrice.toLocaleString('en-IN')}` : 'Price unavailable'}
                                 </span>
                               </div>
                               <div className="border-l border-rose-100 pl-3">
@@ -206,7 +208,7 @@ export const WatchlistPage: React.FC = () => {
 
                         {/* Progress Status Bar */}
                         <div className="pt-2 border-t border-rose-100 text-xs">
-                          {isTargetReached ? (
+                          {currentPrice <= 0 ? <p className="text-espresso-600">Waiting for a verified current price.</p> : isTargetReached ? (
                             <div className="flex items-center space-x-1.5 text-sage-800 bg-sage-50 px-3 py-1.5 rounded-xl border border-sage-200">
                               <CheckCircle2 className="w-4 h-4 text-sage-600 shrink-0" />
                               <span className="font-bold">
@@ -217,7 +219,7 @@ export const WatchlistPage: React.FC = () => {
                             <div className="flex items-center justify-between text-espresso-600 bg-ivory-50 px-3 py-1.5 rounded-xl border border-rose-100">
                               <span>Needs price drop:</span>
                               <strong className="text-rose-600 font-sans">
-                                -₹{diff} ({Math.round((diff / currentPrice) * 100)}% drop needed)
+                                ₹{diff} ({Math.round((diff / currentPrice) * 100)}% drop needed)
                               </strong>
                             </div>
                           )}
@@ -293,7 +295,7 @@ export const WatchlistPage: React.FC = () => {
                         className="p-4 rounded-3xl bg-white border border-rose-100 shadow-soft-lift flex flex-col justify-between space-y-3"
                       >
                         <div className="flex items-center space-x-3">
-                          <img
+                          <ProductImage compact
                             src={product.image}
                             alt={product.name}
                             className="w-14 h-14 object-cover rounded-xl border border-rose-100 shrink-0"
@@ -309,7 +311,7 @@ export const WatchlistPage: React.FC = () => {
                               {product.name}
                             </Link>
                             <span className="text-sm font-extrabold text-espresso-950 font-sans mt-0.5 block">
-                              ₹{product.price.toLocaleString('en-IN')}
+                              {product.price > 0 ? `₹${product.price.toLocaleString('en-IN')}` : 'Price unavailable'}
                             </span>
                           </div>
                         </div>
@@ -384,8 +386,8 @@ export const WatchlistPage: React.FC = () => {
                       }`}
                   >
                     <div className="flex items-start space-x-3.5">
-                      <img
-                        src={alert.productImage}
+                      <ProductImage compact
+                        src={PRODUCTS_DATA.find((product) => product.id === alert.productId)?.image || alert.productImage}
                         alt={alert.productName}
                         className="w-12 h-12 rounded-xl object-cover border border-rose-200 shrink-0"
                       />

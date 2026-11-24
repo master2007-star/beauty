@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { TrackedProduct, PriceAlertNotification } from '../types';
-import { PRODUCTS_DATA } from '../data/products';
+import { useCatalogue } from '../context/PriceContext';
 
 const TRACKING_STORAGE_KEY = 'pricewise_beauty_tracked';
 const ALERTS_STORAGE_KEY = 'pricewise_beauty_alerts';
@@ -47,6 +47,7 @@ const INITIAL_ALERTS: PriceAlertNotification[] = [
 ];
 
 export function usePriceTracker() {
+  const { products: PRODUCTS_DATA } = useCatalogue();
   const [trackedProducts, setTrackedProducts] = useState<TrackedProduct[]>(() => {
     try {
       const stored = localStorage.getItem(TRACKING_STORAGE_KEY);
@@ -130,7 +131,7 @@ export function usePriceTracker() {
     });
 
     // Check if target is already met on current lowest offer
-    if (product.price <= targetPrice) {
+    if (product.price > 0 && product.price <= targetPrice) {
       const bestStore = product.storeOffers[0]?.storeName || 'Nykaa';
       const alertId = `alert-${productId}-${Date.now()}`;
       setAlerts((prev) => {
@@ -163,7 +164,7 @@ export function usePriceTracker() {
       success: true,
       message: `Started monitoring '${product.name}' at target ₹${targetPrice.toLocaleString('en-IN')}.`,
     };
-  }, []);
+  }, [PRODUCTS_DATA]);
 
   const updateTargetPrice = useCallback((productId: string, newTargetPrice: number): boolean => {
     if (newTargetPrice <= 0) return false;
