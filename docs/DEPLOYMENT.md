@@ -1,11 +1,52 @@
-# PriceWise demo deployment
+# Deployment
 
-The published demo uses the curated catalogue and retailer comparison data. It makes no live-price or SerpApi requests. Product/category photographs are local assets and fill their frames without stretching. Signed-in users save wishlists, price targets, alerts, profiles and routines in the account backend. Guest records remain in the visitor's browser.
+## Live services
 
-Source repository: https://github.com/master2007-star/beauty
+- Website: https://master2007-star.github.io/beauty/
+- API: https://pricewise-beauty-api.onrender.com
+- API documentation: https://pricewise-beauty-api.onrender.com/docs
 
-Demo: https://master2007-star.github.io/beauty/
+Product prices remain demo data. Accounts, saved products, profiles, routines, targets and alerts use the backend.
 
-GitHub Pages publishes the `gh-pages` branch. Build from `frontend/` with `GITHUB_PAGES=true` and `VITE_API_BASE_URL=https://pricewise-beauty-api.onrender.com`, then publish the contents of `frontend/dist/` to that branch. The build uses `/beauty/` for assets and routing. `404.html` redirects shared product routes back through the SPA entry point.
+## Backend on Render
 
-For local development, run `npm install` and `npm run dev` in `frontend/`. No price API key is needed. The full account API runs at https://pricewise-beauty-api.onrender.com. Render hosts the Python service, and an isolated Neon branch stores account data in the pricewise schema. Set DATABASE_URL and AUTH_SECRET_KEY only in the server environment. The API initializes its schema and imports the same 23 demo products at startup; live-price fetching stays disabled. A free Render service may take about a minute to wake after inactivity.
+Use render.yaml or these settings:
+
+| Setting | Value |
+| --- | --- |
+| Repository / branch | master2007-star/beauty / main |
+| Root directory | backend |
+| Runtime | Python 3.12 |
+| Build command | pip install -r requirements.txt |
+| Start command | uvicorn src.api.main:app --host 0.0.0.0 --port $PORT |
+| Health check | /api/health |
+
+Server-only settings: APP_ENV=production, DATABASE_URL, AUTH_SECRET_KEY and CORS_ORIGINS=https://master2007-star.github.io. AUTH_SECRET_KEY must contain at least 32 random characters.
+
+The existing service loads its private settings from /etc/secrets/backend.env through PRICEWISE_ENV_FILE. Keep that file out of Git.
+
+The backend initializes the schema and imports backend/data/frontend-catalogue.json on startup. Persistent account data is stored in the pricewise schema on an isolated Neon branch. Local SQLite files should only be used for development.
+
+## Frontend on GitHub Pages
+
+From frontend/:
+
+```powershell
+$env:GITHUB_PAGES = 'true'
+$env:VITE_API_BASE_URL = 'https://pricewise-beauty-api.onrender.com'
+npm ci
+npm run build
+```
+
+Publish frontend/dist/ to the gh-pages branch. GitHub Pages uses that branch's root directory. Keep .nojekyll in the published branch.
+
+The build uses /beauty/ for assets and routing. The 404.html redirect supports shared product URLs.
+
+Only VITE_API_BASE_URL belongs in frontend settings. Database credentials and AUTH_SECRET_KEY stay on the backend.
+
+## Verify
+
+1. Check /api/health returns status: ok.
+2. Test signup/login and saving a product, profile, routine and target.
+3. Refresh to confirm the account data persists.
+4. Check images and product links.
