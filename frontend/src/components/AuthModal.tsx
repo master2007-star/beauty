@@ -195,7 +195,7 @@ export const AuthModal: React.FC = () => {
                 />
               </div>
               <p className="text-[11px] text-espresso-400">
-                Must be at least 8 characters with salted PBKDF2 encryption.
+                Use at least 8 characters. Your password is stored as a salted hash.
               </p>
             </div>
 

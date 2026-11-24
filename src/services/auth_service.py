@@ -11,6 +11,7 @@ Provides:
 
 from datetime import datetime, timezone
 import hashlib
+import hmac
 import os
 import re
 import secrets
@@ -110,8 +111,8 @@ def register_user(
 
     if not password:
         return False, "Password is required.", None
-    if len(password) < 6:
-        return False, "Password must be at least 6 characters long.", None
+    if len(password) < 8:
+        return False, "Password must be at least 8 characters long.", None
 
     migrate_db(custom_path)
 
@@ -331,7 +332,10 @@ import base64
 import json
 import time
 
-AUTH_SECRET_KEY = os.getenv("AUTH_SECRET_KEY", "pricewise_beauty_super_secret_session_key_2026").encode("utf-8")
+_auth_secret = os.getenv('AUTH_SECRET_KEY')
+if os.getenv('APP_ENV') == 'production' and (not _auth_secret or len(_auth_secret) < 32):
+    raise RuntimeError('Production requires AUTH_SECRET_KEY with at least 32 characters.')
+AUTH_SECRET_KEY = (_auth_secret or secrets.token_hex(32)).encode('utf-8')
 DEFAULT_SESSION_DURATION_SECONDS = 7 * 24 * 3600  # 7 days
 
 
@@ -368,7 +372,7 @@ def generate_session_token(
     payload_b64 = _base64url_encode(payload_bytes)
 
     # Compute HMAC-SHA256 signature
-    sig = hashlib.pbkdf2_hmac("sha256", payload_b64.encode("utf-8"), AUTH_SECRET_KEY, 1)
+    sig = hmac.new(AUTH_SECRET_KEY, payload_b64.encode('utf-8'), hashlib.sha256).digest()
     sig_b64 = _base64url_encode(sig)
 
     return f"{payload_b64}.{sig_b64}"
@@ -388,7 +392,7 @@ def verify_session_token(token: str) -> Optional[dict]:
             return None
 
         payload_b64, sig_b64 = parts
-        expected_sig = hashlib.pbkdf2_hmac("sha256", payload_b64.encode("utf-8"), AUTH_SECRET_KEY, 1)
+        expected_sig = hmac.new(AUTH_SECRET_KEY, payload_b64.encode('utf-8'), hashlib.sha256).digest()
         expected_b64 = _base64url_encode(expected_sig)
 
         # Constant-time comparison prevents timing attacks

@@ -6,11 +6,14 @@ database models and service layers. Keeps Streamlit fully operational.
 
 import logging
 import os
+import asyncio
+from contextlib import asynccontextmanager
 from typing import Any, Optional
 from fastapi import FastAPI, HTTPException, Query, Depends, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from src.config import APP_NAME, APP_VERSION
-from src.database.connection import get_connection
+from src.database.connection import get_connection, init_db
+from src.database.catalogue import seed_frontend_catalogue, resolve_catalogue_id
 from src.database.models import Offer, Product, User
 from src.services.product_service import (
     get_products,
@@ -46,7 +49,6 @@ from src.api.schemas import (
     RecommendedProductSchema,
     PersonalizedRecommendationsResponse,
 )
-from src.services.live_comparison_engine import get_live_comparison_engine
 from src.api.auth_deps import get_current_user, get_optional_current_user
 from src.services.auth_service import register_user, authenticate_user, generate_session_token
 from src.services.profile_service import get_user_profile, save_user_profile, reset_user_profile
@@ -68,19 +70,36 @@ from src.services.wishlist_service import (
     remove_product_from_wishlist,
 )
 from src.services.personalized_recommendation_service import get_personalized_recommendations
+from src.api.shopping import router as shopping_router
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("pricewise.api")
 
+@asynccontextmanager
+async def lifespan(app):
+    await asyncio.to_thread(init_db)
+    await asyncio.to_thread(seed_frontend_catalogue)
+    yield
+
+
+def get_live_comparison_engine():
+    if os.getenv('ENABLE_LIVE_PRICES') != 'true':
+        raise HTTPException(status_code=409, detail='This catalogue uses demo prices.')
+    from src.services.live_comparison_engine import get_live_comparison_engine as get_engine
+    return get_engine()
+
+
 app = FastAPI(
     title=f"{APP_NAME} API",
     description="Bridge API connecting React frontend to Python service layer.",
     version=APP_VERSION,
+    lifespan=lifespan,
 )
 
 # CORS Configuration for local development and production
 default_origins = [
+    "https://master2007-star.github.io",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "http://localhost:5174",
@@ -109,6 +128,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.include_router(shopping_router)
 
 
 def _serialize_offer(offer: Offer) -> OfferSchema:
@@ -184,7 +204,7 @@ def get_health() -> HealthResponse:
         status="ok",
         app_name=APP_NAME,
         version=APP_VERSION,
-        database="sqlite",
+        database="postgres" if os.getenv('DATABASE_URL') else "sqlite",
         record_count=record_count,
     )
 
@@ -365,8 +385,8 @@ def api_register(req: RegisterRequest, response: Response) -> AuthResponse:
         key="session_token",
         value=token,
         httponly=True,
-        samesite="lax",
-        secure=False,
+        samesite="none" if os.getenv('APP_ENV') == 'production' else "lax",
+        secure=os.getenv('APP_ENV') == 'production',
         max_age=7 * 24 * 3600,
         path="/",
     )
@@ -404,8 +424,8 @@ def api_login(req: LoginRequest, response: Response) -> AuthResponse:
         key="session_token",
         value=token,
         httponly=True,
-        samesite="lax",
-        secure=False,
+        samesite="none" if os.getenv('APP_ENV') == 'production' else "lax",
+        secure=os.getenv('APP_ENV') == 'production',
         max_age=7 * 24 * 3600,
         path="/",
     )
@@ -428,7 +448,7 @@ def api_login(req: LoginRequest, response: Response) -> AuthResponse:
 @app.post("/api/auth/logout")
 def api_logout(response: Response) -> dict[str, str]:
     """Clear session cookie and log user out."""
-    response.delete_cookie(key="session_token", path="/")
+    response.delete_cookie(key="session_token", path="/", secure=os.getenv('APP_ENV') == 'production', samesite='none' if os.getenv('APP_ENV') == 'production' else 'lax')
     return {"status": "ok", "message": "Logged out successfully."}
 
 
@@ -773,7 +793,7 @@ def api_get_watchlist(current_user: User = Depends(get_current_user)) -> dict[st
     ]
     return {
         "status": "ok",
-        "items": serialized,
+        "items": [{**row, 'catalogue_id': item.product_sku.removeprefix('frontend:') if item.product_sku.startswith('frontend:') else None} for row, item in zip(serialized, items)],
         "count": len(serialized),
     }
 
@@ -787,13 +807,13 @@ def api_add_watchlist(
     note = req.note or req.notes
     success, msg, wish_id = add_to_wishlist(
         user_id=current_user.id,
-        product_id=req.product_id,
+        product_id=resolve_catalogue_id(req.product_id) or 0,
         note=note,
     )
     if not success:
         # Check if already in wishlist
         items = get_user_wishlist(current_user.id)
-        existing = next((i for i in items if i.product_id == req.product_id), None)
+        existing = next((i for i in items if i.product_id == resolve_catalogue_id(req.product_id)), None)
         if existing:
             schema = WatchlistItemSchema(
                 id=existing.id,
@@ -836,11 +856,11 @@ def api_add_watchlist(
 
 @app.delete("/api/watchlist/{product_id}")
 def api_remove_watchlist(
-    product_id: int,
+    product_id: str,
     current_user: User = Depends(get_current_user),
 ) -> dict[str, str]:
     """Remove product from user's persistent wishlist."""
-    success, msg = remove_product_from_wishlist(current_user.id, product_id)
+    success, msg = remove_product_from_wishlist(current_user.id, resolve_catalogue_id(product_id) or 0)
     if not success:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=msg)
     return {"status": "ok", "message": msg}
@@ -865,15 +885,15 @@ def api_sync_watchlist(
             if item.isdigit():
                 pid = int(item)
             elif item.startswith("prod-"):
-                prod = get_product_by_slug(item)
-                if prod:
-                    pid = prod.id
+                pid = resolve_catalogue_id(item)
         elif isinstance(item, dict):
             raw_pid = item.get("product_id") or item.get("id")
             if isinstance(raw_pid, int):
                 pid = raw_pid
             elif isinstance(raw_pid, str) and raw_pid.isdigit():
                 pid = int(raw_pid)
+            elif isinstance(raw_pid, str):
+                pid = resolve_catalogue_id(raw_pid)
             note = item.get("notes") or item.get("note")
 
         if pid:

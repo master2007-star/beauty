@@ -274,7 +274,7 @@ class WatchlistItemSchema(BaseModel):
 
 
 class AddWatchlistRequest(BaseModel):
-    product_id: int
+    product_id: int | str
     note: Optional[str] = None
     notes: Optional[str] = None
     target_price: Optional[float] = None

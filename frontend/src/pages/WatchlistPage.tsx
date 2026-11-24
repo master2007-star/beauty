@@ -12,7 +12,6 @@ import {
   UserCheck,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { removeFromWatchlist } from '../utils/api';
 
 import { useCatalogue } from '../context/PriceContext';
 import { ProductImage } from '../components/ProductImage';
@@ -25,16 +24,10 @@ export const WatchlistPage: React.FC = () => {
   const { products: PRODUCTS_DATA } = useCatalogue();
   const navigate = useNavigate();
   const { user, openAuthModal } = useAuth();
-  const { wishlist, toggleWishlist } = useWishlist();
+  const { wishlist, toggleWishlist, syncStatus } = useWishlist();
 
   const handleRemoveFromWishlist = async (id: string) => {
     toggleWishlist(id);
-    if (user) {
-      const numericId = parseInt(id.replace('prod-', ''), 10);
-      if (!isNaN(numericId)) {
-        await removeFromWatchlist(numericId);
-      }
-    }
   };
   const {
     trackedProducts,
@@ -118,11 +111,11 @@ export const WatchlistPage: React.FC = () => {
                 <div className="flex items-center space-x-2.5">
                   <UserCheck className="w-4 h-4 text-sage-600 shrink-0" />
                   <span>
-                    <strong>Cloud Sync Active:</strong> Linked to your account (<strong>{user.email}</strong>). Items are backed up across devices.
+                    <strong>{syncStatus === 'error' ? 'Cloud sync failed:' : syncStatus === 'loading' ? 'Syncing saved items:' : 'Cloud Sync Active:'}</strong> Linked to your account (<strong>{user.email}</strong>). {syncStatus === 'synced' ? 'Items are backed up across devices.' : syncStatus === 'error' ? 'Changes are saved on this browser. Try again when connected.' : 'Loading or saving your account items.'}
                   </span>
                 </div>
                 <span className="hidden sm:inline px-2 py-0.5 rounded-full bg-sage-100 text-sage-700 font-bold text-[10px]">
-                  Synchronized
+                  {syncStatus === 'synced' ? 'Synchronized' : syncStatus === 'loading' ? 'Syncing…' : 'Offline'}
                 </span>
               </div>
             ) : (

@@ -1,4 +1,5 @@
 import sqlite3
+import os
 from contextlib import contextmanager
 from typing import Generator
 from pathlib import Path
@@ -15,6 +16,11 @@ def get_db_path(custom_path: str | None = None) -> Path:
 @contextmanager
 def get_connection(custom_path: str | None = None) -> Generator[sqlite3.Connection, None, None]:
     """Provide a transactional database connection with row factory enabled."""
+    if not custom_path and os.getenv('DATABASE_URL'):
+        from src.database.postgres import get_postgres_connection
+        with get_postgres_connection(os.environ['DATABASE_URL']) as conn:
+            yield conn
+        return
     db_path = get_db_path(custom_path)
     conn = sqlite3.connect(str(db_path))
     conn.row_factory = sqlite3.Row
@@ -31,6 +37,8 @@ def get_connection(custom_path: str | None = None) -> Generator[sqlite3.Connecti
 
 def migrate_db(custom_path: str | None = None) -> None:
     """Ensure newer columns and indexes exist in the SQLite database."""
+    if not custom_path and os.getenv('DATABASE_URL'):
+        return  # Postgres schema is initialized once at application startup.
     db_path = get_db_path(custom_path)
     with get_connection(str(db_path)) as conn:
         cursor = conn.cursor()
@@ -381,6 +389,10 @@ def migrate_db(custom_path: str | None = None) -> None:
 
 def init_db(custom_path: str | None = None) -> None:
     """Initialize database tables using schema.sql and apply migrations."""
+    if not custom_path and os.getenv('DATABASE_URL'):
+        with get_connection() as conn:
+            conn.executescript('CREATE SCHEMA IF NOT EXISTS pricewise;\n' + SCHEMA_PATH.with_name('schema-postgres.sql').read_text(encoding='utf-8'))
+        return
     db_path = get_db_path(custom_path)
     if not SCHEMA_PATH.exists():
         raise FileNotFoundError(f"Schema file not found at {SCHEMA_PATH}")

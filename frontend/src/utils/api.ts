@@ -13,6 +13,8 @@ import type {
   Routine,
   RoutineItem,
   RecommendedProduct,
+  TrackedProduct,
+  PriceAlertNotification,
 } from '../types';
 import { PRODUCTS_DATA } from '../data/products';
 import { findProductBySlugOrId } from './slug';
@@ -31,7 +33,7 @@ const getBaseApiUrl = (): string => {
   return 'http://127.0.0.1:8000';
 };
 const API_BASE_URL = getBaseApiUrl();
-const DEFAULT_TIMEOUT_MS = 4000;
+const DEFAULT_TIMEOUT_MS = 60000;
 
 export interface HealthCheckResult {
   status: string;
@@ -86,9 +88,6 @@ export interface BackendProduct {
  * Fetch with automatic AbortSignal timeout.
  */
 async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutMs = DEFAULT_TIMEOUT_MS): Promise<Response> {
-  if (import.meta.env.VITE_DEMO_ONLY === 'true') {
-    throw new Error('This demo uses sample data. Account and cloud features require a connected backend.');
-  }
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
@@ -647,7 +646,7 @@ export async function registerUser(name: string, email: string, password: string
     if (message.includes('Failed to fetch') || message.includes('NetworkError') || message.includes('AbortError')) {
       return {
         success: false,
-        error: `Could not connect to backend server at ${API_BASE_URL}. Please ensure the backend is running on port 8000.`,
+        error: 'Could not reach the account server. Please try again in a minute.',
       };
     }
     return { success: false, error: message };
@@ -679,7 +678,7 @@ export async function loginUser(email: string, password: string): Promise<{ succ
     if (message.includes('Failed to fetch') || message.includes('NetworkError') || message.includes('AbortError')) {
       return {
         success: false,
-        error: `Could not connect to backend server at ${API_BASE_URL}. Please ensure the backend is running on port 8000.`,
+        error: 'Could not reach the account server. Please try again in a minute.',
       };
     }
     return { success: false, error: message };
@@ -735,7 +734,7 @@ export async function getUserProfile(): Promise<{ profile: UserProfile | null; d
       return { profile: null, error: 'Failed to load profile' };
     }
     const data = await res.json();
-    return { profile: data.profile, disclaimer: data.disclaimer };
+    return { profile: mapProfile(data.profile), disclaimer: data.disclaimer };
   } catch (err: unknown) {
     return { profile: null, error: err instanceof Error ? err.message : 'Network error' };
   }
@@ -752,7 +751,7 @@ export async function updateUserProfile(profile: Partial<UserProfile>): Promise<
     if (!res.ok) {
       return { success: false, error: data.detail || 'Failed to update profile' };
     }
-    return { success: true, profile: data.profile };
+    return { success: true, profile: mapProfile(data.profile) ?? undefined };
   } catch (err: unknown) {
     return { success: false, error: err instanceof Error ? err.message : 'Network error' };
   }
@@ -910,6 +909,7 @@ export interface BackendWatchlistItem {
   id: number;
   user_id: number;
   product_id: number;
+  catalogue_id?: string | null;
   target_price?: number | null;
   notify_drop: boolean;
   notes?: string | null;
@@ -933,7 +933,7 @@ export async function getUserWatchlist(): Promise<{ items: BackendWatchlistItem[
   }
 }
 
-export async function addToWatchlist(productId: number, targetPrice?: number, notes?: string): Promise<{ success: boolean; error?: string }> {
+export async function addToWatchlist(productId: number | string, targetPrice?: number, notes?: string): Promise<{ success: boolean; error?: string }> {
   try {
     const res = await fetchWithTimeout(`${API_BASE_URL}/api/watchlist`, {
       method: 'POST',
@@ -950,7 +950,7 @@ export async function addToWatchlist(productId: number, targetPrice?: number, no
   }
 }
 
-export async function removeFromWatchlist(productId: number): Promise<{ success: boolean; error?: string }> {
+export async function removeFromWatchlist(productId: number | string): Promise<{ success: boolean; error?: string }> {
   try {
     const res = await fetchWithTimeout(`${API_BASE_URL}/api/watchlist/${productId}`, {
       method: 'DELETE',
@@ -966,7 +966,7 @@ export async function removeFromWatchlist(productId: number): Promise<{ success:
   }
 }
 
-export async function syncWatchlist(items: { product_id: number; target_price?: number; notes?: string }[]): Promise<{ success: boolean; synced_count: number; error?: string }> {
+export async function syncWatchlist(items: { product_id: number | string; target_price?: number; notes?: string }[]): Promise<{ success: boolean; synced_count: number; error?: string }> {
   try {
     const res = await fetchWithTimeout(`${API_BASE_URL}/api/watchlist/sync`, {
       method: 'POST',
@@ -1013,3 +1013,24 @@ export async function getPersonalizedRecommendations(limit = 8): Promise<{
 }
 
 
+
+function mapProfile(profile: any): UserProfile | null {
+  if (!profile) return null;
+  const makeup = Array.isArray(profile.makeup_preferences) ? Object.fromEntries(profile.makeup_preferences.filter((item: unknown): item is string => typeof item === 'string' && item.includes(':')).map((item: string) => [item.split(':')[0], item.slice(item.indexOf(':') + 1)])) : profile.makeup_preferences || {};
+  return { ...profile, budget_min: profile.budget_min ?? 0, budget_max: profile.budget_max ?? 10000, makeup_preferences: makeup, ingredient_avoidances: profile.ingredient_avoidances || [] };
+}
+
+export async function getAccountShopping(): Promise<{ trackedProducts: TrackedProduct[]; alerts: PriceAlertNotification[]; error?: string }> {
+  try {
+    const response = await fetchWithTimeout(API_BASE_URL + '/api/shopping-state', { headers: getAuthHeaders() });
+    if (!response.ok) throw new Error('Could not load saved price alerts.');
+    return await response.json();
+  } catch (error) { return { trackedProducts: [], alerts: [], error: error instanceof Error ? error.message : 'Connection failed' }; }
+}
+
+export async function saveAccountShopping(trackedProducts: TrackedProduct[], alerts: PriceAlertNotification[]): Promise<{ success: boolean }> {
+  try {
+    const response = await fetchWithTimeout(API_BASE_URL + '/api/shopping-state', { method: 'PUT', headers: getAuthHeaders(), body: JSON.stringify({ trackedProducts: trackedProducts.slice(0, 100), alerts: alerts.slice(0, 200) }) });
+    return { success: response.ok };
+  } catch { return { success: false }; }
+}

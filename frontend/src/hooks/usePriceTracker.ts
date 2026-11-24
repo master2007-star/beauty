@@ -1,4 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef, createContext, useContext, createElement, type ReactNode } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { getAccountShopping, saveAccountShopping } from '../utils/api';
 import type { TrackedProduct, PriceAlertNotification } from '../types';
 import { useCatalogue } from '../context/PriceContext';
 
@@ -33,7 +35,7 @@ const INITIAL_ALERTS: PriceAlertNotification[] = [
     trackingId: 'track-01',
     productId: 'prod-01',
     productName: 'Watermelon Cooling Sunscreen SPF 50+ PA++++',
-    productImage: 'https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?auto=format&fit=crop&w=800&q=80',
+    productImage: '/images/products/prod-01.webp',
     alertType: 'price_drop',
     currentPrice: 465,
     previousPrice: 595,
@@ -46,7 +48,16 @@ const INITIAL_ALERTS: PriceAlertNotification[] = [
   },
 ];
 
-export function usePriceTracker() {
+function useTrackerState() {
+  const { user } = useAuth();
+  const accountKey = user ? TRACKING_STORAGE_KEY + ":user:" + user.id : TRACKING_STORAGE_KEY;
+  const alertKey = user ? ALERTS_STORAGE_KEY + ":user:" + user.id : ALERTS_STORAGE_KEY;
+  const [stateKey, setStateKey] = useState(TRACKING_STORAGE_KEY);
+  const [trackingSyncStatus, setTrackingSyncStatus] = useState("guest");
+  const ready = useRef(false);
+  const activeOwner = useRef(user?.id);
+  activeOwner.current = user?.id;
+  const pendingSaves = useRef(Promise.resolve());
   const { products: PRODUCTS_DATA } = useCatalogue();
   const [trackedProducts, setTrackedProducts] = useState<TrackedProduct[]>(() => {
     try {
@@ -66,23 +77,56 @@ export function usePriceTracker() {
     }
   });
 
+  useEffect(() => {
+    let cancelled = false;
+    ready.current = false;
+    const read = (key: string, fallback: unknown[]) => { try { const value = JSON.parse(localStorage.getItem(key) || 'null'); return Array.isArray(value) ? value : fallback; } catch { return fallback; } };
+    setTrackedProducts(read(accountKey, user ? [] : INITIAL_TRACKED_ITEMS));
+    setAlerts(read(alertKey, user ? [] : INITIAL_ALERTS));
+    setStateKey(accountKey);
+    setTrackingSyncStatus(user ? 'loading' : 'guest');
+    if (user) void (async () => {
+      const result = await getAccountShopping();
+      if (cancelled) return;
+      if (result.error) { setTrackingSyncStatus('error'); return; }
+      setTrackedProducts(result.trackedProducts); setAlerts(result.alerts);
+      ready.current = true; setTrackingSyncStatus('synced');
+    })();
+    else ready.current = true;
+    return () => { cancelled = true; };
+  }, [accountKey, alertKey, user?.id]);
+
+  useEffect(() => {
+    if (!user || !ready.current || stateKey !== accountKey) return;
+    const owner = user.id;
+    const timer = setTimeout(() => {
+      setTrackingSyncStatus('loading');
+      pendingSaves.current = pendingSaves.current.then(async () => {
+        if (activeOwner.current !== owner) return;
+        const result = await saveAccountShopping(trackedProducts, alerts);
+        if (activeOwner.current === owner) setTrackingSyncStatus(result.success ? 'synced' : 'error');
+      });
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [trackedProducts, alerts, user?.id, stateKey, accountKey]);
+
   // Sync tracking to localStorage
   useEffect(() => {
     try {
-      localStorage.setItem(TRACKING_STORAGE_KEY, JSON.stringify(trackedProducts));
+      if (stateKey === accountKey) localStorage.setItem(accountKey, JSON.stringify(trackedProducts));
     } catch (e) {
       console.warn('Could not save tracked products to localStorage', e);
     }
-  }, [trackedProducts]);
+  }, [trackedProducts, stateKey, accountKey]);
 
   // Sync alerts to localStorage
   useEffect(() => {
     try {
-      localStorage.setItem(ALERTS_STORAGE_KEY, JSON.stringify(alerts));
+      if (stateKey === accountKey) localStorage.setItem(alertKey, JSON.stringify(alerts));
     } catch (e) {
       console.warn('Could not save price alerts to localStorage', e);
     }
-  }, [alerts]);
+  }, [alerts, stateKey, accountKey, alertKey]);
 
   /**
    * Add or update product price tracking with INR validation.
@@ -209,6 +253,7 @@ export function usePriceTracker() {
   const unreadAlertCount = alerts.filter((a) => !a.isRead).length;
 
   return {
+    trackingSyncStatus,
     trackedProducts,
     alerts,
     unreadAlertCount,
@@ -221,4 +266,14 @@ export function usePriceTracker() {
     markAllAlertsAsRead,
     clearAlert,
   };
+}
+
+const TrackerContext = createContext<ReturnType<typeof useTrackerState> | null>(null);
+export function PriceTrackerProvider({ children }: { children: ReactNode }) {
+  return createElement(TrackerContext.Provider, { value: useTrackerState() }, children);
+}
+export function usePriceTracker() {
+  const state = useContext(TrackerContext);
+  if (!state) throw new Error('PriceTrackerProvider is missing');
+  return state;
 }

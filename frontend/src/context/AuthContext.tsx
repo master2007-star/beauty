@@ -8,6 +8,7 @@ import {
   getAuthToken,
   syncWatchlist,
 } from '../utils/api';
+import { WishlistProvider } from './WishlistContext';
 
 export interface AuthContextType {
   user: User | null;
@@ -36,13 +37,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (stored) {
         const itemIds: string[] = JSON.parse(stored);
         if (Array.isArray(itemIds) && itemIds.length > 0) {
-          const syncItems = itemIds.map((id) => {
-            const numericId = parseInt(id.replace('prod-', ''), 10);
-            return {
-              product_id: isNaN(numericId) ? 1 : numericId,
-            };
-          });
-          await syncWatchlist(syncItems);
+          const syncItems = itemIds.map((id) => ({ product_id: id }));
+          const result = await syncWatchlist(syncItems);
+          if (result.success) localStorage.setItem('pricewise_beauty_wishlist', '[]');
         }
       }
     } catch {
@@ -84,10 +81,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     const result = await loginUser(email, password);
     if (result.success && result.user) {
-      setUser(result.user);
-      setIsAuthModalOpen(false);
       // Auto-sync anonymous wishlist upon successful login
       await syncLocalWishlistToBackend();
+      setUser(result.user);
+      setIsAuthModalOpen(false);
       setIsLoading(false);
       return { success: true };
     }
@@ -99,10 +96,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     const result = await registerUser(name, email, password);
     if (result.success && result.user) {
-      setUser(result.user);
-      setIsAuthModalOpen(false);
       // Auto-sync anonymous wishlist upon successful registration
       await syncLocalWishlistToBackend();
+      setUser(result.user);
+      setIsAuthModalOpen(false);
       setIsLoading(false);
       return { success: true };
     }
@@ -132,7 +129,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         refreshUser,
       }}
     >
-      {children}
+      <WishlistProvider>{children}</WishlistProvider>
     </AuthContext.Provider>
   );
 };

@@ -145,3 +145,9 @@ CREATE INDEX IF NOT EXISTS idx_alerts_tracking ON price_alerts(tracking_id);
 CREATE INDEX IF NOT EXISTS idx_alerts_product ON price_alerts(product_id);
 CREATE INDEX IF NOT EXISTS idx_alerts_is_read ON price_alerts(is_read);
 
+CREATE TABLE IF NOT EXISTS user_shopping_state (
+    user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    state_json TEXT NOT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+

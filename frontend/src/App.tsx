@@ -10,7 +10,7 @@ import { AuthProvider } from './context/AuthContext';
 
 // Hooks
 import { useWishlist } from './hooks/useWishlist';
-import { usePriceTracker } from './hooks/usePriceTracker';
+import { usePriceTracker, PriceTrackerProvider } from './hooks/usePriceTracker';
 
 // Components & Pages
 import { Navbar } from './components/Navbar';
@@ -148,7 +148,7 @@ export const App: React.FC = () => {
     <BrowserRouter basename={import.meta.env.BASE_URL}>
       <ScrollToTop />
       <AuthProvider>
-        <PriceProvider><AppContent /></PriceProvider>
+        <PriceProvider><PriceTrackerProvider><AppContent /></PriceTrackerProvider></PriceProvider>
       </AuthProvider>
     </BrowserRouter>
   );

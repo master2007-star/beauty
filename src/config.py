@@ -3,6 +3,11 @@ from pathlib import Path
 
 # Base directories
 BASE_DIR = Path(__file__).resolve().parent.parent
+try:
+    from dotenv import load_dotenv
+    load_dotenv(os.environ.get('PRICEWISE_ENV_FILE', str(BASE_DIR / '.env')))
+except ImportError:
+    pass
 DATA_DIR = BASE_DIR / "data"
 DATABASE_PATH = os.environ.get("PRICEWISE_DB_PATH", str(DATA_DIR / "pricewise.db"))
 SCHEMA_PATH = DATA_DIR / "schema.sql"

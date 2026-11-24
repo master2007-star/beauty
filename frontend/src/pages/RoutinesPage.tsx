@@ -45,6 +45,7 @@ export const RoutinesPage: React.FC = () => {
     setLoading(true);
     setActionError(null);
     const res = await getUserRoutines();
+    if (res.error) setActionError(res.error);
     if (res.routines) {
       setRoutines(res.routines);
     }

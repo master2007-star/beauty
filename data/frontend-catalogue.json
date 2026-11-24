@@ -1,0 +1,1352 @@
+[
+  {
+    "id": "prod-01",
+    "slug": "watermelon-cooling-sunscreen-spf-50",
+    "name": "Watermelon Cooling Sunscreen SPF 50+ PA++++",
+    "brand": "Dot & Key",
+    "category": "skincare",
+    "subcategory": "Sunscreen",
+    "quantity": "50 g",
+    "description": "Ultra-lightweight fluid sunscreen infused with Watermelon and Hyaluronic acid that instantly cools skin temperature by 6°C with zero white cast and no greasy residue.",
+    "image": "/images/products/prod-01.webp",
+    "skinType": "All Skin Types, Oily, Combination",
+    "keyIngredients": [
+      "Watermelon Extract",
+      "Hyaluronic Acid",
+      "UV Filters (Tinosorb M, Uvinul A Plus)",
+      "Beetroot Extract"
+    ],
+    "howToUse": {
+      "routine": "AM",
+      "stepNumber": 5,
+      "stepName": "Broad-Spectrum UV Defense",
+      "frequency": "Daily every morning 15 minutes before UV exposure",
+      "instructions": "Pump two finger lengths onto clean fingertips. Smooth evenly across entire face, ears, and neck. Reapply every 2-3 hours during direct outdoor sunlight.",
+      "precautions": "Do not use on open wounds or severely irritated skin. Store below 30°C away from direct sunlight.",
+      "patchTestRecommendation": "Apply a pea-sized amount to the inner forearm or side of jawline 24 hours prior to first facial application.",
+      "sunSafetyWarning": "Reapply immediately after swimming, intense sweating, or vigorous towel drying.",
+      "keyActives": [
+        {
+          "name": "Watermelon Extract",
+          "benefit": "Instantly cools skin surface temperature and supplies natural amino acids."
+        },
+        {
+          "name": "Hyaluronic Acid",
+          "concentration": "1%",
+          "benefit": "Multi-molecular humectant that prevents midday moisture loss under the sun."
+        },
+        {
+          "name": "Tinosorb M & Uvinul A Plus",
+          "benefit": "Modern photostable broad-spectrum UV filters with zero white cast."
+        }
+      ],
+      "sourceReference": "Manufacturer Label & Indian Dermatological Society Guidelines"
+    },
+    "storeOffers": [
+      {
+        "storeId": "nykaa",
+        "storeName": "Nykaa",
+        "price": 465,
+        "originalPrice": 595,
+        "shippingFee": 0,
+        "couponCode": "NYKBEAUTY10",
+        "couponDiscount": 46,
+        "couponTerms": "10% off beauty orders",
+        "totalCost": 419,
+        "deliveryDays": "2-3 Days",
+        "inStock": true,
+        "purchaseUrl": "https://www.nykaa.com/dot-key-watermelon-hyaluronic-cooling-sunscreen-spf-50-pa/p/14072071?productId=14072071&pps=1",
+        "isLowestPrice": true,
+        "sourceType": "demo",
+        "lastUpdated": "1 Nov 2026",
+        "matchClassification": "verified_match",
+        "isShippingDisclosed": true
+      },
+      {
+        "storeId": "tira",
+        "storeName": "Tira",
+        "price": 495,
+        "originalPrice": 595,
+        "shippingFee": 0,
+        "deliveryDays": "2-4 Days",
+        "inStock": true,
+        "purchaseUrl": "https://www.tirabeauty.com/search?q=Dot%20%26%20Key%20Watermelon%20Cooling%20Sunscreen%20SPF%2050%2B%20PA%2B%2B%2B%2B",
+        "sourceType": "demo",
+        "lastUpdated": "1 Nov 2026",
+        "matchClassification": "verified_match",
+        "isShippingDisclosed": true
+      },
+      {
+        "storeId": "purplle",
+        "storeName": "Purplle",
+        "price": 489,
+        "originalPrice": 595,
+        "shippingFee": 49,
+        "couponCode": "PURPLLE50",
+        "couponDiscount": 50,
+        "couponTerms": "Flat ₹50 off on orders",
+        "totalCost": 488,
+        "deliveryDays": "3-5 Days",
+        "inStock": true,
+        "purchaseUrl": "https://www.purplle.com/search?q=Dot%20%26%20Key%20Watermelon%20Cooling%20Sunscreen%20SPF%2050%2B%20PA%2B%2B%2B%2B",
+        "sourceType": "partner_feed",
+        "lastUpdated": "1 Nov 2026",
+        "matchClassification": "verified_match",
+        "isShippingDisclosed": true
+      },
+      {
+        "storeId": "amazon",
+        "storeName": "Amazon India",
+        "price": 475,
+        "originalPrice": 595,
+        "shippingFee": 0,
+        "deliveryDays": "1 Day",
+        "inStock": true,
+        "purchaseUrl": "https://www.amazon.in/s?k=Dot%20%26%20Key%20Watermelon%20Cooling%20Sunscreen%20SPF%2050%2B%20PA%2B%2B%2B%2B",
+        "sourceType": "demo",
+        "lastUpdated": "1 Nov 2026",
+        "matchClassification": "verified_match",
+        "isShippingDisclosed": true
+      },
+      {
+        "storeId": "myntra",
+        "storeName": "Myntra",
+        "price": 499,
+        "originalPrice": 595,
+        "shippingFee": null,
+        "isShippingDisclosed": false,
+        "deliveryDays": "3-4 Days",
+        "inStock": true,
+        "purchaseUrl": "https://www.myntra.com/dot-key-watermelon-cooling-sunscreen-spf-50-pa",
+        "sourceType": "demo",
+        "lastUpdated": "1 Nov 2026",
+        "matchClassification": "possible_match"
+      }
+    ]
+  },
+  {
+    "id": "prod-02",
+    "name": "1% Hyaluronic Sunscreen Aqua Gel SPF 50 PA++++",
+    "brand": "The Derma Co",
+    "category": "skincare",
+    "subcategory": "Sunscreen",
+    "quantity": "50 g",
+    "description": "Dermatologist-formulated light aqua gel with Hyaluronic Acid and Vitamin E. Absorbs like water with zero pilling under makeup and broad spectrum blue-light defense.",
+    "image": "/images/products/prod-02.webp",
+    "skinType": "Acne-Prone, Normal, Sensitive",
+    "keyIngredients": [
+      "Hyaluronic Acid 1%",
+      "Vitamin E",
+      "Titanium Dioxide",
+      "Zinc Oxide"
+    ],
+    "howToUse": {
+      "routine": "AM",
+      "stepNumber": 5,
+      "instructions": "Pump out two finger lengths and smooth evenly across entire face and neck.",
+      "precautions": "Do not use on open wounds or severely irritated skin."
+    },
+    "storeOffers": [
+      {
+        "storeId": "nykaa",
+        "storeName": "Nykaa",
+        "price": 449,
+        "originalPrice": 499,
+        "shippingFee": 0,
+        "deliveryDays": "2-3 Days",
+        "inStock": true,
+        "purchaseUrl": "https://www.nykaa.com/the-derma-co-1percent-hyaluronic-sunscreen-spf-50-aqua-gel-pa-broad-spectrum/p/15901861?productId=15901861&pps=3",
+        "isLowestPrice": true
+      },
+      {
+        "storeId": "amazon",
+        "storeName": "Amazon India",
+        "price": 469,
+        "originalPrice": 499,
+        "shippingFee": 0,
+        "deliveryDays": "1 Day",
+        "inStock": true,
+        "purchaseUrl": "https://www.amazon.in/s?k=The%20Derma%20Co%201%25%20Hyaluronic%20Sunscreen%20Aqua%20Gel%20SPF%2050%20PA%2B%2B%2B%2B"
+      },
+      {
+        "storeId": "purplle",
+        "storeName": "Purplle",
+        "price": 479,
+        "originalPrice": 499,
+        "shippingFee": 49,
+        "deliveryDays": "3-4 Days",
+        "inStock": true,
+        "purchaseUrl": "https://www.purplle.com/search?q=The%20Derma%20Co%201%25%20Hyaluronic%20Sunscreen%20Aqua%20Gel%20SPF%2050%20PA%2B%2B%2B%2B"
+      }
+    ]
+  },
+  {
+    "id": "prod-03",
+    "name": "10% Niacinamide Face Serum with Zinc PCA",
+    "brand": "Minimalist",
+    "category": "skincare",
+    "subcategory": "Serums",
+    "quantity": "30 ml",
+    "description": "Clinical-strength 10% pure Niacinamide paired with EUK-134 and Zinc PCA to visibly reduce sebum, fade post-acne blemishes, and refine skin texture.",
+    "image": "/images/products/prod-03.webp",
+    "skinType": "Blemish-Prone, Oily, Uneven Texture",
+    "keyIngredients": [
+      "Niacinamide (Vitamin B3) 10%",
+      "Zinc PCA 1%",
+      "EUK-134",
+      "Aloe Vera Juice"
+    ],
+    "howToUse": {
+      "routine": "AM & PM",
+      "stepNumber": 3,
+      "instructions": "Dispense 2-3 drops after cleansing and toning. Gently pat into face until fully absorbed before moisturiser.",
+      "precautions": "Do not layer directly with pure Vitamin C (L-Ascorbic Acid) in the same routine."
+    },
+    "storeOffers": [
+      {
+        "storeId": "nykaa",
+        "storeName": "Nykaa",
+        "price": 569,
+        "originalPrice": 599,
+        "shippingFee": 0,
+        "couponCode": "NYKBEAUTY10",
+        "couponDiscount": 50,
+        "couponTerms": "10% off beauty orders",
+        "totalCost": 519,
+        "deliveryDays": "2-3 Days",
+        "inStock": true,
+        "purchaseUrl": "https://www.nykaa.com/minimalist-10percent-niacinamide-face-serum-with-matmarine-zinc-for-reducing-oil-blemishes/p/15022069?productId=15022069&pps=1&skuId=1067995",
+        "isLowestPrice": true,
+        "sourceType": "demo",
+        "lastUpdated": "1 Nov 2026",
+        "matchClassification": "verified_match",
+        "isShippingDisclosed": true
+      },
+      {
+        "storeId": "tira",
+        "storeName": "Tira",
+        "price": 585,
+        "originalPrice": 599,
+        "shippingFee": 0,
+        "deliveryDays": "2-4 Days",
+        "inStock": true,
+        "purchaseUrl": "https://www.tirabeauty.com/search?q=Minimalist%2010%25%20Niacinamide%20Face%20Serum%20with%20Zinc%20PCA",
+        "sourceType": "demo",
+        "lastUpdated": "1 Nov 2026",
+        "matchClassification": "verified_match",
+        "isShippingDisclosed": true
+      },
+      {
+        "storeId": "amazon",
+        "storeName": "Amazon India",
+        "price": 569,
+        "originalPrice": 599,
+        "shippingFee": 0,
+        "deliveryDays": "Same Day",
+        "inStock": true,
+        "purchaseUrl": "https://www.amazon.in/s?k=Minimalist%2010%25%20Niacinamide%20Face%20Serum%20with%20Zinc%20PCA",
+        "isLowestPrice": true,
+        "sourceType": "demo",
+        "lastUpdated": "1 Nov 2026",
+        "matchClassification": "verified_match",
+        "isShippingDisclosed": true
+      }
+    ]
+  },
+  {
+    "id": "prod-04",
+    "name": "Advanced Snail 96 Mucin Power Essence",
+    "brand": "COSRX",
+    "category": "skincare",
+    "subcategory": "Serums",
+    "quantity": "100 ml",
+    "description": "Formulated with 96.3% Snail Secretion Filtrate to protect skin from moisture loss, soothe redness, and restore skin elasticity for glass skin finish.",
+    "image": "/images/products/prod-04.webp",
+    "skinType": "Dehydrated, Sensitive, Dull",
+    "keyIngredients": [
+      "Snail Secretion Filtrate 96.3%",
+      "Sodium Hyaluronate",
+      "Betaine",
+      "Allantoin"
+    ],
+    "howToUse": {
+      "routine": "AM & PM",
+      "stepNumber": 3,
+      "instructions": "Pump 1-2 pumps onto damp palms and gently tap over face until essence absorbs.",
+      "precautions": "Check for mollusk/snail allergies prior to full face usage."
+    },
+    "storeOffers": [
+      {
+        "storeId": "nykaa",
+        "storeName": "Nykaa",
+        "price": 1250,
+        "originalPrice": 1450,
+        "shippingFee": 0,
+        "couponCode": "NYKBEAUTY10",
+        "couponDiscount": 100,
+        "couponTerms": "10% off beauty orders",
+        "totalCost": 1150,
+        "deliveryDays": "2-3 Days",
+        "inStock": true,
+        "purchaseUrl": "https://www.nykaa.com/cosrx-advanced-snail-96-mucin-power-essence/p/757628?productId=757628&pps=1",
+        "isLowestPrice": true,
+        "sourceType": "demo",
+        "lastUpdated": "1 Nov 2026",
+        "matchClassification": "verified_match",
+        "isShippingDisclosed": true
+      },
+      {
+        "storeId": "tira",
+        "storeName": "Tira",
+        "price": 1290,
+        "originalPrice": 1450,
+        "shippingFee": 0,
+        "couponCode": "TIRA100",
+        "couponDiscount": 100,
+        "couponTerms": "₹100 off on ₹999+",
+        "totalCost": 1190,
+        "deliveryDays": "1-3 Days",
+        "inStock": true,
+        "purchaseUrl": "https://www.tirabeauty.com/search?q=COSRX%20Advanced%20Snail%2096%20Mucin%20Power%20Essence",
+        "sourceType": "demo",
+        "lastUpdated": "1 Nov 2026",
+        "matchClassification": "verified_match",
+        "isShippingDisclosed": true
+      },
+      {
+        "storeId": "amazon",
+        "storeName": "Amazon India",
+        "price": 1320,
+        "originalPrice": 1450,
+        "shippingFee": 0,
+        "deliveryDays": "1 Day",
+        "inStock": true,
+        "purchaseUrl": "https://www.amazon.in/s?k=COSRX%20Advanced%20Snail%2096%20Mucin%20Power%20Essence",
+        "sourceType": "demo",
+        "lastUpdated": "1 Nov 2026",
+        "matchClassification": "verified_match",
+        "isShippingDisclosed": true
+      }
+    ]
+  },
+  {
+    "id": "prod-05",
+    "name": "Kumkumadi Miraculous Beauty Ayurvedic Night Serum",
+    "brand": "Kama Ayurveda",
+    "category": "skincare",
+    "subcategory": "Serums",
+    "quantity": "12 ml",
+    "description": "Prescribed in Ayurveda for radiant glow and brightening. Infused with pure Kashmiri Saffron, Sandalwood, and Indian Madder to diminish pigmentation.",
+    "image": "/images/products/prod-05.webp",
+    "skinType": "Normal, Dry, Mature, Pigmented",
+    "keyIngredients": [
+      "Kashmiri Saffron (Kumkuma)",
+      "Sandalwood (Chandana)",
+      "Indian Lotus",
+      "Sesame Oil Base"
+    ],
+    "howToUse": {
+      "routine": "PM",
+      "stepNumber": 4,
+      "instructions": "Take 3-4 drops on clean palms, warm slightly, and press softly into clean face and neck in upward strokes.",
+      "precautions": "Not recommended for daytime use due to pure saffron content."
+    },
+    "storeOffers": [
+      {
+        "storeId": "tira",
+        "storeName": "Tira",
+        "price": 3195,
+        "originalPrice": 3195,
+        "shippingFee": 0,
+        "deliveryDays": "1-2 Days",
+        "inStock": true,
+        "purchaseUrl": "https://www.tirabeauty.com/search?q=Kama%20Ayurveda%20Kumkumadi%20Miraculous%20Beauty%20Ayurvedic%20Night%20Serum",
+        "isLowestPrice": true
+      },
+      {
+        "storeId": "nykaa",
+        "storeName": "Nykaa",
+        "price": 3195,
+        "originalPrice": 3195,
+        "shippingFee": 0,
+        "deliveryDays": "2-3 Days",
+        "inStock": true,
+        "purchaseUrl": "https://www.nykaa.com/kama-ayurveda-kumkumadi-miraculous-beauty-fluid-ayurvedic-night-serum/p/1262946?productId=1262946&pps=1",
+        "isLowestPrice": true
+      }
+    ]
+  },
+  {
+    "id": "prod-06",
+    "slug": "ceramide-moisturizer",
+    "name": "Barrier Repair Ceramides & Hyaluronic Moisturizer",
+    "brand": "Dot & Key",
+    "category": "skincare",
+    "subcategory": "Moisturiser",
+    "quantity": "100 g",
+    "description": "Nourishing daily face cream enriched with 5 essential ceramides, hyaluronic acid, and Japanese rice water to restore compromised barriers.",
+    "image": "/images/products/prod-06.webp",
+    "skinType": "Dry, Sensitive, Damaged Barrier",
+    "keyIngredients": [
+      "5 Essential Ceramides (EOP, NS, NP, AS, AP)",
+      "Hyaluronic Acid",
+      "Japanese Rice Water",
+      "Probiotics"
+    ],
+    "howToUse": {
+      "routine": "AM & PM",
+      "stepNumber": 4,
+      "stepName": "Hydrate & Seal",
+      "frequency": "Twice daily (Morning & Night)",
+      "instructions": "Smooth a coin-sized amount evenly over face and neck after treatment serum. Gently press with warm palms to lock in lipids.",
+      "precautions": "Keep jar sealed to preserve ceramide integrity. For external use only.",
+      "patchTestRecommendation": "Apply a dime-sized amount to the clean inner forearm or side of jaw for 24 hours prior to full facial wear.",
+      "keyActives": [
+        {
+          "name": "5 Essential Ceramides",
+          "benefit": "Replenishes intercellular lipid matrix to strengthen sensitive, damaged barriers."
+        },
+        {
+          "name": "Hyaluronic Acid",
+          "benefit": "Penetrates surface layers to infuse sustained humectant hydration."
+        },
+        {
+          "name": "Japanese Rice Water",
+          "benefit": "Rich in vitamins and antioxidants to soften rough texture and promote natural elasticity."
+        }
+      ],
+      "sourceReference": "Manufacturer Packaging & Clinical Dermatology Guidelines"
+    },
+    "storeOffers": [
+      {
+        "storeId": "nykaa",
+        "storeName": "Nykaa",
+        "price": 385,
+        "originalPrice": 495,
+        "shippingFee": 0,
+        "deliveryDays": "2-3 Days",
+        "inStock": true,
+        "purchaseUrl": "https://www.nykaa.com/dot-key-ceramides-hyaluronic-barrier-repair-moisturizer/p/15692441?productId=15692441&skuId=7355208&pps=1",
+        "isLowestPrice": true
+      },
+      {
+        "storeId": "purplle",
+        "storeName": "Purplle",
+        "price": 399,
+        "originalPrice": 495,
+        "shippingFee": 49,
+        "deliveryDays": "3-5 Days",
+        "inStock": true,
+        "purchaseUrl": "https://www.purplle.com/search?q=Dot%20%26%20Key%20Barrier%20Repair%20Ceramides%20%26%20Hyaluronic%20Moisturizer"
+      },
+      {
+        "storeId": "amazon",
+        "storeName": "Amazon India",
+        "price": 410,
+        "originalPrice": 495,
+        "shippingFee": 0,
+        "deliveryDays": "1 Day",
+        "inStock": true,
+        "purchaseUrl": "https://www.amazon.in/s?k=Dot%20%26%20Key%20Barrier%20Repair%20Ceramides%20%26%20Hyaluronic%20Moisturizer"
+      }
+    ]
+  },
+  {
+    "id": "prod-07",
+    "name": "Soundarya Radiance Cream with 24K Gold & SPF 25",
+    "brand": "Forest Essentials",
+    "category": "skincare",
+    "subcategory": "Moisturiser",
+    "quantity": "50 g",
+    "description": "An iconic Ayurvedic day formulation with pure 24K Gold Bhasma, cold-pressed sweet almond oil, and pure ghee for royal luminosity and tone firming.",
+    "image": "/images/products/prod-07.webp",
+    "skinType": "Mature, Dry, Normal",
+    "keyIngredients": [
+      "24 Karat Gold Bhasma",
+      "Kashmiri Saffron",
+      "Cow Milk Ghee",
+      "Sweet Almond Oil"
+    ],
+    "howToUse": {
+      "routine": "AM",
+      "stepNumber": 4,
+      "instructions": "Massage small pea-sized amount onto face in circular motions until gold particles melt into skin.",
+      "precautions": "Store in cool and dry place away from direct sunlight."
+    },
+    "storeOffers": [
+      {
+        "storeId": "tira",
+        "storeName": "Tira",
+        "price": 5475,
+        "originalPrice": 5475,
+        "shippingFee": 0,
+        "deliveryDays": "1-2 Days",
+        "inStock": true,
+        "purchaseUrl": "https://www.tirabeauty.com/search?q=Forest%20Essentials%20Soundarya%20Radiance%20Cream%20with%2024K%20Gold%20%26%20SPF%2025",
+        "isLowestPrice": true
+      },
+      {
+        "storeId": "nykaa",
+        "storeName": "Nykaa",
+        "price": 5475,
+        "originalPrice": 5475,
+        "shippingFee": 0,
+        "deliveryDays": "2-3 Days",
+        "inStock": true,
+        "purchaseUrl": "https://www.nykaa.com/forest-essentials-soundarya-radiance-cream-with-24k-gold-and-spf25-config/p/255105?productId=255105&skuId=34182&pps=1",
+        "isLowestPrice": true
+      }
+    ]
+  },
+  {
+    "id": "prod-08",
+    "name": "Moisture Surge 100H Auto-Replenishing Hydrator",
+    "brand": "Clinique",
+    "category": "skincare",
+    "subcategory": "Moisturiser",
+    "quantity": "50 ml",
+    "description": "Oil-free gel-cream with exclusive aloe bio-ferment and hyaluronic acid that penetrates deep for continuous hydration even after washing your face.",
+    "image": "/images/products/prod-08.webp",
+    "skinType": "All Skin Types, Oily, Dehydrated",
+    "keyIngredients": [
+      "Aloe Bio-Ferment",
+      "Hyaluronic Acid Multi-Weights",
+      "Activated Aloe Water"
+    ],
+    "howToUse": {
+      "routine": "AM & PM",
+      "stepNumber": 4,
+      "instructions": "Use morning and night on clean skin or over makeup as a luminous highlighter.",
+      "precautions": "Oil-free; safe for acne-prone skin."
+    },
+    "storeOffers": [
+      {
+        "storeId": "nykaa",
+        "storeName": "Nykaa",
+        "price": 2950,
+        "originalPrice": 3200,
+        "shippingFee": 0,
+        "deliveryDays": "2-3 Days",
+        "inStock": true,
+        "purchaseUrl": "https://www.nykaa.com/clinique-moisture-surge-100h-auto-replenishing-hydrator/p/1129289?productId=1129289&pps=1&skuId=1129287",
+        "isLowestPrice": true
+      },
+      {
+        "storeId": "tira",
+        "storeName": "Tira",
+        "price": 2990,
+        "originalPrice": 3200,
+        "shippingFee": 0,
+        "deliveryDays": "1-3 Days",
+        "inStock": true,
+        "purchaseUrl": "https://www.tirabeauty.com/search?q=Clinique%20Moisture%20Surge%20100H%20Auto-Replenishing%20Hydrator"
+      },
+      {
+        "storeId": "myntra",
+        "storeName": "Myntra",
+        "price": 3100,
+        "originalPrice": 3200,
+        "shippingFee": 0,
+        "deliveryDays": "2-4 Days",
+        "inStock": true,
+        "purchaseUrl": "https://www.myntra.com/clinique-moisture-surge-100h-auto-replenishing-hydrator"
+      }
+    ]
+  },
+  {
+    "id": "prod-09",
+    "name": "Gentle Skin Cleanser for Dry to Normal Sensitive Skin",
+    "brand": "Cetaphil",
+    "category": "skincare",
+    "subcategory": "Face Wash",
+    "quantity": "125 ml",
+    "description": "Soap-free, fragrance-free creamy wash clinically tested to cleanse and hydrate without stripping. Defends against 5 signs of skin sensitivity.",
+    "image": "/images/products/prod-09.webp",
+    "skinType": "Dry, Normal, Sensitive, Dermatitis",
+    "keyIngredients": [
+      "Niacinamide (Vitamin B3)",
+      "Panthenol (Pro-Vitamin B5)",
+      "Glycerin"
+    ],
+    "howToUse": {
+      "routine": "AM & PM",
+      "stepNumber": 1,
+      "instructions": "Apply with or without water. Gently massage face in circular motion and rinse or wipe off with cotton pad.",
+      "precautions": "Safe for daily use on sensitive skin."
+    },
+    "storeOffers": [
+      {
+        "storeId": "nykaa",
+        "storeName": "Nykaa",
+        "price": 335,
+        "originalPrice": 399,
+        "shippingFee": 0,
+        "deliveryDays": "2-3 Days",
+        "inStock": true,
+        "purchaseUrl": "https://www.nykaa.com/cetaphil-cleansing-lotion/p/22032?productId=22032&pps=1",
+        "isLowestPrice": true
+      },
+      {
+        "storeId": "amazon",
+        "storeName": "Amazon India",
+        "price": 335,
+        "originalPrice": 399,
+        "shippingFee": 0,
+        "deliveryDays": "Same Day",
+        "inStock": true,
+        "purchaseUrl": "https://www.amazon.in/s?k=Cetaphil%20Gentle%20Skin%20Cleanser%20for%20Dry%20to%20Normal%20Sensitive%20Skin",
+        "isLowestPrice": true
+      },
+      {
+        "storeId": "purplle",
+        "storeName": "Purplle",
+        "price": 350,
+        "originalPrice": 399,
+        "shippingFee": 49,
+        "deliveryDays": "3-4 Days",
+        "inStock": true,
+        "purchaseUrl": "https://www.purplle.com/search?q=Cetaphil%20Gentle%20Skin%20Cleanser%20for%20Dry%20to%20Normal%20Sensitive%20Skin"
+      }
+    ]
+  },
+  {
+    "id": "prod-10",
+    "name": "Clear Face Cleansing Foam with pH 5.5",
+    "brand": "Sebamed",
+    "category": "skincare",
+    "subcategory": "Face Wash",
+    "quantity": "150 ml",
+    "description": "Active antibacterial cleansing foam featuring Montaline C40 that combats acne-causing bacteria in 3 minutes while maintaining natural skin acid mantle.",
+    "image": "/images/products/prod-10.webp",
+    "skinType": "Acne-Prone, Oily, Impure Skin",
+    "keyIngredients": [
+      "Montaline C40",
+      "Panthenol",
+      "pH 5.5 Buffer System"
+    ],
+    "howToUse": {
+      "routine": "AM & PM",
+      "stepNumber": 1,
+      "instructions": "Pump foam onto hand and gently distribute over face. Leave on for 3 minutes before rinsing with warm water.",
+      "precautions": "Do not leave on skin for longer than 5 minutes."
+    },
+    "storeOffers": [
+      {
+        "storeId": "amazon",
+        "storeName": "Amazon India",
+        "price": 580,
+        "originalPrice": 650,
+        "shippingFee": 0,
+        "deliveryDays": "1 Day",
+        "inStock": true,
+        "purchaseUrl": "https://www.amazon.in/s?k=Sebamed%20Clear%20Face%20Cleansing%20Foam%20with%20pH%205.5",
+        "isLowestPrice": true
+      },
+      {
+        "storeId": "nykaa",
+        "storeName": "Nykaa",
+        "price": 595,
+        "originalPrice": 650,
+        "shippingFee": 0,
+        "deliveryDays": "2-3 Days",
+        "inStock": true,
+        "purchaseUrl": "https://www.nykaa.com/sebamed-clear-face-cleansing-foam/p/4725?productId=4725&pps=1"
+      }
+    ]
+  },
+  {
+    "id": "prod-11",
+    "name": "Green Tea Alcohol-Free Toner with Glycolic Acid",
+    "brand": "Plum",
+    "category": "skincare",
+    "subcategory": "Toners",
+    "quantity": "200 ml",
+    "description": "100% vegan alcohol-free toner packed with antioxidant Green Tea and gentle Glycolic Acid to unclog pores and balance excess sebum.",
+    "image": "/images/products/prod-11.webp",
+    "skinType": "Oily, Combination, Acne-Prone",
+    "keyIngredients": [
+      "Green Tea Extract",
+      "Glycolic Acid",
+      "Glycerin"
+    ],
+    "howToUse": {
+      "routine": "AM & PM",
+      "stepNumber": 2,
+      "instructions": "Pour onto palms or cotton pad and gently pat over face and neck after washing.",
+      "precautions": "Follow with sunscreen during the day."
+    },
+    "storeOffers": [
+      {
+        "storeId": "nykaa",
+        "storeName": "Nykaa",
+        "price": 340,
+        "originalPrice": 420,
+        "shippingFee": 0,
+        "deliveryDays": "2-3 Days",
+        "inStock": true,
+        "purchaseUrl": "https://www.nykaa.com/plum-green-tea-toner-with-glycolic-acid-tightens-pores-fights-pimples-controls-oil-alcohol-free/p/17848586?productId=17848586&pps=1&skuId=23990",
+        "isLowestPrice": true
+      },
+      {
+        "storeId": "purplle",
+        "storeName": "Purplle",
+        "price": 345,
+        "originalPrice": 420,
+        "shippingFee": 49,
+        "deliveryDays": "3-4 Days",
+        "inStock": true,
+        "purchaseUrl": "https://www.purplle.com/search?q=Plum%20Green%20Tea%20Alcohol-Free%20Toner%20with%20Glycolic%20Acid"
+      },
+      {
+        "storeId": "amazon",
+        "storeName": "Amazon India",
+        "price": 360,
+        "originalPrice": 420,
+        "shippingFee": 0,
+        "deliveryDays": "1 Day",
+        "inStock": true,
+        "purchaseUrl": "https://www.amazon.in/s?k=Plum%20Green%20Tea%20Alcohol-Free%20Toner%20with%20Glycolic%20Acid"
+      }
+    ]
+  },
+  {
+    "id": "prod-12",
+    "name": "Lip Sleeping Mask - Berry",
+    "brand": "Laneige",
+    "category": "skincare",
+    "subcategory": "Lip Care",
+    "quantity": "20 g",
+    "description": "Iconic leave-on lip treatment that melts away dead skin cells and delivers intensive moisture with Berry Fruit Complex, Vitamin C, and coconut oil.",
+    "image": "/images/products/prod-12.webp",
+    "skinType": "Chapped, Dry Lips",
+    "keyIngredients": [
+      "Berry Fruit Complex",
+      "Vitamin C",
+      "Coconut Oil",
+      "Shea Butter"
+    ],
+    "howToUse": {
+      "routine": "PM",
+      "stepNumber": 6,
+      "instructions": "Apply a generous layer onto lips before bed using spatula. Gently wipe away excess the next morning.",
+      "precautions": "Can also be applied thinly during daytime as a nourishing lip balm."
+    },
+    "storeOffers": [
+      {
+        "storeId": "nykaa",
+        "storeName": "Nykaa",
+        "price": 1290,
+        "originalPrice": 1420,
+        "shippingFee": 0,
+        "deliveryDays": "2-3 Days",
+        "inStock": true,
+        "purchaseUrl": "https://www.nykaa.com/laneige-lip-sleeping-mask-berry/p/15227410?productId=15227410&pps=1",
+        "isLowestPrice": true
+      },
+      {
+        "storeId": "tira",
+        "storeName": "Tira",
+        "price": 1320,
+        "originalPrice": 1420,
+        "shippingFee": 0,
+        "deliveryDays": "1-3 Days",
+        "inStock": true,
+        "purchaseUrl": "https://www.tirabeauty.com/search?q=Laneige%20Lip%20Sleeping%20Mask%20-%20Berry"
+      }
+    ]
+  },
+  {
+    "id": "prod-13",
+    "name": "Fit Me Matte + Poreless Liquid Foundation",
+    "brand": "Maybelline New York",
+    "category": "makeup",
+    "subcategory": "Foundation",
+    "quantity": "30 ml",
+    "description": "Indias most popular lightweight liquid foundation with micro-powders that control shine and blur pores for a natural, seamless matte finish.",
+    "image": "/images/products/prod-13.webp",
+    "keyIngredients": [
+      "Aerogel Micro-powders",
+      "Glycerin",
+      "Titanium Dioxide"
+    ],
+    "howToUse": {
+      "routine": "AM",
+      "stepNumber": 2,
+      "instructions": "Dot across forehead, cheeks, nose, and chin. Blend outwards using a damp sponge or foundation brush.",
+      "precautions": "Shake well before application."
+    },
+    "storeOffers": [
+      {
+        "storeId": "nykaa",
+        "storeName": "Nykaa",
+        "price": 549,
+        "originalPrice": 699,
+        "shippingFee": 0,
+        "deliveryDays": "2-3 Days",
+        "inStock": true,
+        "purchaseUrl": "https://www.nykaa.com/maybelline-new-york-fit-me-matte-poreless-foundation/p/31074?productId=31074&pps=2&skuId=520720",
+        "isLowestPrice": true
+      },
+      {
+        "storeId": "amazon",
+        "storeName": "Amazon India",
+        "price": 549,
+        "originalPrice": 699,
+        "shippingFee": 0,
+        "deliveryDays": "1 Day",
+        "inStock": true,
+        "purchaseUrl": "https://www.amazon.in/s?k=Maybelline%20New%20York%20Fit%20Me%20Matte%20%2B%20Poreless%20Liquid%20Foundation",
+        "isLowestPrice": true
+      },
+      {
+        "storeId": "myntra",
+        "storeName": "Myntra",
+        "price": 579,
+        "originalPrice": 699,
+        "shippingFee": 0,
+        "deliveryDays": "2-4 Days",
+        "inStock": true,
+        "purchaseUrl": "https://www.myntra.com/maybelline-new-york-fit-me-matte-poreless-liquid-foundation"
+      },
+      {
+        "storeId": "purplle",
+        "storeName": "Purplle",
+        "price": 569,
+        "originalPrice": 699,
+        "shippingFee": 49,
+        "deliveryDays": "3-4 Days",
+        "inStock": true,
+        "purchaseUrl": "https://www.purplle.com/search?q=Maybelline%20New%20York%20Fit%20Me%20Matte%20%2B%20Poreless%20Liquid%20Foundation"
+      }
+    ]
+  },
+  {
+    "id": "prod-14",
+    "name": "Studio Fix Fluid SPF 15 24HR Matte Foundation",
+    "brand": "M.A.C Cosmetics",
+    "category": "makeup",
+    "subcategory": "Foundation",
+    "quantity": "30 ml",
+    "description": "The global benchmark for buildable medium-to-full coverage with 24-hour shine control and non-streaking resistance, formulated specifically for humid conditions.",
+    "image": "/images/products/prod-14.webp",
+    "keyIngredients": [
+      "Silica Powders",
+      "Vitamin E",
+      "Broad Spectrum SPF 15"
+    ],
+    "howToUse": {
+      "routine": "AM",
+      "stepNumber": 2,
+      "instructions": "Dispense one pump onto back of hand and buff into skin using MAC 170 synthetic brush.",
+      "precautions": "Ensure skin is well-hydrated before applying for smoothest glide."
+    },
+    "storeOffers": [
+      {
+        "storeId": "tira",
+        "storeName": "Tira",
+        "price": 3600,
+        "originalPrice": 3900,
+        "shippingFee": 0,
+        "deliveryDays": "1-2 Days",
+        "inStock": true,
+        "purchaseUrl": "https://www.tirabeauty.com/search?q=M.A.C%20Cosmetics%20Studio%20Fix%20Fluid%20SPF%2015%2024HR%20Matte%20Foundation",
+        "isLowestPrice": true
+      },
+      {
+        "storeId": "nykaa",
+        "storeName": "Nykaa",
+        "price": 3650,
+        "originalPrice": 3900,
+        "shippingFee": 0,
+        "deliveryDays": "2-3 Days",
+        "inStock": true,
+        "purchaseUrl": "https://www.nykaa.com/m-a-cstudio-fix-fluid-spf-15-foundation/p/14327558?productId=14327558&pps=2&skuId=14327504"
+      }
+    ]
+  },
+  {
+    "id": "prod-15",
+    "name": "Hollywood Flawless Filter Complexion Booster",
+    "brand": "Charlotte Tilbury",
+    "category": "makeup",
+    "subcategory": "Foundation",
+    "quantity": "30 ml",
+    "description": "A customizable complexion booster that blurs, smooths, and illuminates for a celebrity glow filter in real life. Wear alone, under, or mixed with foundation.",
+    "image": "/images/products/prod-15.webp",
+    "keyIngredients": [
+      "Airbrush Polymers",
+      "Glossy Oil",
+      "Finely Milled Powders",
+      "Porcelain Flower Extract"
+    ],
+    "howToUse": {
+      "routine": "AM",
+      "stepNumber": 1,
+      "instructions": "Swipe applicator across high points of face and blend with fingers or sponge.",
+      "precautions": "A little goes a long way. Not intended as a full coverage concealer."
+    },
+    "storeOffers": [
+      {
+        "storeId": "nykaa",
+        "storeName": "Nykaa",
+        "price": 4300,
+        "originalPrice": 4300,
+        "shippingFee": 0,
+        "deliveryDays": "2-3 Days",
+        "inStock": true,
+        "purchaseUrl": "https://www.nykaa.com/charlotte-tilbury-hollywood-filter/p/985214?productId=985214&skuId=959726&pps=1",
+        "isLowestPrice": true
+      },
+      {
+        "storeId": "tira",
+        "storeName": "Tira",
+        "price": 4300,
+        "originalPrice": 4300,
+        "shippingFee": 0,
+        "deliveryDays": "1-3 Days",
+        "inStock": true,
+        "purchaseUrl": "https://www.tirabeauty.com/search?q=Charlotte%20Tilbury%20Hollywood%20Flawless%20Filter%20Complexion%20Booster",
+        "isLowestPrice": true
+      }
+    ]
+  },
+  {
+    "id": "prod-16",
+    "name": "Instant Age Rewind Eraser Multi-Use Concealer",
+    "brand": "Maybelline New York",
+    "category": "makeup",
+    "subcategory": "Concealer",
+    "quantity": "6 ml",
+    "description": "Equipped with a micro-corrector sponge tip to instantly brighten dark circles, conceal imperfections, and contour with crease-resistant buildable coverage.",
+    "image": "/images/products/prod-16.webp",
+    "keyIngredients": [
+      "Haloxyl",
+      "Goji Berry Extract",
+      "Titanium Dioxide"
+    ],
+    "howToUse": {
+      "routine": "AM",
+      "stepNumber": 3,
+      "instructions": "Twist collar in direction of arrows until formula appears on sponge. Tap directly onto under-eye area and blend outwards.",
+      "precautions": "Do not wet the micro-corrector sponge."
+    },
+    "storeOffers": [
+      {
+        "storeId": "amazon",
+        "storeName": "Amazon India",
+        "price": 599,
+        "originalPrice": 799,
+        "shippingFee": 0,
+        "deliveryDays": "Same Day",
+        "inStock": true,
+        "purchaseUrl": "https://www.amazon.in/s?k=Maybelline%20New%20York%20Instant%20Age%20Rewind%20Eraser%20Multi-Use%20Concealer",
+        "isLowestPrice": true
+      },
+      {
+        "storeId": "nykaa",
+        "storeName": "Nykaa",
+        "price": 629,
+        "originalPrice": 799,
+        "shippingFee": 0,
+        "deliveryDays": "2-3 Days",
+        "inStock": true,
+        "purchaseUrl": "https://www.nykaa.com/maybelline-new-york-instant-age-rewind-concealer/p/189967?productId=189967&pps=1&skuId=328470"
+      },
+      {
+        "storeId": "myntra",
+        "storeName": "Myntra",
+        "price": 639,
+        "originalPrice": 799,
+        "shippingFee": 0,
+        "deliveryDays": "2-4 Days",
+        "inStock": true,
+        "purchaseUrl": "https://www.myntra.com/maybelline-new-york-instant-age-rewind-eraser-multi-use-concealer"
+      }
+    ]
+  },
+  {
+    "id": "prod-17",
+    "name": "Matteinee Matte Lipstick - Fulfill",
+    "brand": "Kay Beauty",
+    "category": "makeup",
+    "subcategory": "Lipstick",
+    "quantity": "3.8 g",
+    "description": "Katrina Kaifs signature ultra-pigmented velvet matte lipstick enriched with Chamomile and Marula oil to nourish lips while offering 12-hour comfortable wear.",
+    "image": "/images/products/prod-17.webp",
+    "keyIngredients": [
+      "Marula Oil",
+      "Chamomile Extract",
+      "Vitamin E"
+    ],
+    "howToUse": {
+      "routine": "AM",
+      "stepNumber": 5,
+      "instructions": "Glide smoothly over lips starting from cupid bow outwards. Blot lightly with tissue for stained matte effect.",
+      "precautions": "Keep cap tightly closed to prevent bullet from drying."
+    },
+    "storeOffers": [
+      {
+        "storeId": "nykaa",
+        "storeName": "Nykaa",
+        "price": 799,
+        "originalPrice": 999,
+        "shippingFee": 0,
+        "deliveryDays": "2-3 Days",
+        "inStock": true,
+        "purchaseUrl": "https://www.nykaa.com/kay-matteinee-lip-crayon/p/573181?productId=573181&pps=2",
+        "isLowestPrice": true
+      },
+      {
+        "storeId": "tira",
+        "storeName": "Tira",
+        "price": 849,
+        "originalPrice": 999,
+        "shippingFee": 0,
+        "deliveryDays": "1-3 Days",
+        "inStock": true,
+        "purchaseUrl": "https://www.tirabeauty.com/search?q=Kay%20Beauty%20Matteinee%20Matte%20Lipstick%20-%20Fulfill"
+      }
+    ]
+  },
+  {
+    "id": "prod-18",
+    "name": "Soft Pinch Liquid Blush - Encourage",
+    "brand": "Rare Beauty",
+    "category": "makeup",
+    "subcategory": "Blush",
+    "quantity": "7.5 ml",
+    "description": "A weightless, long-lasting liquid blush created by Selena Gomez that blends and builds effortlessly for a soft, healthy flush that stays in place all day.",
+    "image": "/images/products/prod-18.webp",
+    "keyIngredients": [
+      "Lotus Flower Extract",
+      "Gardenia Fruit Extract",
+      "White Water Lily"
+    ],
+    "howToUse": {
+      "routine": "AM",
+      "stepNumber": 4,
+      "instructions": "Gently remove excess formula from applicator. Apply 1 or 2 dots onto each cheek and tap with fingertips.",
+      "precautions": "Extremely high pigmentation; start with just a single dot."
+    },
+    "storeOffers": [
+      {
+        "storeId": "tira",
+        "storeName": "Tira",
+        "price": 2400,
+        "originalPrice": 2400,
+        "shippingFee": 0,
+        "deliveryDays": "1-2 Days",
+        "inStock": true,
+        "purchaseUrl": "https://www.tirabeauty.com/search?q=Rare%20Beauty%20Soft%20Pinch%20Liquid%20Blush%20-%20Encourage",
+        "isLowestPrice": true
+      },
+      {
+        "storeId": "nykaa",
+        "storeName": "Nykaa",
+        "price": 2400,
+        "originalPrice": 2400,
+        "shippingFee": 0,
+        "deliveryDays": "2-3 Days",
+        "inStock": true,
+        "purchaseUrl": "https://www.nykaa.com/rare-beauty-soft-pinch-dewy-liquid-blush/p/26114771?productId=26114771&pps=2",
+        "isLowestPrice": true
+      }
+    ]
+  },
+  {
+    "id": "prod-19",
+    "name": "Ultra Blush Palette - 8 Shades",
+    "brand": "Swiss Beauty",
+    "category": "makeup",
+    "subcategory": "Blush",
+    "quantity": "16 g",
+    "description": "An all-in-one 8-pan blush and contour palette with matte and shimmer shades curated specifically to flatter warm Indian complexions.",
+    "image": "/images/products/prod-19.webp",
+    "keyIngredients": [
+      "Micronized Mica",
+      "Talc",
+      "Mineral Pigments"
+    ],
+    "howToUse": {
+      "routine": "AM",
+      "stepNumber": 4,
+      "instructions": "Sweep blush brush across desired pan, tap off excess, and blend upwards along cheekbones.",
+      "precautions": "Avoid dropping palette to prevent pan cracking."
+    },
+    "storeOffers": [
+      {
+        "storeId": "purplle",
+        "storeName": "Purplle",
+        "price": 329,
+        "originalPrice": 449,
+        "shippingFee": 49,
+        "deliveryDays": "3-5 Days",
+        "inStock": true,
+        "purchaseUrl": "https://www.purplle.com/search?q=Swiss%20Beauty%20Ultra%20Blush%20Palette%20-%208%20Shades",
+        "isLowestPrice": true
+      },
+      {
+        "storeId": "amazon",
+        "storeName": "Amazon India",
+        "price": 349,
+        "originalPrice": 449,
+        "shippingFee": 0,
+        "deliveryDays": "1 Day",
+        "inStock": true,
+        "purchaseUrl": "https://www.amazon.in/s?k=Swiss%20Beauty%20Ultra%20Blush%20Palette%20-%208%20Shades"
+      },
+      {
+        "storeId": "nykaa",
+        "storeName": "Nykaa",
+        "price": 360,
+        "originalPrice": 449,
+        "shippingFee": 0,
+        "deliveryDays": "2-3 Days",
+        "inStock": true,
+        "purchaseUrl": "https://www.nykaa.com/swiss-beauty-ultra-blush-palette/p/8423344?productId=8423344&skuId=832320&pps=2"
+      }
+    ]
+  },
+  {
+    "id": "prod-20",
+    "name": "Nude Obsessions Eyeshadow Palette - Medium",
+    "brand": "Huda Beauty",
+    "category": "makeup",
+    "subcategory": "Makeup Palettes",
+    "quantity": "9.9 g",
+    "description": "Rich warm terracotta and copper metallics paired with buttery matte mauve bases crafted to flatter Indian skin tones and eye colors.",
+    "image": "/images/products/prod-20.webp",
+    "keyIngredients": [
+      "Crushed Pearls",
+      "Vitamin E",
+      "Dimethicone"
+    ],
+    "howToUse": {
+      "routine": "AM & PM",
+      "stepNumber": 4,
+      "instructions": "Build your base with matte shades using a fluffy brush. Press shimmer shades on center of lid with fingertip.",
+      "precautions": "Store upright."
+    },
+    "storeOffers": [
+      {
+        "storeId": "nykaa",
+        "storeName": "Nykaa",
+        "price": 2650,
+        "originalPrice": 2950,
+        "shippingFee": 0,
+        "deliveryDays": "2-3 Days",
+        "inStock": true,
+        "purchaseUrl": "https://www.nykaa.com/huda-beauty-nude-obsessions-mini-eyeshadow-palette/p/692792?productId=692792&pps=1&skuId=692790",
+        "isLowestPrice": true
+      },
+      {
+        "storeId": "tira",
+        "storeName": "Tira",
+        "price": 2750,
+        "originalPrice": 2950,
+        "shippingFee": 0,
+        "deliveryDays": "1-3 Days",
+        "inStock": true,
+        "purchaseUrl": "https://www.tirabeauty.com/search?q=Huda%20Beauty%20Nude%20Obsessions%20Eyeshadow%20Palette%20-%20Medium"
+      }
+    ]
+  },
+  {
+    "id": "prod-21",
+    "name": "Kind to Skin Micellar Cleansing Water",
+    "brand": "Simple",
+    "category": "skincare",
+    "subcategory": "Makeup Remover",
+    "quantity": "200 ml",
+    "description": "Triple-purified water and Vitamin B3/C formula that gently lifts away stubborn makeup and unclogs pores without rinsing, stinging, or residue.",
+    "image": "/images/products/prod-21.webp",
+    "skinType": "Sensitive, All Skin Types",
+    "keyIngredients": [
+      "Triple Purified Water",
+      "Niacinamide (Vitamin B3)",
+      "Vitamin C",
+      "Hexylene Glycol"
+    ],
+    "howToUse": {
+      "routine": "PM",
+      "stepNumber": 1,
+      "instructions": "Soak a cotton pad and wipe gently around face, closed eyes, and lips. No hard rubbing or post-rinse required.",
+      "precautions": "External use only. Avoid open abrasions."
+    },
+    "storeOffers": [
+      {
+        "storeId": "nykaa",
+        "storeName": "Nykaa",
+        "price": 385,
+        "originalPrice": 450,
+        "shippingFee": 0,
+        "couponCode": "SIMPLE10",
+        "couponDiscount": 20,
+        "totalCost": 365,
+        "deliveryDays": "2-3 Days",
+        "inStock": true,
+        "stockStatus": "In Stock",
+        "purchaseUrl": "https://www.nykaa.com/simple-kind-to-skin-micellar-cleansing-water/p/947978?productId=947978&pps=1&skuId=390986",
+        "isLowestPrice": true,
+        "lastUpdated": "10 mins ago"
+      },
+      {
+        "storeId": "amazon",
+        "storeName": "Amazon India",
+        "price": 399,
+        "originalPrice": 450,
+        "shippingFee": 0,
+        "totalCost": 399,
+        "deliveryDays": "1 Day",
+        "inStock": true,
+        "stockStatus": "In Stock",
+        "purchaseUrl": "https://www.amazon.in/s?k=Simple%20Kind%20to%20Skin%20Micellar%20Cleansing%20Water",
+        "lastUpdated": "25 mins ago"
+      },
+      {
+        "storeId": "purplle",
+        "storeName": "Purplle",
+        "price": 410,
+        "originalPrice": 450,
+        "shippingFee": 49,
+        "totalCost": 459,
+        "deliveryDays": "3-5 Days",
+        "inStock": true,
+        "stockStatus": "In Stock",
+        "purchaseUrl": "https://www.purplle.com/search?q=Simple%20Kind%20to%20Skin%20Micellar%20Cleansing%20Water",
+        "lastUpdated": "1 hour ago"
+      }
+    ]
+  },
+  {
+    "id": "prod-22",
+    "name": "Maleic Bond Repair Complex 5% Hair Serum",
+    "brand": "Minimalist",
+    "category": "haircare",
+    "subcategory": "Haircare",
+    "quantity": "50 ml",
+    "description": "Patent-pending pre-shampoo bond repair treatment with Maleic Acid, Transglutaminase, and Amino Acids that repairs disulfide bonds broken by heat and coloring.",
+    "image": "/images/products/prod-22.webp",
+    "keyIngredients": [
+      "Maleic Acid 5%",
+      "Transglutaminase",
+      "Amino Acids (Arginine, Glycine)",
+      "Argan Oil"
+    ],
+    "howToUse": {
+      "routine": "AM & PM",
+      "stepNumber": 1,
+      "instructions": "Apply onto dry hair from roots to ends 60 minutes before shampooing. Follow with gentle hair wash.",
+      "precautions": "Do not ingest. For external hair scalp use only."
+    },
+    "storeOffers": [
+      {
+        "storeId": "amazon",
+        "storeName": "Amazon India",
+        "price": 569,
+        "originalPrice": 599,
+        "shippingFee": 0,
+        "totalCost": 569,
+        "deliveryDays": "1 Day",
+        "inStock": true,
+        "stockStatus": "In Stock",
+        "purchaseUrl": "https://www.amazon.in/s?k=Minimalist%20Maleic%20Bond%20Repair%20Complex%205%25%20Hair%20Serum",
+        "isLowestPrice": true,
+        "lastUpdated": "15 mins ago"
+      },
+      {
+        "storeId": "nykaa",
+        "storeName": "Nykaa",
+        "price": 599,
+        "originalPrice": 599,
+        "shippingFee": 0,
+        "totalCost": 599,
+        "deliveryDays": "2-3 Days",
+        "inStock": true,
+        "stockStatus": "In Stock",
+        "purchaseUrl": "https://www.nykaa.com/minimalist-hair-repair-complex-5percent-serum/p/10039736?productId=10039736&pps=1",
+        "lastUpdated": "30 mins ago"
+      },
+      {
+        "storeId": "purplle",
+        "storeName": "Purplle",
+        "price": 599,
+        "originalPrice": 599,
+        "shippingFee": 49,
+        "totalCost": 648,
+        "deliveryDays": "3-4 Days",
+        "inStock": true,
+        "stockStatus": "In Stock",
+        "purchaseUrl": "https://www.purplle.com/search?q=Minimalist%20Maleic%20Bond%20Repair%20Complex%205%25%20Hair%20Serum",
+        "lastUpdated": "2 hours ago"
+      }
+    ]
+  },
+  {
+    "id": "prod-23",
+    "name": "Exfoliating 2% Lactic Acid Body Wash with Ceramides",
+    "brand": "Chemist at Play",
+    "category": "bodycare",
+    "subcategory": "Body Care",
+    "quantity": "250 ml",
+    "description": "Ceramide-infused daily exfoliating body wash with 2% Lactic Acid and Zemea to buff away strawberry skin, rough bumps, and back acne gently.",
+    "image": "/images/products/prod-23.webp",
+    "skinType": "Rough Bumpy Skin, Strawberry Legs, Normal",
+    "keyIngredients": [
+      "Lactic Acid 2%",
+      "Essential Ceramides (NP, AP, EOP)",
+      "Zemea Propanediol",
+      "Vitamin E"
+    ],
+    "howToUse": {
+      "routine": "AM & PM",
+      "stepNumber": 1,
+      "instructions": "Pump onto wet loofah or palms, lather across body concentrating on elbows, knees, and back, then rinse clean.",
+      "precautions": "Use sunscreen on exposed body skin during the day."
+    },
+    "storeOffers": [
+      {
+        "storeId": "nykaa",
+        "storeName": "Nykaa",
+        "price": 399,
+        "originalPrice": 499,
+        "shippingFee": 0,
+        "couponCode": "PLAY10",
+        "couponDiscount": 20,
+        "totalCost": 379,
+        "deliveryDays": "2-3 Days",
+        "inStock": true,
+        "stockStatus": "In Stock",
+        "purchaseUrl": "https://www.nykaa.com/chemist-at-play-exfoliating-body-wash/p/5597634?productId=5597634&pps=1",
+        "isLowestPrice": true,
+        "lastUpdated": "5 mins ago"
+      },
+      {
+        "storeId": "amazon",
+        "storeName": "Amazon India",
+        "price": 419,
+        "originalPrice": 499,
+        "shippingFee": 0,
+        "totalCost": 419,
+        "deliveryDays": "1 Day",
+        "inStock": true,
+        "stockStatus": "In Stock",
+        "purchaseUrl": "https://www.amazon.in/s?k=Chemist%20at%20Play%20Exfoliating%202%25%20Lactic%20Acid%20Body%20Wash%20with%20Ceramides",
+        "lastUpdated": "40 mins ago"
+      },
+      {
+        "storeId": "purplle",
+        "storeName": "Purplle",
+        "price": 429,
+        "originalPrice": 499,
+        "shippingFee": 49,
+        "totalCost": 478,
+        "deliveryDays": "3-5 Days",
+        "inStock": true,
+        "stockStatus": "In Stock",
+        "purchaseUrl": "https://www.purplle.com/search?q=Chemist%20at%20Play%20Exfoliating%202%25%20Lactic%20Acid%20Body%20Wash%20with%20Ceramides",
+        "lastUpdated": "1 hour ago"
+      }
+    ]
+  }
+]
