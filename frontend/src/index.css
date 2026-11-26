@@ -4,10 +4,10 @@
 
 :root {
   --color-canvas: #FAF7F5;
-  --color-surface: #F4ECE8;
-  --color-ink: #1A1514;
-  --color-terracotta: #B56558;
-  --color-emerald: #17634B;
+  --color-surface: #F3EAE6;
+  --color-ink: #1E1918;
+  --color-terracotta: #B86B5E;
+  --color-emerald: #1E6B52;
 }
 
 @layer base {

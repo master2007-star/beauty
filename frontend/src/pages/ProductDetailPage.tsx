@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import {
   Heart,
   Bell,
@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 
 import { useCatalogue } from '../context/PriceContext';
+import type { Product } from '../types';
 import { ProductImage } from '../components/ProductImage';
 import { OfficialProductLink } from '../components/OfficialProductLink';
 import { ALTERNATIVES_DATA } from '../data/alternatives';
@@ -27,6 +28,8 @@ export const ProductDetailPage: React.FC = () => {
   const { products: PRODUCTS_DATA } = useCatalogue();
   const { slugOrId } = useParams<{ slugOrId: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const routeProduct = (location.state as { product?: Product } | null)?.product;
 
   // Wishlist and Price Tracking Hooks
   const { isWishlisted, toggleWishlist } = useWishlist();
@@ -38,8 +41,8 @@ export const ProductDetailPage: React.FC = () => {
 
   // Lookup product
   const product = useMemo(() => {
-    return findProductBySlugOrId(PRODUCTS_DATA, slugOrId || '');
-  }, [slugOrId, PRODUCTS_DATA]);
+    return findProductBySlugOrId(PRODUCTS_DATA, slugOrId || '') || routeProduct || null;
+  }, [slugOrId, PRODUCTS_DATA, routeProduct]);
 
   // Polished 404 Not Found State
   if (!product) {

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 
 import { PriceProvider, useCatalogue } from './context/PriceContext';
-import type { Product, ProductCategory, Subcategory } from './types';
+import type { Product } from './types';
 
 // Context
 import { AuthProvider } from './context/AuthContext';
@@ -16,9 +16,7 @@ import { usePriceTracker, PriceTrackerProvider } from './hooks/usePriceTracker';
 import { Navbar } from './components/Navbar';
 import { ScrollToTop } from './components/ScrollToTop';
 import { WishlistDrawer } from './components/WishlistDrawer';
-import { ProductDetailModal } from './components/ProductDetailModal';
 import { PriceTrackingModal } from './components/PriceTrackingModal';
-import { UniversalSearchModal } from './components/UniversalSearchModal';
 import { AuthModal } from './components/AuthModal';
 import { Footer } from './components/Footer';
 
@@ -32,20 +30,15 @@ import { NotFoundPage } from './pages/NotFoundPage';
 export const AppContent: React.FC = () => {
   const { products: PRODUCTS_DATA } = useCatalogue();
   const navigate = useNavigate();
-  // Navigation & Filter State
-  const [activeCategory, setActiveCategory] = useState<ProductCategory | 'all'>('all');
-  const [activeSubcategory, setActiveSubcategory] = useState<Subcategory | 'all'>('all');
-
+  const location = useLocation();
   // Modal & Drawer State
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
   const [wishlistDrawerTab, setWishlistDrawerTab] = useState<'watchlist' | 'alerts'>('watchlist');
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [searchInitialQuery, setSearchInitialQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [trackingProductForModal, setTrackingProductForModal] = useState<Product | null>(null);
 
   // Hooks
-  const { wishlist, toggleWishlist, isWishlisted, clearWishlist, wishlistCount } = useWishlist();
+  const { wishlist, toggleWishlist, clearWishlist, wishlistCount } = useWishlist();
   const {
     unreadAlertCount,
     activeTargetHitCount,
@@ -53,13 +46,6 @@ export const AppContent: React.FC = () => {
     startTracking,
     stopTracking,
   } = usePriceTracker();
-
-  const handleSelectAlternativeProduct = (productId: string) => {
-    const target = PRODUCTS_DATA.find((p) => p.id === productId);
-    if (target) {
-      setSelectedProduct(target);
-    }
-  };
 
   const scrollToSection = (sectionId: string) => {
     const el = document.getElementById(sectionId);
@@ -72,6 +58,11 @@ export const AppContent: React.FC = () => {
     <div className="min-h-screen bg-ivory text-espresso-900 font-sans selection:bg-rose-200 selection:text-espresso-950 flex flex-col justify-between">
       {/* Global Navigation Header */}
       <Navbar
+        searchQuery={searchQuery}
+        onSearchQueryChange={(query) => {
+          setSearchQuery(query);
+          if (location.pathname !== '/') navigate('/');
+        }}
         wishlistCount={wishlistCount}
         unreadAlertCount={unreadAlertCount + activeTargetHitCount}
         onOpenWishlist={() => {
@@ -82,16 +73,6 @@ export const AppContent: React.FC = () => {
           setWishlistDrawerTab('alerts');
           setIsWishlistOpen(true);
         }}
-        onOpenSearch={() => {
-          setSearchInitialQuery('');
-          setIsSearchOpen(true);
-        }}
-        onSelectCategory={(cat) => {
-          setActiveCategory(cat);
-          setActiveSubcategory('all');
-        }}
-        onScrollToSection={scrollToSection}
-        activeCategory={activeCategory}
       />
 
       {/* Dynamic Route View */}
@@ -101,19 +82,8 @@ export const AppContent: React.FC = () => {
             path="/"
             element={
               <DiscoveryHomePage
-                wishlist={wishlist}
-                toggleWishlist={toggleWishlist}
-                isWishlisted={isWishlisted}
-                onSelectProduct={(p) => setSelectedProduct(p)}
-                activeCategory={activeCategory}
-                setActiveCategory={setActiveCategory}
-                activeSubcategory={activeSubcategory}
-                setActiveSubcategory={setActiveSubcategory}
-                onOpenUniversalSearch={(q) => {
-                  setSearchInitialQuery(q || '');
-                  setIsSearchOpen(true);
-                }}
-                onOpenPriceTracker={(p) => setTrackingProductForModal(p)}
+                searchQuery={searchQuery}
+                onSearchQueryChange={setSearchQuery}
               />
             }
           />
@@ -154,21 +124,6 @@ export const AppContent: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* 5-Store Universal Quick-Compare Search Modal */}
-      <AnimatePresence>
-        {isSearchOpen && (
-          <UniversalSearchModal
-            isOpen={isSearchOpen}
-            onClose={() => setIsSearchOpen(false)}
-            initialQuery={searchInitialQuery}
-            onSelectProduct={(p) => {
-              setIsSearchOpen(false);
-              navigate(`/product/${p.slug || p.id}`);
-            }}
-          />
-        )}
-      </AnimatePresence>
-
       {/* Price-Drop Alert & Target Price Modal */}
       <AnimatePresence>
         {trackingProductForModal && (
@@ -183,22 +138,6 @@ export const AppContent: React.FC = () => {
             onRemoveTracking={() => {
               stopTracking(trackingProductForModal.id);
             }}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* Quick Product Detail Modal (for comparison triggers) */}
-      <AnimatePresence>
-        {selectedProduct && (
-          <ProductDetailModal
-            product={
-              PRODUCTS_DATA.find((product) => product.id === selectedProduct.id) ||
-              selectedProduct
-            }
-            onClose={() => setSelectedProduct(null)}
-            isWishlisted={isWishlisted(selectedProduct.id)}
-            onToggleWishlist={toggleWishlist}
-            onSelectAlternative={handleSelectAlternativeProduct}
           />
         )}
       </AnimatePresence>

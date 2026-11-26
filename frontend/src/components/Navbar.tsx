@@ -1,41 +1,32 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Sparkles, Heart, Search, Menu, X, Bell, User as UserIcon, LogOut } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Heart, LogOut, Menu, Search, User as UserIcon, X, Bell } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
-import type { ProductCategory } from '../types';
-
 interface NavbarProps {
+  searchQuery: string;
+  onSearchQueryChange: (query: string) => void;
   wishlistCount: number;
   unreadAlertCount?: number;
   onOpenWishlist: () => void;
   onOpenPriceAlerts?: () => void;
-  onSelectCategory?: (category: ProductCategory | 'all') => void;
-  onScrollToSection?: (sectionId: string) => void;
-  onOpenSearch?: () => void;
-  activeCategory?: ProductCategory | 'all';
 }
 
-export const Navbar: React.FC<NavbarProps> = ({
+export function Navbar({
+  searchQuery,
+  onSearchQueryChange,
   wishlistCount,
   unreadAlertCount = 0,
   onOpenWishlist,
   onOpenPriceAlerts,
-  onSelectCategory,
-  onScrollToSection,
-  onOpenSearch,
-  activeCategory = 'all',
-}) => {
+}: NavbarProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLElement>(null);
-
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const { user, openAuthModal, logout } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
 
   useEffect(() => {
     const header = headerRef.current;
@@ -48,372 +39,124 @@ export const Navbar: React.FC<NavbarProps> = ({
   }, []);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
-    };
-    window.addEventListener('scroll', handleScroll);
+    const handleScroll = () => setIsScrolled(window.scrollY > 12);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setUserDropdownOpen(false);
-      }
+    const handleOutsideClick = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) setUserDropdownOpen(false);
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
   }, []);
 
-  const handleNavClick = (category: ProductCategory | 'all', sectionId: string) => {
-    if (onSelectCategory && onScrollToSection) {
-      onSelectCategory(category);
-      if (location.pathname === '/') onScrollToSection(sectionId);
-      else navigate(`/#${sectionId}`);
-    } else {
-      navigate(`/?category=${category}`);
-    }
-    setMobileMenuOpen(false);
-  };
+  const searchField = (id: string) => (
+    <label htmlFor={id} className="flex min-h-11 min-w-0 items-center gap-2.5 rounded-full border border-[#eadcd6] bg-white px-3.5 transition-colors focus-within:border-[#b86b5e] focus-within:ring-2 focus-within:ring-[#b86b5e]/20">
+      <Search aria-hidden="true" className="h-4 w-4 shrink-0 text-[#6e605c]" />
+      <input
+        id={id}
+        type="search"
+        value={searchQuery}
+        onChange={(event) => onSearchQueryChange(event.target.value)}
+        placeholder="Search beauty"
+        aria-label="Search beauty products"
+        autoComplete="off"
+        className="min-w-0 flex-1 bg-transparent py-2 text-sm text-[#1e1918] placeholder:text-[#766762] focus:outline-none"
+      />
+      {searchQuery && (
+        <button type="button" onClick={() => onSearchQueryChange('')} aria-label="Clear search" className="grid h-7 w-7 shrink-0 place-items-center rounded-full text-[#6e605c] hover:bg-[#f3eae6] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#9d584d]">
+          <X aria-hidden="true" className="h-3.5 w-3.5" />
+        </button>
+      )}
+    </label>
+  );
 
   return (
-    <>
-      <header
-        ref={headerRef}
-        className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
-          isScrolled
-            ? 'bg-[#faf7f5]/90 backdrop-blur-xl shadow-soft-lift py-3 border-b border-[#eadcd6]'
-            : 'bg-[#faf7f5]/90 backdrop-blur-xl py-5 border-b border-[#eadcd6]'
-        }`}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between">
-            {/* Logo */}
-            <Link
-              to="/"
-              onClick={() => {
-                if (onSelectCategory && onScrollToSection) {
-                  onSelectCategory('all');
-                  onScrollToSection('hero');
-                }
-              }}
-              className="text-left group flex items-center space-x-2 focus:outline-hidden"
+    <header
+      ref={headerRef}
+      className={`fixed inset-x-0 top-0 z-40 border-b border-[#eadcd6] bg-[#faf7f5]/95 backdrop-blur-xl transition-shadow duration-300 ${isScrolled ? 'shadow-[0_8px_24px_-18px_rgba(30,25,24,0.45)]' : ''}`}
+    >
+      <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
+        <div className="flex min-h-11 items-center justify-between gap-4">
+          <Link to="/" className="group flex min-w-0 items-center gap-2.5 rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#9d584d]">
+            <span aria-hidden="true" className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-[#d9c5bc] bg-[#f3eae6] font-editorial text-xl font-semibold text-[#80473f] transition-colors group-hover:bg-[#eadcd6]">P</span>
+            <span className="min-w-0">
+              <span className="block whitespace-nowrap font-editorial text-xl font-semibold leading-none tracking-tight text-[#1e1918] sm:text-2xl">PriceWise <i className="font-normal text-[#9d584d]">Beauty</i></span>
+              <span className="mt-1 hidden text-[9px] uppercase tracking-[0.18em] text-[#6e605c] sm:block">Five-store beauty comparison</span>
+            </span>
+          </Link>
+
+          <nav aria-label="Main navigation" className="hidden items-center gap-6 text-sm text-[#514440] md:flex">
+            <Link to="/#catalog" className="transition-colors hover:text-[#80473f]">Discover</Link>
+            <Link to="/routines" className="transition-colors hover:text-[#80473f]">Routines</Link>
+            <Link to="/watchlist" className="transition-colors hover:text-[#80473f]">Watchlist</Link>
+          </nav>
+
+          <div className="hidden w-[clamp(180px,23vw,300px)] lg:block">{searchField('desktop-beauty-search')}</div>
+
+          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+            <button
+              type="button"
+              onClick={onOpenPriceAlerts || onOpenWishlist}
+              aria-label={`Price alerts${unreadAlertCount ? `, ${unreadAlertCount} active` : ''}`}
+              className="relative grid h-11 w-11 place-items-center rounded-full text-[#514440] transition-colors hover:bg-[#f3eae6] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#9d584d]"
             >
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-rose-300 to-rose-500 flex items-center justify-center text-ivory font-serif font-bold text-lg shadow-xs group-hover:scale-105 transition-transform">
-                P
-              </div>
-              <div>
-                <span className="font-editorial text-2xl sm:text-3xl font-bold tracking-tight text-espresso-700 block leading-none">
-                  PriceWise <span className="font-serif italic font-normal text-rose-500">Beauty</span>
-                </span>
-                <span className="text-[9px] tracking-widest uppercase text-espresso-400 font-sans block mt-0.5">
-                  India • Editorial Price Intelligence
-                </span>
-              </div>
-            </Link>
-
-            {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center space-x-7">
-              <button
-                onClick={() => handleNavClick('all', 'catalog')}
-                className={`text-sm tracking-wide font-medium transition-colors hover:text-rose-600 ${
-                  activeCategory === 'all' ? 'text-rose-600 font-semibold' : 'text-espresso-600'
-                }`}
-              >
-                Discover
-              </button>
-
-              <button
-                onClick={() => handleNavClick('skincare', 'catalog')}
-                className={`text-sm tracking-wide font-medium transition-colors hover:text-rose-600 flex items-center space-x-1 ${
-                  activeCategory === 'skincare' ? 'text-rose-600 font-semibold' : 'text-espresso-600'
-                }`}
-              >
-                <span>Skincare</span>
-                <span className="w-1.5 h-1.5 rounded-full bg-sage-400 inline-block"></span>
-              </button>
-
-              <button
-                onClick={() => handleNavClick('makeup', 'catalog')}
-                className={`text-sm tracking-wide font-medium transition-colors hover:text-rose-600 flex items-center space-x-1 ${
-                  activeCategory === 'makeup' ? 'text-rose-600 font-semibold' : 'text-espresso-600'
-                }`}
-              >
-                <span>Makeup</span>
-                <span className="w-1.5 h-1.5 rounded-full bg-rose-400 inline-block"></span>
-              </button>
-
-              <button
-                onClick={() => onScrollToSection ? onScrollToSection('deals') : navigate('/#deals')}
-                className="text-sm tracking-wide font-medium text-espresso-600 hover:text-rose-600 transition-colors"
-              >
-                Deals
-              </button>
-
-              <button
-                onClick={() => onScrollToSection ? onScrollToSection('dupes') : navigate('/#dupes')}
-                className="text-sm tracking-wide font-medium text-espresso-600 hover:text-rose-600 transition-colors flex items-center space-x-1 text-champagne-600"
-              >
-                <Sparkles className="w-3.5 h-3.5 text-champagne-500" />
-                <span>Dupes</span>
-              </button>
-
-              <Link
-                to="/routines"
-                className="text-sm tracking-wide font-medium text-espresso-600 hover:text-rose-600 transition-colors"
-              >
-                Routines
-              </Link>
-
-              <Link
-                to="/watchlist"
-                className="text-sm tracking-wide font-medium text-espresso-600 hover:text-rose-600 transition-colors"
-              >
-                Watchlist
-              </Link>
-            </nav>
-
-            {/* Actions: Search, Alerts, Wishlist, User Auth */}
-            <div className="flex items-center space-x-2 sm:space-x-2.5">
-              {onOpenSearch && (
-                <button
-                  onClick={onOpenSearch}
-                  aria-label="Search beauty products"
-                  className="p-2 sm:px-3 sm:py-1.5 rounded-full bg-white border border-rose-200/70 hover:border-rose-400 text-espresso-600 hover:text-rose-600 flex items-center space-x-2 transition-all shadow-xs group"
-                >
-                  <Search className="w-4 h-4 text-espresso-400 group-hover:text-rose-500 transition-colors" />
-                  <span className="hidden lg:inline text-xs text-espresso-400 font-normal">Search...</span>
+              <Bell aria-hidden="true" className="h-[18px] w-[18px]" />
+              {unreadAlertCount > 0 && <span className="absolute right-0 top-0 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-[#1e6b52] px-1 text-[10px] font-bold text-white">{unreadAlertCount}</span>}
+            </button>
+            <button
+              type="button"
+              onClick={onOpenWishlist}
+              aria-label={`Saved products${wishlistCount ? `, ${wishlistCount} saved` : ''}`}
+              className="relative grid h-11 w-11 place-items-center rounded-full text-[#514440] transition-colors hover:bg-[#f3eae6] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#9d584d]"
+            >
+              <Heart aria-hidden="true" className="h-[18px] w-[18px]" />
+              {wishlistCount > 0 && <span className="absolute right-0 top-0 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-[#b86b5e] px-1 text-[10px] font-bold text-white">{wishlistCount}</span>}
+            </button>
+            {user ? (
+              <div className="relative hidden sm:block" ref={dropdownRef}>
+                <button type="button" onClick={() => setUserDropdownOpen(!userDropdownOpen)} aria-expanded={userDropdownOpen} aria-label="Account menu" className="grid h-11 w-11 place-items-center rounded-full border border-[#eadcd6] bg-white text-[#514440] hover:border-[#c9897c] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#9d584d]">
+                  <UserIcon aria-hidden="true" className="h-4 w-4" />
                 </button>
-              )}
-
-              {/* Price Alerts Button with Badge */}
-              {onOpenPriceAlerts ? (
-                <button
-                  type="button"
-                  onClick={onOpenPriceAlerts}
-                  aria-label="View price-drop alerts"
-                  title="View active price alerts and target hit drops"
-                  className="relative p-2 rounded-full bg-white border border-rose-200/70 hover:border-rose-400 text-espresso-600 hover:text-rose-600 transition-all shadow-xs"
-                >
-                  <Bell className="w-4 h-4 text-espresso-600" />
-                  {unreadAlertCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-rose-500 text-ivory text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center shadow-xs animate-pulse">
-                      {unreadAlertCount}
-                    </span>
+                <AnimatePresence>
+                  {userDropdownOpen && (
+                    <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} className="absolute right-0 top-12 z-50 w-48 rounded-xl border border-[#eadcd6] bg-white p-2 shadow-soft-lift">
+                      <Link to="/profile" onClick={() => setUserDropdownOpen(false)} className="block rounded-lg px-3 py-2 text-sm text-[#514440] hover:bg-[#faf7f5]">Your profile</Link>
+                      <button type="button" onClick={() => { logout(); setUserDropdownOpen(false); }} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-[#80473f] hover:bg-[#faf7f5]"><LogOut aria-hidden="true" className="h-4 w-4" /> Sign out</button>
+                    </motion.div>
                   )}
-                </button>
-              ) : (
-                <Link
-                  to="/watchlist"
-                  aria-label="View price alerts"
-                  className="relative p-2 rounded-full bg-white border border-rose-200/70 hover:border-rose-400 text-espresso-600 hover:text-rose-600 transition-all shadow-xs"
-                >
-                  <Bell className="w-4 h-4 text-espresso-600" />
-                  {unreadAlertCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-rose-500 text-ivory text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center shadow-xs animate-pulse">
-                      {unreadAlertCount}
-                    </span>
-                  )}
-                </Link>
-              )}
-
-              {/* Wishlist Drawer Button */}
-              <button
-                onClick={onOpenWishlist}
-                aria-label="View saved wishlist"
-                className="relative p-2 rounded-full bg-white border border-rose-200/70 hover:border-rose-400 text-espresso-600 hover:text-rose-600 transition-all shadow-xs"
-              >
-                <Heart className={`w-4 h-4 ${wishlistCount > 0 ? 'text-rose-500 fill-rose-500' : ''}`} />
-                {wishlistCount > 0 && (
-                  <motion.span
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    className="absolute -top-1 -right-1 bg-rose-500 text-ivory text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center shadow-xs"
-                  >
-                    {wishlistCount}
-                  </motion.span>
-                )}
-              </button>
-
-              {/* User Account Dropdown / Sign In Trigger */}
-              {user ? (
-                <div className="relative" ref={dropdownRef}>
-                  <button
-                    onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                    className="flex items-center space-x-1.5 p-1 sm:px-2 sm:py-1 rounded-full bg-white border border-rose-200 hover:border-rose-400 text-espresso-700 transition-all shadow-xs"
-                    aria-label="User profile menu"
-                  >
-                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-rose-400 to-rose-600 text-ivory text-xs font-bold flex items-center justify-center">
-                      {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
-                    </div>
-                    <span className="hidden sm:inline text-xs font-medium max-w-[85px] truncate">
-                      {user.name}
-                    </span>
-                  </button>
-
-                  <AnimatePresence>
-                    {userDropdownOpen && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 10 }}
-                        className="absolute right-0 mt-2 w-48 bg-ivory border border-rose-200/80 rounded-2xl shadow-xl py-2 z-50 glass-panel"
-                      >
-                        <div className="px-4 py-2 border-b border-rose-100/60">
-                          <p className="text-xs font-semibold text-espresso-900 truncate">{user.name}</p>
-                          <p className="text-[10px] text-espresso-500 truncate">{user.email}</p>
-                        </div>
-                        <Link
-                          to="/profile"
-                          onClick={() => setUserDropdownOpen(false)}
-                          className="flex items-center space-x-2 px-4 py-2 text-xs text-espresso-700 hover:bg-rose-50 hover:text-rose-600 transition-colors"
-                        >
-                          <UserIcon className="w-3.5 h-3.5" />
-                          <span>Skin Profile</span>
-                        </Link>
-                        <Link
-                          to="/routines"
-                          onClick={() => setUserDropdownOpen(false)}
-                          className="flex items-center space-x-2 px-4 py-2 text-xs text-espresso-700 hover:bg-rose-50 hover:text-rose-600 transition-colors"
-                        >
-                          <Sparkles className="w-3.5 h-3.5" />
-                          <span>My Routines</span>
-                        </Link>
-                        <Link
-                          to="/watchlist"
-                          onClick={() => setUserDropdownOpen(false)}
-                          className="flex items-center space-x-2 px-4 py-2 text-xs text-espresso-700 hover:bg-rose-50 hover:text-rose-600 transition-colors"
-                        >
-                          <Bell className="w-3.5 h-3.5" />
-                          <span>Watchlist</span>
-                        </Link>
-                        <div className="border-t border-rose-100/60 mt-1 pt-1">
-                          <button
-                            onClick={() => {
-                              setUserDropdownOpen(false);
-                              logout();
-                            }}
-                            className="w-full flex items-center space-x-2 px-4 py-2 text-xs text-rose-600 hover:bg-rose-50 transition-colors"
-                          >
-                            <LogOut className="w-3.5 h-3.5" />
-                            <span>Sign Out</span>
-                          </button>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              ) : (
-                <button
-                  onClick={() => openAuthModal('login')}
-                  className="px-3 py-1.5 rounded-full bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-ivory text-xs font-semibold shadow-xs hover:shadow-md transition-all flex items-center space-x-1"
-                >
-                  <UserIcon className="w-3.5 h-3.5" />
-                  <span>Sign In</span>
-                </button>
-              )}
-
-              {/* Mobile Menu Button */}
-              <button
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="p-2 md:hidden text-espresso-700 hover:text-rose-600 focus:outline-hidden"
-                aria-label="Toggle navigation menu"
-              >
-                {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-              </button>
-            </div>
+                </AnimatePresence>
+              </div>
+            ) : (
+              <button type="button" onClick={() => openAuthModal('login')} className="hidden min-h-11 items-center gap-1.5 rounded-full bg-[#1e1918] px-4 text-xs font-semibold text-white transition-colors hover:bg-[#3b302d] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#9d584d] sm:flex"><UserIcon aria-hidden="true" className="h-3.5 w-3.5" /> Sign in</button>
+            )}
+            <button type="button" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} aria-label={mobileMenuOpen ? 'Close navigation' : 'Open navigation'} aria-expanded={mobileMenuOpen} className="grid h-11 w-11 place-items-center rounded-full text-[#514440] hover:bg-[#f3eae6] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#9d584d] md:hidden">
+              {mobileMenuOpen ? <X aria-hidden="true" className="h-5 w-5" /> : <Menu aria-hidden="true" className="h-5 w-5" />}
+            </button>
           </div>
         </div>
-      </header>
 
-      {/* Mobile Drawer Menu */}
+        <div className="mt-3 lg:hidden">{searchField('mobile-beauty-search')}</div>
+      </div>
+
       <AnimatePresence>
         {mobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed inset-x-0 top-18 z-30 bg-ivory border-b border-rose-200 shadow-xl p-6 md:hidden glass-panel"
-          >
-            <div className="flex flex-col space-y-3.5">
-              <button
-                onClick={() => handleNavClick('all', 'catalog')}
-                className="text-left font-medium text-espresso-800 hover:text-rose-600 py-1"
-              >
-                Discover All Products
-              </button>
-              <button
-                onClick={() => handleNavClick('skincare', 'catalog')}
-                className="text-left font-medium text-espresso-800 hover:text-rose-600 py-1"
-              >
-                Skincare Collection
-              </button>
-              <button
-                onClick={() => handleNavClick('makeup', 'catalog')}
-                className="text-left font-medium text-espresso-800 hover:text-rose-600 py-1"
-              >
-                Makeup Collection
-              </button>
-              <Link
-                to="/routines"
-                onClick={() => setMobileMenuOpen(false)}
-                className="text-left font-medium text-espresso-800 hover:text-rose-600 py-1"
-              >
-                Personalized Routines (AM/PM)
-              </Link>
-              <Link
-                to="/profile"
-                onClick={() => setMobileMenuOpen(false)}
-                className="text-left font-medium text-espresso-800 hover:text-rose-600 py-1"
-              >
-                Skin Profile & Preferences
-              </Link>
-              <Link
-                to="/watchlist"
-                onClick={() => setMobileMenuOpen(false)}
-                className="text-left font-medium text-espresso-800 hover:text-rose-600 py-1 flex items-center justify-between"
-              >
-                <span>Watchlist & Price Alerts</span>
-                {unreadAlertCount > 0 && (
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500 text-ivory">
-                    {unreadAlertCount}
-                  </span>
-                )}
-              </Link>
-
-              <div className="border-t border-rose-100 pt-3">
-                {user ? (
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs font-semibold text-espresso-900">{user.name}</p>
-                      <p className="text-[10px] text-espresso-500">{user.email}</p>
-                    </div>
-                    <button
-                      onClick={() => {
-                        setMobileMenuOpen(false);
-                        logout();
-                      }}
-                      className="text-xs font-semibold text-rose-600 hover:underline"
-                    >
-                      Sign Out
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => {
-                      setMobileMenuOpen(false);
-                      openAuthModal('login');
-                    }}
-                    className="w-full py-2.5 rounded-xl bg-rose-500 text-ivory text-xs font-semibold text-center"
-                  >
-                    Sign In / Register
-                  </button>
-                )}
-              </div>
+          <motion.nav initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} aria-label="Mobile navigation" className="overflow-hidden border-t border-[#eadcd6] bg-[#faf7f5] md:hidden">
+            <div className="mx-auto flex max-w-7xl flex-col gap-1 px-4 py-3 sm:px-6">
+              <Link to="/#catalog" onClick={() => setMobileMenuOpen(false)} className="min-h-11 rounded-lg px-3 py-3 text-sm text-[#514440] hover:bg-[#f3eae6]">Discover</Link>
+              <Link to="/routines" onClick={() => setMobileMenuOpen(false)} className="min-h-11 rounded-lg px-3 py-3 text-sm text-[#514440] hover:bg-[#f3eae6]">Routines</Link>
+              <Link to="/watchlist" onClick={() => setMobileMenuOpen(false)} className="min-h-11 rounded-lg px-3 py-3 text-sm text-[#514440] hover:bg-[#f3eae6]">Watchlist & price alerts</Link>
+              {user ? (
+                <button type="button" onClick={() => { logout(); setMobileMenuOpen(false); }} className="flex min-h-11 items-center gap-2 rounded-lg px-3 py-3 text-left text-sm text-[#80473f] hover:bg-[#f3eae6]"><LogOut aria-hidden="true" className="h-4 w-4" /> Sign out</button>
+              ) : (
+                <button type="button" onClick={() => { openAuthModal('login'); setMobileMenuOpen(false); }} className="min-h-11 rounded-lg bg-[#1e1918] px-3 py-3 text-left text-sm font-semibold text-white">Sign in / Register</button>
+              )}
             </div>
-          </motion.div>
+          </motion.nav>
         )}
       </AnimatePresence>
-    </>
+    </header>
   );
-};
+}

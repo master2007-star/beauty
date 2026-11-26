@@ -176,7 +176,9 @@ export function LiveRetailerPriceComparison({
 
                 <div className="flex flex-wrap items-center gap-3 text-xs text-espresso-600">
                   <span className="flex items-center space-x-1">
-                    {offer.inStock ? (
+                    {offer.sourceType === 'unavailable' ? (
+                      <span className="font-semibold text-espresso-600">Availability not indexed</span>
+                    ) : offer.inStock ? (
                       <span className="inline-flex items-center space-x-1 text-emerald-700 font-semibold">
                         <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
                         <span>Listed In Stock</span>
