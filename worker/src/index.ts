@@ -162,6 +162,28 @@ async function fetchWebSnippets(
     }
   }
 
+  // 3. Bing RSS + Jina Reader Fallback (Cloudflare-friendly)
+  if (results.length === 0) {
+    try {
+      const bingRss = `https://www.bing.com/search?q=${encodeURIComponent(query)}&format=rss`;
+      const resp = await fetch(bingRss, {
+        headers: COMMON_BROWSER_HEADERS,
+        cf: { cacheTtl: 900, cacheEverything: true },
+      });
+      if (resp.ok) {
+        const xml = await resp.text();
+        const itemRegex = /<item>[\s\S]*?<title>([\s\S]*?)<\/title>[\s\S]*?<link>([\s\S]*?)<\/link>[\s\S]*?<description>([\s\S]*?)<\/description>[\s\S]*?<\/item>/gi;
+        let m;
+        while ((m = itemRegex.exec(xml)) !== null) {
+          const title = m[1].replace(/<!\[CDATA\[|\]\]>/g, "").replace(/<[^>]+>/g, "").trim();
+          const url = m[2].replace(/<!\[CDATA\[|\]\]>/g, "").trim();
+          const snippet = m[3].replace(/<!\[CDATA\[|\]\]>/g, "").replace(/<[^>]+>/g, "").trim();
+          if (url.startsWith("http")) results.push({ url, title, snippet });
+        }
+      }
+    } catch {}
+  }
+
   return results;
 }
 
