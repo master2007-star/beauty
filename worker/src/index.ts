@@ -35,6 +35,77 @@ export interface CompareApiResponse {
   results: RetailerCompareResult[];
 }
 
+interface SearchProduct {
+  id: string; title: string; brand: string; category: string; imageUrl: string | null;
+  lowestPrice: number | null; mrp: number | null; discountPercent: number; availableStores: string[];
+}
+
+async function getSearchProducts(query: string): Promise<SearchProduct[]> {
+  const catalogUrl = 'https://raw.githubusercontent.com/master2007-star/beauty/main/frontend/public/data/live-prices.json';
+  let items: any[] = [];
+  try {
+    const response = await fetch(catalogUrl, { signal: AbortSignal.timeout(4500), cf: { cacheTtl: 600, cacheEverything: true } } as any);
+    if (response.ok) items = Object.values(((await response.json()) as any).products || {});
+  } catch { /* Keep the live search resilient when the snapshot is unavailable. */ }
+  const tokens = query.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter((token) => token.length > 1);
+  const products = new Map<string, SearchProduct>();
+  for (const item of items) {
+    const text = `${item.brand || ''} ${item.productName || ''}`.toLowerCase();
+    if (tokens.length && tokens.filter((token) => text.includes(token)).length / tokens.length < 0.4) continue;
+    const offers = Array.isArray(item.offers) ? item.offers : [];
+    const valid = offers.filter((offer: any) => offer.inStock !== false && parsePrice(offer.price));
+    const prices = valid.map((offer: any) => parsePrice(offer.price) as number);
+    const lowestPrice = prices.length ? Math.min(...prices) : null;
+    const mrp = offers.map((offer: any) => parsePrice(offer.originalPrice)).filter(Boolean).sort((a: number, b: number) => b - a)[0] || null;
+    const id = String(item.productId || item.id || item.productName).toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    products.set(id, { id, title: item.productName || '', brand: item.brand || '', category: 'beauty', imageUrl: item.imageUrl || item.image || null, lowestPrice, mrp, discountPercent: mrp && lowestPrice && mrp > lowestPrice ? Math.round((mrp - lowestPrice) / mrp * 100) : 0, availableStores: [...new Set(valid.map((offer: any) => String(offer.storeName || offer.storeId || '')).filter(Boolean))] as string[] });
+  }
+
+  if (query) {
+    const [tira, nykaa] = await Promise.all([
+      fetch(`https://www.tirabeauty.com/ext/search/application/api/v1.0/products?q=${encodeURIComponent(query)}&page_size=12`, { headers: { ...COMMON_BROWSER_HEADERS, Accept: 'application/json', Origin: 'https://www.tirabeauty.com', Referer: 'https://www.tirabeauty.com/' }, signal: AbortSignal.timeout(4500) }).then((r) => r.ok ? r.json() as Promise<any> : null).catch(() => null),
+      fetch(`https://www.nykaa.com/app-api/index.php/products/search?q=${encodeURIComponent(query)}&page=1`, { headers: { ...COMMON_BROWSER_HEADERS, Origin: 'https://www.nykaa.com', Referer: 'https://www.nykaa.com/' }, signal: AbortSignal.timeout(4500) }).then((r) => r.ok ? r.json() as Promise<any> : null).catch(() => null),
+    ]);
+    const live: Array<{ store: string; item: any }> = [
+      ...(Array.isArray(tira?.items || tira?.products) ? (tira.items || tira.products).map((item: any) => ({ store: 'Tira Beauty', item })) : []),
+      ...(Array.isArray(nykaa?.response?.products || nykaa?.response?.items) ? (nykaa.response.products || nykaa.response.items).map((item: any) => ({ store: 'Nykaa', item })) : []),
+    ];
+    for (const entry of live) {
+      const item = entry.item;
+      const title = item.name || item.title || '';
+      const brand = item.brand?.name || item.brand || '';
+      if (!title) continue;
+      const text = `${brand} ${title}`.toLowerCase();
+      if (tokens.length && tokens.filter((token) => text.includes(token)).length / tokens.length < 0.4) continue;
+      const isTira = entry.store === 'Tira Beauty';
+      const price = isTira ? parsePrice(item.price?.effective?.min ?? item.price?.effective?.max ?? item.price?.effective ?? item.price?.min) : parsePrice(item.final_price || item.offer_price || item.discounted_price || item.price);
+      const mrp = isTira ? parsePrice(item.price?.marked?.min ?? item.price?.marked?.max ?? item.price?.marked) : parsePrice(item.mrp || item.price);
+      const imageUrl = item.medias?.[0]?.url || item.images?.[0] || item.imageUrl || item.media?.[0]?.url || null;
+      const id = `${entry.store}-${item.id || item.slug || title}`.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      const normalizedTitle = title.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+      const existing = [...products.values()].find((product) => {
+        const catalogTitle = product.title.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+        const sameBrand = !brand || !product.brand || product.brand.toLowerCase() === brand.toLowerCase();
+        return sameBrand && (catalogTitle.includes(normalizedTitle) || normalizedTitle.includes(catalogTitle));
+      });
+      const mergedPrice = existing?.lowestPrice && price ? Math.min(existing.lowestPrice, price) : existing?.lowestPrice || price;
+      const mergedMrp = Math.max(existing?.mrp || 0, mrp || 0) || null;
+      products.set(existing?.id || id, {
+        id: existing?.id || id,
+        title: existing?.title || title,
+        brand: existing?.brand || brand,
+        category: existing?.category || 'beauty',
+        imageUrl: imageUrl || existing?.imageUrl || null,
+        lowestPrice: mergedPrice,
+        mrp: mergedMrp,
+        discountPercent: mergedMrp && mergedPrice && mergedMrp > mergedPrice ? Math.round((mergedMrp - mergedPrice) / mergedMrp * 100) : 0,
+        availableStores: [...new Set([...(existing?.availableStores || []), entry.store])],
+      });
+    }
+  }
+  return [...products.values()].sort((a, b) => b.availableStores.length - a.availableStores.length || (a.lowestPrice || Number.MAX_SAFE_INTEGER) - (b.lowestPrice || Number.MAX_SAFE_INTEGER)).slice(0, 60);
+}
+
 const CORS_HEADERS: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, OPTIONS',
@@ -723,6 +794,15 @@ export default {
     }
 
     // Live 5-Store Product Compare Endpoint: /compare?q=<query>
+    if (url.pathname === '/search') {
+      const query = (url.searchParams.get('q') || '').trim();
+      const products = await getSearchProducts(query);
+      return new Response(JSON.stringify({ query, total: products.length, products }), {
+        status: 200,
+        headers: { ...CORS_HEADERS, 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'public, max-age=300, s-maxage=900' },
+      });
+    }
+
     if (url.pathname === '/compare') {
       const q = (url.searchParams.get('q') || '').trim();
       if (!q) {

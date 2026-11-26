@@ -1,4 +1,5 @@
 import { ExternalLink, Crown, Clock, ShieldCheck } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { getRetailerProductUrl } from '../utils/productLinks';
 import { useCatalogue } from '../context/PriceContext';
 import type { RetailerOffer } from '../types';
@@ -32,19 +33,45 @@ export function LiveRetailerPriceComparison({
   fallbackOffers,
 }: LiveRetailerPriceComparisonProps) {
   const { liveUpdatedLabel, isLiveLoaded } = useCatalogue();
-  const sorted = [...fallbackOffers].sort(
-    (a, b) => Number(b.inStock) - Number(a.inStock) || a.price - b.price
+  const [apiOffers, setApiOffers] = useState<RetailerOffer[] | null>(null);
+  useEffect(() => {
+    const controller = new AbortController();
+    const base = (import.meta.env.VITE_COMPARE_API_URL || 'https://pricewise-compare.a4megaboi.workers.dev').replace(/\/$/, '');
+    fetch(`${base}/compare?q=${encodeURIComponent(`${brand} ${productName}`)}`, { signal: controller.signal })
+      .then((response) => response.ok ? response.json() : Promise.reject(new Error('Comparison unavailable')))
+      .then((data) => {
+        if (!Array.isArray(data.results)) return;
+        const offers: RetailerOffer[] = data.results.map((result: any) => ({
+          storeId: String(result.retailer || '').toLowerCase().includes('amazon') ? 'amazon' : String(result.retailer || '').toLowerCase().replace(/\s.*/, ''),
+          storeName: (result.retailer === 'Amazon India' ? 'Amazon India' : result.retailer === 'Tira Beauty' ? 'Tira' : result.retailer) as RetailerOffer['storeName'],
+          price: Number(result.price) || 0,
+          originalPrice: result.mrp || undefined,
+          shippingFee: null,
+          isShippingDisclosed: false,
+          deliveryDays: 'Check retailer',
+          inStock: Boolean(result.inStock),
+          stockStatus: result.inStock ? 'In Stock' : 'Out of Stock',
+          purchaseUrl: result.url || result.productUrl || '',
+          sourceType: result.source === 'live' ? 'live' : 'cached',
+          lastUpdated: result.updatedAt ? (Number.isNaN(Date.parse(result.updatedAt)) ? result.updatedAt : new Date(result.updatedAt).toLocaleString('en-IN')) : 'Recently verified',
+          matchClassification: 'verified_match',
+        }));
+        if (offers.length) setApiOffers(offers);
+      })
+      .catch(() => undefined);
+    return () => controller.abort();
+  }, [brand, productName]);
+  const sourceOffers = apiOffers ? [...apiOffers, ...fallbackOffers.filter((offer) => !apiOffers.some((live) => live.storeId === offer.storeId))] : fallbackOffers;
+  const sorted = [...sourceOffers].sort(
+    (a, b) => (a.price > 0 ? a.price : Number.MAX_SAFE_INTEGER) - (b.price > 0 ? b.price : Number.MAX_SAFE_INTEGER)
   );
 
-  // Only evaluate lowest among verified live offers
-  const liveOffers = sorted.filter(
-    (offer) => offer.sourceType === 'live' && offer.inStock && offer.price > 0
-  );
+  const availableOffers = sorted.filter((offer) => offer.inStock && offer.price > 0);
   const lowestLive =
-    liveOffers.length > 0
-      ? liveOffers.reduce((min, o) => (o.price < min.price ? o : min), liveOffers[0])
+    availableOffers.length > 0
+      ? availableOffers.reduce((min, o) => (o.price < min.price ? o : min), availableOffers[0])
       : null;
-  const hasLiveOffer = liveOffers.length > 0;
+  const hasLiveOffer = availableOffers.some((offer) => offer.sourceType === 'live');
   const showLiveBadge = hasLiveOffer || isLiveLoaded;
 
   return (
@@ -115,10 +142,6 @@ export function LiveRetailerPriceComparison({
               ? Math.round((savingsAmount / offer.originalPrice) * 100)
               : 0;
 
-          const buttonLabel = isDirectProductUrl(href)
-            ? `Buy on ${offer.storeName}`
-            : `View on ${offer.storeName}`;
-
           return (
             <div
               key={offer.storeId}
@@ -140,7 +163,7 @@ export function LiveRetailerPriceComparison({
                   {isBestDeal && (
                     <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 px-3 py-0.5 text-xs font-bold text-white shadow-xs">
                       <Crown className="h-3.5 w-3.5 text-amber-100" />
-                      <span>Best Live Deal</span>
+                      <span>Best Deal</span>
                     </span>
                   )}
 
@@ -164,21 +187,17 @@ export function LiveRetailerPriceComparison({
                   </span>
                   <span>•</span>
                   <span>{targetVariant}</span>
-                  {isLive && (
-                    <>
-                      <span>•</span>
-                      <span className="flex items-center space-x-1 text-espresso-400">
-                        <Clock className="w-3 h-3" />
-                        <span>Verified {updateTime}</span>
-                      </span>
-                    </>
-                  )}
+                  <span>•</span>
+                  <span className="flex items-center space-x-1 text-espresso-400">
+                    <Clock className="w-3 h-3" />
+                    <span>{isLive ? 'Verified' : 'Updated'} {updateTime}</span>
+                  </span>
                 </div>
               </div>
 
               {/* Middle Column: Price & Delivery Breakdown */}
               <div className="flex items-baseline md:items-end flex-col md:text-right shrink-0">
-                {isLive && offer.price > 0 ? (
+                {offer.price > 0 ? (
                   <div>
                     <div className="flex items-baseline space-x-2">
                       <span className="text-2xl font-black text-espresso-950 font-sans tabular-nums">
@@ -190,7 +209,7 @@ export function LiveRetailerPriceComparison({
                         </span>
                       )}
                     </div>
-                    <span className="text-[11px] text-espresso-500 block mt-0.5 font-normal">
+                      <span className="text-[11px] text-espresso-500 block mt-0.5 font-normal">
                       {offer.isShippingDisclosed === false
                         ? 'Shipping disclosed at checkout'
                         : offer.shippingFee === 0
@@ -204,7 +223,7 @@ export function LiveRetailerPriceComparison({
                       Check live on store
                     </span>
                     <span className="text-[11px] text-espresso-400 block mt-0.5">
-                      Store search check
+                      Search retailer for current availability
                     </span>
                   </div>
                 )}
@@ -222,7 +241,7 @@ export function LiveRetailerPriceComparison({
                       : 'bg-white hover:bg-rose-50 text-espresso-800 border border-rose-200'
                   }`}
                 >
-                  <span>{buttonLabel}</span>
+                  <span>{isDirectProductUrl(href) ? `Buy on ${offer.storeName}` : `Search on ${offer.storeName}`}</span>
                   <ExternalLink className="h-3.5 w-3.5" />
                 </a>
               </div>

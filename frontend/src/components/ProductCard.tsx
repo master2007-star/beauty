@@ -50,10 +50,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.4 }}
-      className={`group relative rounded-3xl bg-white border ${
+      className={`group relative rounded-2xl bg-white border ${
         targetReached
           ? 'border-emerald-300 ring-2 ring-emerald-400/40 shadow-glow-champagne'
-          : 'border-rose-100/90 hover:border-rose-300'
+          : 'border-[#eadcd6] hover:border-[#c98991]'
       } shadow-soft-lift hover:shadow-luxury-card transition-all duration-300 flex flex-col overflow-hidden`}
     >
       {/* Top Media Area */}
@@ -62,7 +62,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           <ProductImage
             src={product.image}
             alt={product.name}
-            className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+            brand={product.brand}
+            className="w-full h-full object-cover object-center group-hover:scale-[1.03] transition-transform duration-300 ease-out"
             loading="lazy"
           />
         </Link>
@@ -278,7 +279,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                 className="py-2 rounded-xl bg-espresso-800 hover:bg-espresso-900 text-ivory text-xs font-semibold tracking-wide transition-all flex items-center justify-center space-x-1 shadow-xs"
               >
                 <Scale className="w-3.5 h-3.5 text-champagne-300" />
-                <span>Compare</span>
+                <span>Compare {product.storeOffers.length} stores</span>
               </button>
             </div>
 

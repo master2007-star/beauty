@@ -115,7 +115,7 @@ const TRENDING_QUERIES = [
   'Soundarya 24K Gold',
 ];
 
-const DEFAULT_WORKER_URL = 'https://pricewise-compare.a4megaboi.workers.dev';
+const DEFAULT_WORKER_URL = import.meta.env.VITE_COMPARE_API_URL || 'https://pricewise-compare.a4megaboi.workers.dev';
 
 const getInitialWorkerUrl = (): string => {
   return (
@@ -252,9 +252,35 @@ export const UniversalSearchModal: React.FC<UniversalSearchModalProps> = ({
       setWebResults(validResults);
       setWebBestPrice(data.bestPrice || (validResults[0]?.price ?? null));
     } catch {
-      setWebError('Edge Search temporarily offline. Please verify endpoint or use direct store search.');
-      setWebResults([]);
-      setWebBestPrice(null);
+      try {
+        const base = import.meta.env.BASE_URL || '/';
+        const response = await fetch(`${base.endsWith('/') ? base : `${base}/`}data/live-prices.json`);
+        const snapshot = await response.json();
+        const terms = searchTerm.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter((term) => term.length > 1);
+        const candidates = Object.values(snapshot.products || {}) as any[];
+        const match = candidates.map((item) => {
+          const haystack = `${item.brand || ''} ${item.productName || ''}`.toLowerCase();
+          return { item, score: terms.filter((term) => haystack.includes(term)).length / Math.max(1, terms.length) };
+        }).sort((a, b) => b.score - a.score).find((entry) => entry.score >= 0.4)?.item;
+        const mapped: WebCompareResult[] = (match?.offers || []).map((offer: any) => ({
+          retailer: offer.storeName || offer.storeId,
+          title: `${match.brand || ''} ${match.productName || ''}`.trim(),
+          price: Number(offer.price) || 0,
+          mrp: offer.originalPrice ? Number(offer.originalPrice) : null,
+          discountPercent: offer.originalPrice && offer.price < offer.originalPrice ? Math.round((offer.originalPrice - offer.price) / offer.originalPrice * 100) : 0,
+          inStock: offer.inStock !== false,
+          url: offer.resolvedUrl || offer.purchaseUrl || '',
+          source: offer.sourceType === 'live' ? 'live' : 'snapshot',
+          updatedAt: offer.lastChecked || snapshot.updatedLabel,
+        })).filter((offer: WebCompareResult) => offer.price > 0).sort((a: WebCompareResult, b: WebCompareResult) => a.price - b.price);
+        setWebResults(mapped);
+        setWebBestPrice(mapped.find((offer) => offer.inStock)?.price || mapped[0]?.price || null);
+        setWebError(mapped.length ? null : 'No saved price snapshot matches this search. Try a shorter product or brand name.');
+      } catch {
+        setWebError('Live comparison is offline and the saved price snapshot could not be loaded. Try again or search a retailer directly.');
+        setWebResults([]);
+        setWebBestPrice(null);
+      }
     } finally {
       setIsLoadingWeb(false);
     }

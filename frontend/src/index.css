@@ -4,10 +4,10 @@
 
 :root {
   --color-canvas: #FAF7F5;
-  --color-surface: #F3EAE6;
-  --color-ink: #1E1918;
-  --color-terracotta: #B86B5E;
-  --color-emerald: #1E6B52;
+  --color-surface: #F4ECE8;
+  --color-ink: #1A1514;
+  --color-terracotta: #B56558;
+  --color-emerald: #17634B;
 }
 
 @layer base {
@@ -37,7 +37,7 @@
 
   /* Themed focus rings for strict WCAG AA keyboard accessibility */
   *:focus-visible {
-    outline: 2px solid #B86B5E;
+    outline: 2px solid #B56558;
     outline-offset: 2px;
   }
 
@@ -75,7 +75,7 @@
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #C98991;
+  background: #B56558;
 }
 
 /* Luxury surfaces and subtle atmospheric borders */

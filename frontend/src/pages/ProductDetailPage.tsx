@@ -78,6 +78,9 @@ export const ProductDetailPage: React.FC = () => {
   const isTracked = isTracking(product.id);
   const trackingRecord = getTrackedRecord(product.id);
   const wishlisted = isWishlisted(product.id);
+  const comparableOffers = product.storeOffers.filter((offer) => offer.price > 0 && offer.inStock);
+  const highestOffer = comparableOffers.reduce((highest, offer) => offer.price > highest.price ? offer : highest, comparableOffers[0]);
+  const lowestOffer = comparableOffers.reduce((lowest, offer) => offer.price < lowest.price ? offer : lowest, comparableOffers[0]);
 
   const handleShare = () => {
     const canonicalSlug = product.slug || generateProductSlug(product);
@@ -110,7 +113,7 @@ export const ProductDetailPage: React.FC = () => {
 
           {/* Quick Back Action */}
           <button
-            onClick={() => navigate('/')}
+            onClick={() => navigate('/#catalog')}
             className="px-3 py-1.5 rounded-lg bg-ivory-100 hover:bg-ivory-200 text-espresso-700 text-xs font-semibold flex items-center space-x-1.5 transition-colors shrink-0"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
@@ -128,6 +131,7 @@ export const ProductDetailPage: React.FC = () => {
               <ProductImage
                 src={product.image}
                 alt={product.name}
+                brand={product.brand}
                 className="w-full h-full object-cover object-center"
               />
 
@@ -192,6 +196,11 @@ export const ProductDetailPage: React.FC = () => {
 
             {/* Price Box */}
             <div className="bg-white p-5 rounded-3xl border border-rose-200/80 shadow-soft-lift space-y-3">
+              {highestOffer && lowestOffer && highestOffer.price > lowestOffer.price && (
+                <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-3 text-sm font-semibold text-emerald-900">
+                  Save ₹{(highestOffer.price - lowestOffer.price).toLocaleString('en-IN')} on {lowestOffer.storeName} vs {highestOffer.storeName}
+                </p>
+              )}
               {isTracked && trackingRecord?.targetPrice && product.price > 0 && product.price <= trackingRecord.targetPrice && (
                 <div className="p-3 rounded-2xl bg-gradient-to-r from-emerald-50 via-teal-50 to-white border border-emerald-300 flex items-center justify-between text-xs text-emerald-950 shadow-xs animate-pulse">
                   <div className="flex items-center space-x-2">
