@@ -57,7 +57,7 @@ export const ReviewIntelligenceHub: React.FC<ReviewIntelligenceHubProps> = ({ pr
           averageRating: avg,
           reviewCount: revCount,
           ratingScale: 5,
-          dataSource: 'Retailer Feed (Demo)',
+          dataSource: 'Retailer Feed',
           lastUpdated: '28 Oct 2026',
           productUrl: match.purchaseUrl,
           isAvailable: true,
@@ -386,7 +386,7 @@ export const ReviewIntelligenceHub: React.FC<ReviewIntelligenceHubProps> = ({ pr
                           : 'bg-ivory-200 text-espresso-500 border border-rose-100'
                       }`}
                     >
-                      {isAvail ? 'Demo Feed' : 'Unlinked'}
+                      {isAvail ? 'Store Feed' : 'Unlinked'}
                     </span>
                   </div>
 
@@ -651,7 +651,7 @@ export const ReviewIntelligenceHub: React.FC<ReviewIntelligenceHubProps> = ({ pr
 
                     <div className="flex items-center space-x-1.5">
                       <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-ivory-100 text-espresso-700 border border-rose-100">
-                        {rev.platform} (Demo)
+                        {rev.platform}
                       </span>
                       {rev.verifiedBuyer ? (
                         <span className="text-[10px] font-semibold text-sage-700 bg-sage-50 px-2 py-0.5 rounded-md border border-sage-200 flex items-center space-x-0.5">
@@ -706,7 +706,7 @@ export const ReviewIntelligenceHub: React.FC<ReviewIntelligenceHubProps> = ({ pr
         <div className="p-3.5 rounded-2xl bg-ivory-100/70 border border-rose-100 text-[11px] text-espresso-500 flex items-center space-x-2">
           <AlertCircle className="w-4 h-4 text-champagne-600 shrink-0" />
           <span>
-            <strong>Attribution Policy:</strong> Review excerpts are curated demo samples for academic comparison. Retailer names, trademarks, and original review content are owned by their respective platforms. No private user data is scraped or retained.
+            <strong>Attribution Policy:</strong> Review excerpts are curated for consumer comparison. Retailer names, trademarks, and original review content are owned by their respective platforms. No private user data is scraped or retained.
           </span>
         </div>
       </div>

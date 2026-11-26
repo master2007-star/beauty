@@ -69,7 +69,7 @@ export interface PlatformRatingSummary {
   averageRating: number | null; // null if unavailable
   reviewCount: number | null; // null if unavailable
   ratingScale: number; // usually 5
-  dataSource: 'Retailer Feed (Demo)' | 'Authorized API (Pending)' | 'Curated' | 'Data Unavailable';
+  dataSource: 'Retailer Feed' | 'Retailer Feed (Demo)' | 'Authorized API (Pending)' | 'Curated' | 'Data Unavailable';
   lastUpdated?: string;
   productUrl?: string;
   isAvailable: boolean;

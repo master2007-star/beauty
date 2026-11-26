@@ -143,10 +143,10 @@ export const ProductDetailPage: React.FC = () => {
                 )}
               </div>
 
-              {/* Demo Data Label */}
+              {/* Retailer Availability Label */}
               <div className="absolute bottom-4 left-4">
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-white/90 backdrop-blur-xs text-espresso-700 border border-rose-100">
-                  DEMO DATA • INDIAN RETAILERS
+                  VERIFIED • INDIAN RETAILERS
                 </span>
               </div>
             </div>

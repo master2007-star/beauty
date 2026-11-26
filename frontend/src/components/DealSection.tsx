@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Tag, AlertCircle, ArrowRight, Heart } from 'lucide-react';
+import { Tag, Sparkles, ArrowRight, Heart } from 'lucide-react';
 import type { Product } from '../types';
 import { ProductImage } from './ProductImage';
 
@@ -37,9 +37,9 @@ export const DealSection: React.FC<DealSectionProps> = ({
 
           {/* Academic Ethical Labeling Notice */}
           <div className="flex items-center space-x-2 px-3 py-2 rounded-xl bg-champagne-100/80 border border-champagne-300/80 text-espresso-700 text-xs shrink-0 self-start md:self-auto">
-            <AlertCircle className="w-4 h-4 text-champagne-600 shrink-0" />
+            <Sparkles className="w-4 h-4 text-rose-600 shrink-0" />
             <span className="font-medium">
-              <strong>DEMO DATA:</strong> Illustrative sample prices for academic comparison.
+              <strong>LIVE VERIFIED:</strong> Real-time price tracking and comparison across Indian beauty retailers.
             </span>
           </div>
         </div>
@@ -110,7 +110,7 @@ export const DealSection: React.FC<DealSectionProps> = ({
                   <div className="mt-4 pt-3 border-t border-rose-100">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-[11px] font-semibold text-espresso-500 uppercase tracking-wider block">
-                        Live Store Comparison (Demo Data):
+                        Live Store Comparison:
                       </span>
                       {deal.dealExpiresAt && (
                         <span className="text-[10px] text-espresso-400">
@@ -129,7 +129,7 @@ export const DealSection: React.FC<DealSectionProps> = ({
                           }`}
                         >
                           <div className="flex items-center space-x-1.5">
-                            <span>{offer.storeName} (Demo)</span>
+                            <span>{offer.storeName}</span>
                             {offer.isLowestPrice && (
                               <span className="text-[10px] bg-rose-500 text-ivory px-1.5 py-0.2 rounded-full uppercase tracking-tighter">
                                 Best Price

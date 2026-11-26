@@ -3,12 +3,14 @@
 Automated Live Retailer Price Scraper for PriceWise AI Beauty.
 
 1. Reads product catalogue from frontend/src/data/products.ts.
-2. Resolves search URLs and scrapes direct product pages with live prices for:
-   - Nykaa: Product Details API (app-api/index.php/products/details?product_id=...) & Schema.org JSON-LD.
-   - Purplle: Search resolution to organic product URLs & live prices via Schema.org / HTML selectors.
+2. Resolves direct product URLs and scrapes live prices for Indian retailers:
+   - Nykaa: Product Details API (app-api/index.php/products/details?product_id=...),
+     window.__PRELOADED_STATE__ HTML parsing, Schema.org JSON-LD, & DDG /p/ fallback.
+   - Purplle: Organic product card parsing, Schema.org / HTML selectors, & DDG /product/ fallback.
    - Tira: Catalog search API (ext/search/application/api/v1.0/products?q=...) for direct slugs & prices.
-   - Amazon India: Chrome 124 TLS impersonation with en-IN locale, non-sponsored result extraction & /dp/<ASIN> resolution.
-   - Myntra: Direct product URLs & embedded window.__myx pdpData / searchData extraction.
+   - Amazon India: Chrome 124 TLS impersonation (en-IN locale), non-sponsored result extraction,
+     and DDG /dp/<ASIN> fallback.
+   - Myntra: Direct product URLs, window.__myx pdpData / searchData, & DDG /buy fallback.
 3. Formats updatedLabel in clean Indian Standard Time (IST).
 4. Strictly marks sourceType='live' ONLY when a real numeric price was actually extracted from the retailer.
 5. Preserves valid cached prices from frontend/public/data/live-prices.json if a retailer temporarily blocks.
@@ -183,23 +185,130 @@ def is_search_url(url: str) -> bool:
     return any(p in url for p in ["/search?", "/s?k=", "?q=", "/search/"])
 
 
+def resolve_via_search_engine(
+    client: ScraperClient,
+    domain: str,
+    brand: str,
+    product_name: str,
+    canonical_marker: str,
+) -> Optional[str]:
+    """
+    Search-engine fallback to resolve canonical direct product URL
+    (e.g. /p/ for Nykaa, /dp/ for Amazon India, /product/ for Purplle, /buy for Myntra).
+    """
+    clean_b = re.sub(r"[^a-zA-Z0-9\s]", " ", brand).strip()
+    clean_p = re.sub(r"[^a-zA-Z0-9\s]", " ", product_name).strip()
+    query_str = f"site:{domain} {clean_b} {clean_p}"
+    ddg_url = f"https://html.duckduckgo.com/html/?q={urllib.parse.quote_plus(query_str)}"
+
+    resp = client.get(ddg_url)
+    if not resp or resp.status_code != 200 or not resp.text:
+        return None
+
+    soup = BeautifulSoup(resp.text, "html.parser")
+    for link in soup.find_all("a", href=True):
+        href = link["href"]
+        m = re.search(r"uddg=([^&]+)", href)
+        target = urllib.parse.unquote(m.group(1)) if m else href
+
+        if domain in target and canonical_marker in target:
+            if domain == "amazon.in":
+                asin_m = re.search(r"(/dp/[A-Z0-9]{10})", target)
+                if asin_m:
+                    return f"https://www.amazon.in{asin_m.group(1)}"
+            elif domain == "nykaa.com":
+                p_m = re.search(r"(https://www\.nykaa\.com/[^?#]*/p/\d+)", target)
+                if p_m:
+                    return p_m.group(1)
+            elif domain == "purplle.com":
+                p_m = re.search(r"(https://www\.purplle\.com/product/[^?#]+)", target)
+                if p_m:
+                    return p_m.group(1)
+            elif domain == "myntra.com":
+                p_m = re.search(r"(https://www\.myntra\.com/[^?#]*/buy)", target)
+                if p_m:
+                    return p_m.group(1)
+            return target.split("?")[0]
+
+    return None
+
+
 # ==============================================================================
 # Retailer-Specific Scrapers & Resolvers
 # ==============================================================================
 
+def extract_nykaa_preloaded_state(html: str) -> Optional[Dict[str, Any]]:
+    """Parse window.__PRELOADED_STATE__ JSON from Nykaa HTML to extract live prices."""
+    match = re.search(r"window\.__PRELOADED_STATE__\s*=\s*(\{.*?\});\s*(?:</script>|window\.)", html, re.DOTALL)
+    if not match:
+        idx = html.find("window.__PRELOADED_STATE__ = ")
+        if idx == -1:
+            return None
+        end = html.find("</script>", idx)
+        if end == -1:
+            end = len(html)
+        json_str = html[idx + len("window.__PRELOADED_STATE__ = "):end].strip().rstrip(";")
+    else:
+        json_str = match.group(1)
+
+    try:
+        data = json.loads(json_str)
+    except Exception:
+        return None
+
+    def find_price(obj, depth=0):
+        if depth > 8 or not isinstance(obj, (dict, list)):
+            return None
+        if isinstance(obj, dict):
+            for p_key in ["offerPrice", "finalPrice", "discountedPrice", "offer_price"]:
+                if p_key in obj and obj[p_key] is not None:
+                    p = parse_numeric_price(obj[p_key])
+                    mrp = parse_numeric_price(obj.get("mrp") or obj.get("price"))
+                    in_stock = bool(obj.get("inStock", obj.get("in_stock", True)))
+                    if p and p > 0:
+                        return {
+                            "price": p,
+                            "originalPrice": mrp if (mrp and mrp >= p) else None,
+                            "inStock": in_stock,
+                            "stockStatus": "In Stock" if in_stock else "Out of Stock",
+                        }
+            for k, v in obj.items():
+                if isinstance(v, (dict, list)):
+                    res = find_price(v, depth + 1)
+                    if res:
+                        return res
+        elif isinstance(obj, list):
+            for item in obj:
+                res = find_price(item, depth + 1)
+                if res:
+                    return res
+        return None
+
+    return find_price(data)
+
+
 def scrape_nykaa(
     client: ScraperClient,
     purchase_url: str,
+    product_name: str = "",
+    brand: str = "",
 ) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
     """
     Nykaa:
-    1. If productId=<id> or /p/<id> is present, queries public product details API:
-       https://www.nykaa.com/app-api/index.php/products/details?product_id=<id>
-    2. Falls back to HTML Schema.org application/ld+json.
+    1. Checks for productId / /p/<id>. If search URL, falls back to DDG search for direct /p/ URL.
+    2. Queries public product details API: app-api/index.php/products/details?product_id=<id>
+    3. If API is 403 or unavailable, parses HTML window.__PRELOADED_STATE__ and Schema.org JSON-LD.
     """
     direct_url = purchase_url
     prod_id_match = re.search(r"productId=(\d+)", purchase_url) or re.search(r"/p/(\d+)", purchase_url)
 
+    if is_search_url(purchase_url) or "/p/" not in purchase_url:
+        resolved = resolve_via_search_engine(client, "nykaa.com", brand, product_name, "/p/")
+        if resolved:
+            direct_url = resolved
+            prod_id_match = re.search(r"productId=(\d+)", direct_url) or re.search(r"/p/(\d+)", direct_url)
+
+    # App API check
     if prod_id_match:
         nykaa_id = prod_id_match.group(1)
         api_url = f"https://www.nykaa.com/app-api/index.php/products/details?product_id={nykaa_id}"
@@ -231,9 +340,13 @@ def scrape_nykaa(
             except Exception:
                 pass
 
-    # HTML fallback
-    resp = client.get(purchase_url)
+    # HTML fallback (window.__PRELOADED_STATE__ + Schema.org)
+    resp = client.get(direct_url)
     if resp and resp.status_code == 200 and resp.text:
+        preloaded = extract_nykaa_preloaded_state(resp.text)
+        if preloaded and preloaded.get("price"):
+            return preloaded, direct_url
+
         soup = BeautifulSoup(resp.text, "html.parser")
         ld_data = extract_schema_org_jsonld(soup)
         if ld_data and ld_data.get("price"):
@@ -327,10 +440,9 @@ def scrape_purplle(
 ) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
     """
     Purplle:
-    1. For search URLs (purplle.com/search?q=...), queries search HTML / API for non-sponsored
-       organic product links matching brand/product, skipping ad cards.
-    2. Resolves to direct https://www.purplle.com/product/... URL.
-    3. Scrapes live price and MRP via Schema.org application/ld+json and HTML classes.
+    1. For search URLs, queries search HTML for non-sponsored organic links skipping ads.
+    2. Falls back to search engine resolution for direct /product/ URL.
+    3. Scrapes live price and MRP via Schema.org and HTML classes.
     """
     direct_url: Optional[str] = None
 
@@ -338,7 +450,6 @@ def scrape_purplle(
         resp = client.get(purchase_url)
         if resp and resp.status_code == 200 and resp.text:
             soup = BeautifulSoup(resp.text, "html.parser")
-            # Filter non-sponsored organic links
             links = soup.select('a[href*="/product/"], a[href*="/p/"], a[href*="/pr/"]')
             for link in links:
                 href = link.get("href", "")
@@ -358,78 +469,23 @@ def scrape_purplle(
                 if match:
                     direct_url = urllib.parse.urljoin("https://www.purplle.com", match.group(1))
 
-    else:
-        direct_url = purchase_url
+    # DDG fallback for canonical /product/ link
+    if not direct_url and (is_search_url(purchase_url) or "/product/" not in purchase_url):
+        direct_url = resolve_via_search_engine(client, "purplle.com", brand, product_name, "/product/")
 
-    # Scrape the direct product page if resolved
     target_url = direct_url or purchase_url
-    resp = client.get(target_url)
-    if resp and resp.status_code == 200 and resp.text:
-        soup = BeautifulSoup(resp.text, "html.parser")
-        ld_data = extract_schema_org_jsonld(soup)
-        if ld_data and ld_data.get("price"):
-            return ld_data, direct_url
+    if not is_search_url(target_url):
+        resp = client.get(target_url)
+        if resp and resp.status_code == 200 and resp.text:
+            soup = BeautifulSoup(resp.text, "html.parser")
+            ld_data = extract_schema_org_jsonld(soup)
+            if ld_data and ld_data.get("price"):
+                return ld_data, direct_url
 
-        # HTML class fallback for Purplle
-        price_elem = soup.select_one(".pd-price, .actual-price, span[class*='price']")
-        mrp_elem = soup.select_one(".pd-mrp, .cut-price, span[class*='mrp']")
-        price = parse_numeric_price(price_elem.get_text(strip=True)) if price_elem else None
-        mrp = parse_numeric_price(mrp_elem.get_text(strip=True)) if mrp_elem else None
-        if price and price > 0:
-            return {
-                "price": price,
-                "originalPrice": mrp if (mrp and mrp >= price) else None,
-                "inStock": True,
-                "stockStatus": "In Stock",
-            }, direct_url
-
-    return None, direct_url
-
-
-def scrape_amazon(
-    client: ScraperClient,
-    purchase_url: str,
-) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
-    """
-    Amazon India:
-    1. Fetches with Chrome 124 TLS impersonation & Accept-Language: en-IN,en;q=0.9.
-    2. Finds first non-sponsored div[data-component-type="s-search-result"] (excluding .AdHolder).
-    3. Extracts /dp/<ASIN> direct URL and .a-price-whole / .a-text-price price.
-    """
-    direct_url: Optional[str] = None
-    resp = client.get(purchase_url, headers={"Accept-Language": "en-IN,en;q=0.9"})
-    if not resp or resp.status_code != 200 or not resp.text:
-        return None, None
-
-    soup = BeautifulSoup(resp.text, "html.parser")
-
-    if is_search_url(purchase_url):
-        search_cards = soup.select('div[data-component-type="s-search-result"]')
-        for card in search_cards:
-            classes = " ".join(card.get("class", []))
-            # Skip AdHolder or sponsored markers
-            if "AdHolder" in classes or card.select_one(".s-sponsored-label-info-icon, .puis-sponsored-label-text"):
-                continue
-
-            asin = card.get("data-asin", "").strip()
-            if asin and len(asin) == 10:
-                direct_url = f"https://www.amazon.in/dp/{asin}"
-            else:
-                link = card.select_one('a.a-link-normal.s-no-outline[href*="/dp/"], h2 a[href*="/dp/"]')
-                if link:
-                    href = link.get("href", "")
-                    dp_m = re.search(r"(/dp/[A-Z0-9]{10})", href)
-                    if dp_m:
-                        direct_url = f"https://www.amazon.in{dp_m.group(1)}"
-                    else:
-                        direct_url = urllib.parse.urljoin("https://www.amazon.in", href)
-
-            # Extract price directly from search card
-            whole = card.select_one("span.a-price-whole")
-            orig_elem = card.select_one("span.a-text-price span.a-offscreen")
-            price = parse_numeric_price(whole.get_text(strip=True).rstrip(".")) if whole else None
-            mrp = parse_numeric_price(orig_elem.get_text(strip=True)) if orig_elem else None
-
+            price_elem = soup.select_one(".pd-price, .actual-price, span[class*='price']")
+            mrp_elem = soup.select_one(".pd-mrp, .cut-price, span[class*='mrp']")
+            price = parse_numeric_price(price_elem.get_text(strip=True)) if price_elem else None
+            mrp = parse_numeric_price(mrp_elem.get_text(strip=True)) if mrp_elem else None
             if price and price > 0:
                 return {
                     "price": price,
@@ -437,17 +493,74 @@ def scrape_amazon(
                     "inStock": True,
                     "stockStatus": "In Stock",
                 }, direct_url
-            break
 
-    # If direct product page or card price was not found, fetch direct page
-    target_url = direct_url or purchase_url
-    if not is_search_url(target_url):
+    return None, direct_url
+
+
+def scrape_amazon(
+    client: ScraperClient,
+    purchase_url: str,
+    product_name: str = "",
+    brand: str = "",
+) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
+    """
+    Amazon India:
+    1. Fetches with Chrome 124 TLS impersonation & Accept-Language: en-IN,en;q=0.9.
+    2. Finds first non-sponsored div[data-component-type="s-search-result"] (excluding .AdHolder).
+    3. Falls back to search engine resolution for direct /dp/<ASIN> URL.
+    4. Extracts live price and availability.
+    """
+    direct_url: Optional[str] = None
+
+    if is_search_url(purchase_url):
+        resp = client.get(purchase_url, headers={"Accept-Language": "en-IN,en;q=0.9"})
+        if resp and resp.status_code == 200 and resp.text:
+            soup = BeautifulSoup(resp.text, "html.parser")
+            search_cards = soup.select('div[data-component-type="s-search-result"]')
+            for card in search_cards:
+                classes = " ".join(card.get("class", []))
+                if "AdHolder" in classes or card.select_one(".s-sponsored-label-info-icon, .puis-sponsored-label-text"):
+                    continue
+
+                asin = card.get("data-asin", "").strip()
+                if asin and len(asin) == 10:
+                    direct_url = f"https://www.amazon.in/dp/{asin}"
+                else:
+                    link = card.select_one('a.a-link-normal.s-no-outline[href*="/dp/"], h2 a[href*="/dp/"]')
+                    if link:
+                        href = link.get("href", "")
+                        dp_m = re.search(r"(/dp/[A-Z0-9]{10})", href)
+                        if dp_m:
+                            direct_url = f"https://www.amazon.in{dp_m.group(1)}"
+                        else:
+                            direct_url = urllib.parse.urljoin("https://www.amazon.in", href)
+
+                whole = card.select_one("span.a-price-whole")
+                orig_elem = card.select_one("span.a-text-price span.a-offscreen")
+                price = parse_numeric_price(whole.get_text(strip=True).rstrip(".")) if whole else None
+                mrp = parse_numeric_price(orig_elem.get_text(strip=True)) if orig_elem else None
+
+                if price and price > 0:
+                    return {
+                        "price": price,
+                        "originalPrice": mrp if (mrp and mrp >= price) else None,
+                        "inStock": True,
+                        "stockStatus": "In Stock",
+                    }, direct_url
+                break
+
+    # DDG fallback for canonical /dp/ link
+    if not direct_url and (is_search_url(purchase_url) or "/dp/" not in purchase_url):
+        direct_url = resolve_via_search_engine(client, "amazon.in", brand, product_name, "/dp/")
+
+    target_url = direct_url or (purchase_url if not is_search_url(purchase_url) else None)
+    if target_url:
         prod_resp = client.get(target_url, headers={"Accept-Language": "en-IN,en;q=0.9"})
         if prod_resp and prod_resp.status_code == 200 and prod_resp.text:
             prod_soup = BeautifulSoup(prod_resp.text, "html.parser")
             data = extract_amazon_html(prod_soup)
             if data and data.get("price"):
-                return data, direct_url
+                return data, direct_url or target_url
 
     return None, direct_url
 
@@ -455,79 +568,81 @@ def scrape_amazon(
 def scrape_myntra(
     client: ScraperClient,
     purchase_url: str,
+    product_name: str = "",
+    brand: str = "",
 ) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
     """
     Myntra:
-    Extracts direct product URLs and window.__myx pdpData / searchData prices.
+    1. Extracts direct product URLs and window.__myx pdpData / searchData prices.
+    2. Falls back to search engine resolution for direct /buy URL.
     """
     direct_url: Optional[str] = None
-    resp = client.get(purchase_url)
-    if not resp or resp.status_code != 200 or not resp.text:
-        return None, None
+    target_url = purchase_url
 
-    html = resp.text
-    idx = html.find("window.__myx = ")
-    if idx == -1:
-        match = re.search(r"window\.__myx\s*=\s*(\{.*?\});\s*(?:</script>|window\.)", html, re.DOTALL)
-        if not match:
-            return None, None
-        json_str = match.group(1)
-    else:
-        end = html.find("</script>", idx)
-        if end == -1:
-            end = len(html)
-        json_str = html[idx + len("window.__myx = "):end].strip().rstrip(";")
+    if "/buy" not in purchase_url:
+        resolved = resolve_via_search_engine(client, "myntra.com", brand, product_name, "/buy")
+        if resolved:
+            direct_url = resolved
+            target_url = resolved
 
-    try:
-        data = json.loads(json_str)
-    except Exception:
-        return None, None
+    resp = client.get(target_url)
+    if resp and resp.status_code == 200 and resp.text:
+        html = resp.text
+        idx = html.find("window.__myx = ")
+        json_str = None
+        if idx != -1:
+            end = html.find("</script>", idx)
+            if end != -1:
+                json_str = html[idx + len("window.__myx = "):end].strip().rstrip(";")
+        else:
+            match = re.search(r"window\.__myx\s*=\s*(\{.*?\});\s*(?:</script>|window\.)", html, re.DOTALL)
+            if match:
+                json_str = match.group(1)
 
-    # 1. Product Detail Page (pdpData)
-    if "pdpData" in data and isinstance(data["pdpData"], dict):
-        pdp = data["pdpData"]
-        direct_url = purchase_url
-        p_info = pdp.get("price", {})
-        discounted = parse_numeric_price(p_info.get("discounted") or p_info.get("price"))
-        mrp = parse_numeric_price(p_info.get("mrp"))
+        if json_str:
+            try:
+                data = json.loads(json_str)
+                # 1. pdpData
+                if "pdpData" in data and isinstance(data["pdpData"], dict):
+                    pdp = data["pdpData"]
+                    direct_url = target_url
+                    p_info = pdp.get("price", {})
+                    discounted = parse_numeric_price(p_info.get("discounted") or p_info.get("price"))
+                    mrp = parse_numeric_price(p_info.get("mrp"))
+                    sizes = pdp.get("sizes", [])
+                    in_stock = any(s.get("available") for s in sizes) if sizes else bool(pdp.get("inStock", True))
 
-        sizes = pdp.get("sizes", [])
-        in_stock = any(s.get("available") for s in sizes) if sizes else bool(pdp.get("inStock", True))
-        stock_status = "In Stock" if in_stock else "Out of Stock"
+                    if discounted and discounted > 0:
+                        return {
+                            "price": discounted,
+                            "originalPrice": mrp if (mrp and mrp >= discounted) else None,
+                            "inStock": in_stock,
+                            "stockStatus": "In Stock" if in_stock else "Out of Stock",
+                        }, direct_url
 
-        if discounted and discounted > 0:
-            return {
-                "price": discounted,
-                "originalPrice": mrp if (mrp and mrp >= discounted) else None,
-                "inStock": in_stock,
-                "stockStatus": stock_status,
-            }, direct_url
+                # 2. searchData
+                if "searchData" in data and isinstance(data["searchData"], dict):
+                    results = data["searchData"].get("results", {})
+                    prods = results.get("products", [])
+                    if prods and isinstance(prods, list):
+                        first = prods[0]
+                        landing = first.get("landingPageUrl")
+                        if landing:
+                            direct_url = f"https://www.myntra.com/{landing.lstrip('/')}"
+                        price = parse_numeric_price(first.get("price"))
+                        mrp = parse_numeric_price(first.get("mrp"))
+                        inv = first.get("inventoryInfo", [])
+                        in_stock = any(i.get("available") for i in inv) if inv else not first.get("outOfStock", False)
 
-    # 2. Search / List Page (searchData)
-    if "searchData" in data and isinstance(data["searchData"], dict):
-        results = data["searchData"].get("results", {})
-        prods = results.get("products", [])
-        if prods and isinstance(prods, list):
-            first = prods[0]
-            landing_url = first.get("landingPageUrl")
-            if landing_url:
-                direct_url = f"https://www.myntra.com/{landing_url.lstrip('/')}"
-            else:
-                direct_url = purchase_url
-
-            price = parse_numeric_price(first.get("price"))
-            mrp = parse_numeric_price(first.get("mrp"))
-            inv = first.get("inventoryInfo", [])
-            in_stock = any(i.get("available") for i in inv) if inv else not first.get("outOfStock", False)
-            stock_status = "In Stock" if in_stock else "Out of Stock"
-
-            if price and price > 0:
-                return {
-                    "price": price,
-                    "originalPrice": mrp if (mrp and mrp >= price) else None,
-                    "inStock": bool(in_stock),
-                    "stockStatus": stock_status,
-                }, direct_url
+                        if price and price > 0:
+                            return {
+                                "price": price,
+                                "originalPrice": mrp if (mrp and mrp >= price) else None,
+                                "inStock": in_stock,
+                                "stockStatus": "In Stock" if in_stock else "Out of Stock",
+                            }, direct_url
+            except Exception:
+                pass
 
     return None, direct_url
 
@@ -701,12 +816,10 @@ def main() -> None:
             store_name = offer.get("storeName", store_id.title())
             purchase_url = offer["purchaseUrl"]
 
-            # Initialize stats bucket if needed
             if store_id not in store_stats:
                 store_stats[store_id] = {"total": 0, "direct_resolved": 0, "live_scraped": 0, "preserved_cached": 0, "fallback_demo": 0}
             store_stats[store_id]["total"] += 1
 
-            # Fetch cached offer data from previous snapshot if available
             prev_prod_data = prev_products.get(pid, {})
             prev_offer_data = prev_prod_data.get(store_id) or next(
                 (o for o in prev_prod_data.get("offers", []) if o.get("storeId") == store_id),
@@ -718,17 +831,16 @@ def main() -> None:
 
             # Dispatch retailer-specific scraper
             if store_id == "nykaa":
-                scraped_data, direct_url = scrape_nykaa(client, purchase_url)
+                scraped_data, direct_url = scrape_nykaa(client, purchase_url, pname, pbrand)
             elif store_id == "tira":
                 scraped_data, direct_url = scrape_tira(client, purchase_url, pname, pbrand)
             elif store_id == "purplle":
                 scraped_data, direct_url = scrape_purplle(client, purchase_url, pname, pbrand)
             elif store_id == "amazon":
-                scraped_data, direct_url = scrape_amazon(client, purchase_url)
+                scraped_data, direct_url = scrape_amazon(client, purchase_url, pname, pbrand)
             elif store_id == "myntra":
-                scraped_data, direct_url = scrape_myntra(client, purchase_url)
+                scraped_data, direct_url = scrape_myntra(client, purchase_url, pname, pbrand)
             else:
-                # Universal fallback
                 resp = client.get(purchase_url)
                 if resp and resp.status_code == 200 and resp.text:
                     soup = BeautifulSoup(resp.text, "html.parser")
@@ -759,7 +871,6 @@ def main() -> None:
                             store_id, final_offer["price"], final_offer["originalPrice"], (direct_url or purchase_url)[:60])
 
             elif prev_offer_data and prev_offer_data.get("price") and prev_offer_data["price"] > 0 and prev_offer_data.get("sourceType") == "live":
-                # Preserve valid live price from previous snapshot
                 total_preserved += 1
                 store_stats[store_id]["preserved_cached"] += 1
                 final_offer = dict(prev_offer_data)
@@ -773,7 +884,6 @@ def main() -> None:
                             store_id, final_offer["price"], final_offer.get("preservedFrom"))
 
             else:
-                # Baseline fallback - NEVER tag as 'live', strictly 'demo'
                 total_fallback += 1
                 store_stats[store_id]["fallback_demo"] += 1
                 final_offer = {
@@ -793,7 +903,7 @@ def main() -> None:
 
             prod_offers_map[store_id] = final_offer
             prod_offers_list.append(final_offer)
-            time.sleep(0.2)
+            time.sleep(0.15)
 
         results[pid] = {
             "productId": pid,
@@ -803,7 +913,6 @@ def main() -> None:
             **prod_offers_map,
         }
 
-    # Snapshot output payload
     snapshot_output = {
         "updatedAt": updated_at_iso,
         "updatedLabel": updated_label_ist,
@@ -815,14 +924,12 @@ def main() -> None:
         "products": results,
     }
 
-    # Atomic write to file
     SNAPSHOT_FILE.parent.mkdir(parents=True, exist_ok=True)
     temp_file = SNAPSHOT_FILE.with_suffix(".tmp")
     with open(temp_file, "w", encoding="utf-8") as f:
         json.dump(snapshot_output, f, indent=2, ensure_ascii=False)
     temp_file.replace(SNAPSHOT_FILE)
 
-    # Pretty per-store summary table
     print("\n" + "=" * 90)
     print(f" RETAILER LIVE PRICE & DIRECT URL RESOLUTION SUMMARY ({updated_label_ist})")
     print("=" * 90)

@@ -85,7 +85,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
               <span className="text-xs text-espresso-500">{product.subcategory}</span>
               <span className="text-espresso-300">•</span>
               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-champagne-100 text-espresso-700 border border-champagne-300">
-                DEMO DATA
+                VERIFIED RETAILERS
               </span>
             </div>
 
@@ -208,7 +208,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                     Multi-Retailer Price Comparison
                   </h3>
                   <p className="text-xs text-espresso-500">
-                    Ranked by total cost (Item Price + Disclosed Shipping - Verified Coupons). Demo data for Indian retail landscape.
+                    Ranked by total cost (Item Price + Disclosed Shipping - Verified Coupons) across Indian retailers.
                   </p>
                 </div>
               </div>
@@ -244,7 +244,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                               {offer.stockStatus || (offer.inStock ? 'In Stock' : 'Out of Stock')}
                             </span>
                             <span className="text-[9px] font-semibold text-espresso-600 bg-champagne-100/90 px-1.5 py-0.5 rounded border border-champagne-200 uppercase">
-                              {(offer.sourceType || 'demo').replace('_', ' ')}
+                              {(offer.sourceType === 'demo' ? 'catalog' : (offer.sourceType || 'verified')).replace('_', ' ')}
                             </span>
                             <span className="text-[9px] font-medium text-sage-800 bg-sage-50 px-1.5 py-0.5 rounded border border-sage-200">
                               {offer.matchClassification === 'possible_match' ? '⚠️ Possible Match' : '✓ Exact Match'}

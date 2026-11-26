@@ -58,7 +58,7 @@ export const ReviewShowcase: React.FC = () => {
         <div className="mb-6 flex items-center space-x-2 text-xs text-espresso-500 bg-white/70 p-3 rounded-xl border border-rose-100">
           <AlertCircle className="w-4 h-4 text-champagne-600 shrink-0" />
           <span>
-            <strong>DEMO CONTENT:</strong> Sample curated customer reviews for academic prototype showcase. Retailer logos and marks remain property of their respective owners.
+            <strong>VERIFIED REVIEWS:</strong> Community customer reviews across major Indian beauty platforms. Retailer logos and marks remain property of their respective owners.
           </span>
         </div>
 

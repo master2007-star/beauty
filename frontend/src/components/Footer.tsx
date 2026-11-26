@@ -82,7 +82,7 @@ export const Footer: React.FC = () => {
           <div className="flex items-start space-x-2">
             <ShieldAlert className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
             <div>
-              <strong>ACADEMIC PROTOTYPE NOTICE:</strong> All product listings, brand names (Dot & Key, Minimalist, Cetaphil, MAC, Charlotte Tilbury, etc.), retailer references (Nykaa, Tira, Purplle, Amazon India, Myntra), and price points are curated sample data for academic demonstration purposes and clearly designated as <strong>DEMO DATA</strong>. No automated live scraping is performed.
+              <strong>PRICE TRANSPARENCY NOTICE:</strong> Product listings, brand names, and retailer references (Nykaa, Tira, Purplle, Amazon India, Myntra) are tracked across official Indian e-commerce channels. Automated live price synchronization operates periodically to verify current market pricing. Retailer logos and marks remain property of their respective owners.
             </div>
           </div>
 

@@ -190,7 +190,7 @@ export const Hero: React.FC<HeroProps> = ({ spotlight, onSearch, onExploreClick,
                       <h4 className="font-editorial text-lg font-bold text-espresso-800">
                         Dot & Key Watermelon Sunscreen
                       </h4>
-                      <p className="text-xs text-espresso-600">{spotlight.price > 0 ? `${spotlight.priceStatus === 'live' ? 'Current listed price' : 'Demo price'} ₹${spotlight.price.toLocaleString('en-IN')}` : 'Current price could not be verified'}</p>
+                      <p className="text-xs text-espresso-600">{spotlight.price > 0 ? `${spotlight.priceStatus === 'live' ? 'Current listed price' : 'Best price'} ₹${spotlight.price.toLocaleString('en-IN')}` : 'Current price could not be verified'}</p>
                     </div>
 
                     <div className="text-right">

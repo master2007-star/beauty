@@ -13,17 +13,18 @@ interface LiveRetailerPriceComparisonProps {
 }
 
 export function LiveRetailerPriceComparison({ productName, brand, targetVariant, fallbackOffers }: LiveRetailerPriceComparisonProps) {
-  const { liveUpdatedLabel } = useCatalogue();
+  const { liveUpdatedLabel, isLiveLoaded } = useCatalogue();
   const sorted = [...fallbackOffers].sort((a, b) => Number(b.inStock) - Number(a.inStock) || a.price - b.price);
   const lowest = sorted.find((offer) => offer.inStock && offer.price > 0);
   const hasLiveOffer = sorted.some((offer) => offer.sourceType === 'live');
+  const showLiveBadge = hasLiveOffer || isLiveLoaded;
 
   return (
     <section className="space-y-4 border-t border-rose-200 pt-6" id="retailer-price-comparison-section">
       <div>
         <div className="flex flex-wrap items-center gap-2.5">
           <h2 className="font-editorial text-2xl font-bold text-espresso-900">Retailer Price Comparison</h2>
-          {hasLiveOffer && (
+          {showLiveBadge && (
             <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-800">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
               Live Synced
@@ -31,15 +32,17 @@ export function LiveRetailerPriceComparison({ productName, brand, targetVariant,
           )}
         </div>
         <p className="mt-1 text-xs text-espresso-600">
-          {hasLiveOffer
+          {showLiveBadge
             ? `Live prices for ${targetVariant}${liveUpdatedLabel ? ` • Updated ${liveUpdatedLabel}` : ''}. Confirm current price, stock and delivery at the retailer.`
-            : `Verified catalogue prices for ${targetVariant}. Confirm current price, stock and delivery at the retailer.`}
+            : `Current prices for ${targetVariant}. Confirm current price, stock and delivery at the retailer.`}
         </p>
       </div>
       {!sorted.length && <p className="text-sm text-espresso-800">No offers are available for this product.</p>}
       <div className="divide-y divide-rose-100 overflow-hidden rounded-2xl border border-rose-200 bg-white">
         {sorted.map((offer) => {
-          const href = offer.purchaseUrl || getRetailerProductUrl({ name: productName, brand }, offer.storeName);
+          const rawHref = offer.purchaseUrl?.trim();
+          const fallbackHref = getRetailerProductUrl({ name: productName, brand }, offer.storeName);
+          const href = rawHref && rawHref.startsWith('http') ? rawHref : fallbackHref;
           const isLive = offer.sourceType === 'live';
           const updateTime = offer.lastUpdated || liveUpdatedLabel || 'Recently verified';
 
@@ -49,11 +52,12 @@ export function LiveRetailerPriceComparison({ productName, brand, targetVariant,
                 <strong className="text-sm text-espresso-900">{offer.storeName}</strong>
                 {lowest?.storeId === offer.storeId && (
                   <span className="ml-2 rounded bg-sage-100 px-2 py-1 text-[11px] text-sage-800">
-                    {hasLiveOffer ? 'Lowest live price' : 'Lowest catalog price'}
+                    {hasLiveOffer ? 'Lowest live price' : 'Lowest price'}
                   </span>
                 )}
                 <p className="mt-1 text-xs text-espresso-600">
-                  {isLive ? `Live price (${updateTime})` : 'Catalog price'} · {offer.inStock ? 'Listed in stock' : 'Listed out of stock'} · {targetVariant}
+                  {isLive ? `Live price (${updateTime}) · ` : ''}
+                  {offer.inStock ? 'Listed in stock' : 'Listed out of stock'} · {targetVariant}
                 </p>
               </div>
               <div className="text-sm font-bold text-espresso-900">

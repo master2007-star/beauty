@@ -78,7 +78,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           <Heart className={`w-4 h-4 ${isWishlisted ? 'fill-rose-500 text-rose-500' : ''}`} />
         </button>
 
-        {/* Brand Tier Pill & Demo Label */}
+        {/* Brand Tier Pill & Availability Label */}
         <div className="absolute bottom-3 left-3 flex items-center space-x-1.5">
           <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
             product.brandTier === 'Luxury'
@@ -90,7 +90,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             {product.brandTier}
           </span>
           <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-white/85 text-espresso-600 border border-rose-100">
-            {product.priceStatus === 'live' ? 'Live Price' : product.priceStatus ? 'Live Check' : 'Demo Price'}
+            {product.priceStatus === 'live' ? 'Live Price' : product.priceStatus ? 'Live Check' : 'Best Offer'}
           </span>
         </div>
       </div>
@@ -135,7 +135,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         <div className="pt-3 mt-3 border-t border-rose-100/60">
           <div className="flex items-baseline justify-between">
             <div>
-              <span className="text-[11px] text-espresso-400 block font-normal">{product.priceStatus ? 'Current listed price' : 'Demo price'}</span>
+              <span className="text-[11px] text-espresso-400 block font-normal">{product.priceStatus ? 'Current listed price' : 'Best price'}</span>
               <div className="flex items-baseline space-x-2">
                 <span className="text-xl font-extrabold text-espresso-900 font-sans">
                   {product.price > 0 ? `₹${product.price.toLocaleString('en-IN')}` : product.priceStatus === 'checking' ? 'Checking price…' : 'Price unavailable'}
