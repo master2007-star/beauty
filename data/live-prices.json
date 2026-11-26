@@ -1,17 +1,30 @@
 {
-  "updatedAt": "2026-11-26T13:39:30.432109Z",
-  "updatedLabel": "26 Nov 2026, 07:09 PM IST",
+  "updatedAt": "2026-11-26T13:53:15.049973Z",
+  "updatedLabel": "26 Nov 2026, 07:23 PM IST",
   "totalProducts": 23,
   "totalOffers": 63,
-  "scrapedSuccessCount": 12,
-  "preservedCount": 0,
-  "fallbackCount": 51,
+  "scrapedSuccessCount": 4,
+  "preservedCount": 12,
+  "fallbackCount": 47,
   "products": {
     "prod-01": {
       "productId": "prod-01",
       "productName": "Watermelon Cooling Sunscreen SPF 50+ PA++++",
       "brand": "Dot & Key",
       "offers": [
+        {
+          "storeId": "amazon",
+          "storeName": "Amazon India",
+          "price": 475.0,
+          "originalPrice": 595.0,
+          "inStock": true,
+          "stockStatus": "In Stock",
+          "purchaseUrl": "https://www.amazon.in/s?k=Dot%20%26%20Key%20Watermelon%20Cooling%20Sunscreen%20SPF%2050%2B%20PA%2B%2B%2B%2B",
+          "resolvedUrl": null,
+          "sourceType": "demo",
+          "status": "catalog_baseline",
+          "lastChecked": "26 Nov 2026, 07:23 PM IST"
+        },
         {
           "storeId": "nykaa",
           "storeName": "Nykaa",
@@ -23,7 +36,7 @@
           "resolvedUrl": "https://www.nykaa.com/dot-key-watermelon-hyaluronic-cooling-sunscreen-spf-50-pa/p/14072071?productId=14072071&pps=1",
           "sourceType": "demo",
           "status": "catalog_baseline",
-          "lastChecked": "26 Nov 2026, 07:09 PM IST"
+          "lastChecked": "26 Nov 2026, 07:23 PM IST"
         },
         {
           "storeId": "tira",
@@ -34,9 +47,10 @@
           "stockStatus": "In Stock",
           "purchaseUrl": "https://www.tirabeauty.com/product/hyphen-all-i-need-sunscreen-with-spf-50-pa-50-ml-7596462",
           "resolvedUrl": "https://www.tirabeauty.com/product/hyphen-all-i-need-sunscreen-with-spf-50-pa-50-ml-7596462",
-          "sourceType": "live",
+          "sourceType": "cached",
           "lastChecked": "26 Nov 2026, 07:09 PM IST",
-          "status": "success"
+          "status": "preserved_from_previous",
+          "preservedFrom": "26 Nov 2026, 07:09 PM IST"
         },
         {
           "storeId": "purplle",
@@ -49,35 +63,35 @@
           "resolvedUrl": null,
           "sourceType": "demo",
           "status": "catalog_baseline",
-          "lastChecked": "26 Nov 2026, 07:09 PM IST"
-        },
-        {
-          "storeId": "amazon",
-          "storeName": "Amazon India",
-          "price": 475.0,
-          "originalPrice": 595.0,
-          "inStock": true,
-          "stockStatus": "In Stock",
-          "purchaseUrl": "https://www.amazon.in/s?k=Dot%20%26%20Key%20Watermelon%20Cooling%20Sunscreen%20SPF%2050%2B%20PA%2B%2B%2B%2B",
-          "resolvedUrl": null,
-          "sourceType": "demo",
-          "status": "catalog_baseline",
-          "lastChecked": "26 Nov 2026, 07:09 PM IST"
+          "lastChecked": "26 Nov 2026, 07:23 PM IST"
         },
         {
           "storeId": "myntra",
           "storeName": "Myntra",
-          "price": 499.0,
-          "originalPrice": 595.0,
+          "price": 387.0,
+          "originalPrice": 445.0,
           "inStock": true,
           "stockStatus": "In Stock",
-          "purchaseUrl": "https://www.myntra.com/dot-key-watermelon-cooling-sunscreen-spf-50-pa",
-          "resolvedUrl": "https://www.myntra.com/dot-key-watermelon-cooling-sunscreen-spf-50-pa",
-          "sourceType": "demo",
-          "status": "catalog_baseline",
-          "lastChecked": "26 Nov 2026, 07:09 PM IST"
+          "purchaseUrl": "https://www.myntra.com/face-sunscreen/dot+%26+key/dot--keywatermelon-cooling-sunscreen-in-vivo-tested-spf-50-pa-with-hyaluronic--50g/21404558/buy",
+          "resolvedUrl": "https://www.myntra.com/face-sunscreen/dot+%26+key/dot--keywatermelon-cooling-sunscreen-in-vivo-tested-spf-50-pa-with-hyaluronic--50g/21404558/buy",
+          "sourceType": "live",
+          "lastChecked": "26 Nov 2026, 07:23 PM IST",
+          "status": "success"
         }
       ],
+      "amazon": {
+        "storeId": "amazon",
+        "storeName": "Amazon India",
+        "price": 475.0,
+        "originalPrice": 595.0,
+        "inStock": true,
+        "stockStatus": "In Stock",
+        "purchaseUrl": "https://www.amazon.in/s?k=Dot%20%26%20Key%20Watermelon%20Cooling%20Sunscreen%20SPF%2050%2B%20PA%2B%2B%2B%2B",
+        "resolvedUrl": null,
+        "sourceType": "demo",
+        "status": "catalog_baseline",
+        "lastChecked": "26 Nov 2026, 07:23 PM IST"
+      },
       "nykaa": {
         "storeId": "nykaa",
         "storeName": "Nykaa",
@@ -89,7 +103,7 @@
         "resolvedUrl": "https://www.nykaa.com/dot-key-watermelon-hyaluronic-cooling-sunscreen-spf-50-pa/p/14072071?productId=14072071&pps=1",
         "sourceType": "demo",
         "status": "catalog_baseline",
-        "lastChecked": "26 Nov 2026, 07:09 PM IST"
+        "lastChecked": "26 Nov 2026, 07:23 PM IST"
       },
       "tira": {
         "storeId": "tira",
@@ -100,9 +114,10 @@
         "stockStatus": "In Stock",
         "purchaseUrl": "https://www.tirabeauty.com/product/hyphen-all-i-need-sunscreen-with-spf-50-pa-50-ml-7596462",
         "resolvedUrl": "https://www.tirabeauty.com/product/hyphen-all-i-need-sunscreen-with-spf-50-pa-50-ml-7596462",
-        "sourceType": "live",
+        "sourceType": "cached",
         "lastChecked": "26 Nov 2026, 07:09 PM IST",
-        "status": "success"
+        "status": "preserved_from_previous",
+        "preservedFrom": "26 Nov 2026, 07:09 PM IST"
       },
       "purplle": {
         "storeId": "purplle",
@@ -115,33 +130,20 @@
         "resolvedUrl": null,
         "sourceType": "demo",
         "status": "catalog_baseline",
-        "lastChecked": "26 Nov 2026, 07:09 PM IST"
-      },
-      "amazon": {
-        "storeId": "amazon",
-        "storeName": "Amazon India",
-        "price": 475.0,
-        "originalPrice": 595.0,
-        "inStock": true,
-        "stockStatus": "In Stock",
-        "purchaseUrl": "https://www.amazon.in/s?k=Dot%20%26%20Key%20Watermelon%20Cooling%20Sunscreen%20SPF%2050%2B%20PA%2B%2B%2B%2B",
-        "resolvedUrl": null,
-        "sourceType": "demo",
-        "status": "catalog_baseline",
-        "lastChecked": "26 Nov 2026, 07:09 PM IST"
+        "lastChecked": "26 Nov 2026, 07:23 PM IST"
       },
       "myntra": {
         "storeId": "myntra",
         "storeName": "Myntra",
-        "price": 499.0,
-        "originalPrice": 595.0,
+        "price": 387.0,
+        "originalPrice": 445.0,
         "inStock": true,
         "stockStatus": "In Stock",
-        "purchaseUrl": "https://www.myntra.com/dot-key-watermelon-cooling-sunscreen-spf-50-pa",
-        "resolvedUrl": "https://www.myntra.com/dot-key-watermelon-cooling-sunscreen-spf-50-pa",
-        "sourceType": "demo",
-        "status": "catalog_baseline",
-        "lastChecked": "26 Nov 2026, 07:09 PM IST"
+        "purchaseUrl": "https://www.myntra.com/face-sunscreen/dot+%26+key/dot--keywatermelon-cooling-sunscreen-in-vivo-tested-spf-50-pa-with-hyaluronic--50g/21404558/buy",
+        "resolvedUrl": "https://www.myntra.com/face-sunscreen/dot+%26+key/dot--keywatermelon-cooling-sunscreen-in-vivo-tested-spf-50-pa-with-hyaluronic--50g/21404558/buy",
+        "sourceType": "live",
+        "lastChecked": "26 Nov 2026, 07:23 PM IST",
+        "status": "success"
       }
     },
     "prod-02": {
@@ -160,7 +162,7 @@
           "resolvedUrl": "https://www.nykaa.com/the-derma-co-1percent-hyaluronic-sunscreen-spf-50-aqua-gel-pa-broad-spectrum/p/15901861?productId=15901861&pps=3",
           "sourceType": "demo",
           "status": "catalog_baseline",
-          "lastChecked": "26 Nov 2026, 07:09 PM IST"
+          "lastChecked": "26 Nov 2026, 07:23 PM IST"
         },
         {
           "storeId": "amazon",
@@ -173,7 +175,7 @@
           "resolvedUrl": null,
           "sourceType": "demo",
           "status": "catalog_baseline",
-          "lastChecked": "26 Nov 2026, 07:09 PM IST"
+          "lastChecked": "26 Nov 2026, 07:23 PM IST"
         },
         {
           "storeId": "purplle",
@@ -186,7 +188,7 @@
           "resolvedUrl": null,
           "sourceType": "demo",
           "status": "catalog_baseline",
-          "lastChecked": "26 Nov 2026, 07:09 PM IST"
+          "lastChecked": "26 Nov 2026, 07:23 PM IST"
         }
       ],
       "nykaa": {
@@ -200,7 +202,7 @@
         "resolvedUrl": "https://www.nykaa.com/the-derma-co-1percent-hyaluronic-sunscreen-spf-50-aqua-gel-pa-broad-spectrum/p/15901861?productId=15901861&pps=3",
         "sourceType": "demo",
         "status": "catalog_baseline",
-        "lastChecked": "26 Nov 2026, 07:09 PM IST"
+        "lastChecked": "26 Nov 2026, 07:23 PM IST"
       },
       "amazon": {
         "storeId": "amazon",
@@ -213,7 +215,7 @@
         "resolvedUrl": null,
         "sourceType": "demo",
         "status": "catalog_baseline",
-        "lastChecked": "26 Nov 2026, 07:09 PM IST"
+        "lastChecked": "26 Nov 2026, 07:23 PM IST"
       },
       "purplle": {
         "storeId": "purplle",
@@ -226,7 +228,7 @@
         "resolvedUrl": null,
         "sourceType": "demo",
         "status": "catalog_baseline",
-        "lastChecked": "26 Nov 2026, 07:09 PM IST"
+        "lastChecked": "26 Nov 2026, 07:23 PM IST"
       }
     },
     "prod-03": {
@@ -245,20 +247,7 @@
           "resolvedUrl": "https://www.nykaa.com/minimalist-10percent-niacinamide-face-serum-with-matmarine-zinc-for-reducing-oil-blemishes/p/15022069?productId=15022069&pps=1&skuId=1067995",
           "sourceType": "demo",
           "status": "catalog_baseline",
-          "lastChecked": "26 Nov 2026, 07:09 PM IST"
-        },
-        {
-          "storeId": "tira",
-          "storeName": "Tira",
-          "price": 539.0,
-          "originalPrice": 599.0,
-          "inStock": true,
-          "stockStatus": "In Stock",
-          "purchaseUrl": "https://www.tirabeauty.com/product/minimalist-10-niacinamide-face-serum-reduces-blemishes--oil---30ml-klghrqnheu6u",
-          "resolvedUrl": "https://www.tirabeauty.com/product/minimalist-10-niacinamide-face-serum-reduces-blemishes--oil---30ml-klghrqnheu6u",
-          "sourceType": "live",
-          "lastChecked": "26 Nov 2026, 07:09 PM IST",
-          "status": "success"
+          "lastChecked": "26 Nov 2026, 07:23 PM IST"
         },
         {
           "storeId": "amazon",
@@ -271,7 +260,21 @@
           "resolvedUrl": null,
           "sourceType": "demo",
           "status": "catalog_baseline",
-          "lastChecked": "26 Nov 2026, 07:09 PM IST"
+          "lastChecked": "26 Nov 2026, 07:23 PM IST"
+        },
+        {
+          "storeId": "tira",
+          "storeName": "Tira",
+          "price": 539.0,
+          "originalPrice": 599.0,
+          "inStock": true,
+          "stockStatus": "In Stock",
+          "purchaseUrl": "https://www.tirabeauty.com/product/minimalist-10-niacinamide-face-serum-reduces-blemishes--oil---30ml-klghrqnheu6u",
+          "resolvedUrl": "https://www.tirabeauty.com/product/minimalist-10-niacinamide-face-serum-reduces-blemishes--oil---30ml-klghrqnheu6u",
+          "sourceType": "cached",
+          "lastChecked": "26 Nov 2026, 07:09 PM IST",
+          "status": "preserved_from_previous",
+          "preservedFrom": "26 Nov 2026, 07:09 PM IST"
         }
       ],
       "nykaa": {
@@ -285,20 +288,7 @@
         "resolvedUrl": "https://www.nykaa.com/minimalist-10percent-niacinamide-face-serum-with-matmarine-zinc-for-reducing-oil-blemishes/p/15022069?productId=15022069&pps=1&skuId=1067995",
         "sourceType": "demo",
         "status": "catalog_baseline",
-        "lastChecked": "26 Nov 2026, 07:09 PM IST"
-      },
-      "tira": {
-        "storeId": "tira",
-        "storeName": "Tira",
-        "price": 539.0,
-        "originalPrice": 599.0,
-        "inStock": true,
-        "stockStatus": "In Stock",
-        "purchaseUrl": "https://www.tirabeauty.com/product/minimalist-10-niacinamide-face-serum-reduces-blemishes--oil---30ml-klghrqnheu6u",
-        "resolvedUrl": "https://www.tirabeauty.com/product/minimalist-10-niacinamide-face-serum-reduces-blemishes--oil---30ml-klghrqnheu6u",
-        "sourceType": "live",
-        "lastChecked": "26 Nov 2026, 07:09 PM IST",
-        "status": "success"
+        "lastChecked": "26 Nov 2026, 07:23 PM IST"
       },
       "amazon": {
         "storeId": "amazon",
@@ -311,7 +301,21 @@
         "resolvedUrl": null,
         "sourceType": "demo",
         "status": "catalog_baseline",
-        "lastChecked": "26 Nov 2026, 07:09 PM IST"
+        "lastChecked": "26 Nov 2026, 07:23 PM IST"
+      },
+      "tira": {
+        "storeId": "tira",
+        "storeName": "Tira",
+        "price": 539.0,
+        "originalPrice": 599.0,
+        "inStock": true,
+        "stockStatus": "In Stock",
+        "purchaseUrl": "https://www.tirabeauty.com/product/minimalist-10-niacinamide-face-serum-reduces-blemishes--oil---30ml-klghrqnheu6u",
+        "resolvedUrl": "https://www.tirabeauty.com/product/minimalist-10-niacinamide-face-serum-reduces-blemishes--oil---30ml-klghrqnheu6u",
+        "sourceType": "cached",
+        "lastChecked": "26 Nov 2026, 07:09 PM IST",
+        "status": "preserved_from_previous",
+        "preservedFrom": "26 Nov 2026, 07:09 PM IST"
       }
     },
     "prod-04": {
@@ -330,20 +334,7 @@
           "resolvedUrl": "https://www.nykaa.com/cosrx-advanced-snail-96-mucin-power-essence/p/757628?productId=757628&pps=1",
           "sourceType": "demo",
           "status": "catalog_baseline",
-          "lastChecked": "26 Nov 2026, 07:09 PM IST"
-        },
-        {
-          "storeId": "tira",
-          "storeName": "Tira",
-          "price": 1305.0,
-          "originalPrice": 1450.0,
-          "inStock": true,
-          "stockStatus": "In Stock",
-          "purchaseUrl": "https://www.tirabeauty.com/product/cosrx-advanced-snail-96-mucin-power-essence-100ml-hpvapsmju874",
-          "resolvedUrl": "https://www.tirabeauty.com/product/cosrx-advanced-snail-96-mucin-power-essence-100ml-hpvapsmju874",
-          "sourceType": "live",
-          "lastChecked": "26 Nov 2026, 07:09 PM IST",
-          "status": "success"
+          "lastChecked": "26 Nov 2026, 07:23 PM IST"
         },
         {
           "storeId": "amazon",
@@ -356,7 +347,21 @@
           "resolvedUrl": null,
           "sourceType": "demo",
           "status": "catalog_baseline",
-          "lastChecked": "26 Nov 2026, 07:09 PM IST"
+          "lastChecked": "26 Nov 2026, 07:23 PM IST"
+        },
+        {
+          "storeId": "tira",
+          "storeName": "Tira",
+          "price": 1305.0,
+          "originalPrice": 1450.0,
+          "inStock": true,
+          "stockStatus": "In Stock",
+          "purchaseUrl": "https://www.tirabeauty.com/product/cosrx-advanced-snail-96-mucin-power-essence-100ml-hpvapsmju874",
+          "resolvedUrl": "https://www.tirabeauty.com/product/cosrx-advanced-snail-96-mucin-power-essence-100ml-hpvapsmju874",
+          "sourceType": "cached",
+          "lastChecked": "26 Nov 2026, 07:09 PM IST",
+          "status": "preserved_from_previous",
+          "preservedFrom": "26 Nov 2026, 07:09 PM IST"
         }
       ],
       "nykaa": {
@@ -370,20 +375,7 @@
         "resolvedUrl": "https://www.nykaa.com/cosrx-advanced-snail-96-mucin-power-essence/p/757628?productId=757628&pps=1",
         "sourceType": "demo",
         "status": "catalog_baseline",
-        "lastChecked": "26 Nov 2026, 07:09 PM IST"
-      },
-      "tira": {
-        "storeId": "tira",
-        "storeName": "Tira",
-        "price": 1305.0,
-        "originalPrice": 1450.0,
-        "inStock": true,
-        "stockStatus": "In Stock",
-        "purchaseUrl": "https://www.tirabeauty.com/product/cosrx-advanced-snail-96-mucin-power-essence-100ml-hpvapsmju874",
-        "resolvedUrl": "https://www.tirabeauty.com/product/cosrx-advanced-snail-96-mucin-power-essence-100ml-hpvapsmju874",
-        "sourceType": "live",
-        "lastChecked": "26 Nov 2026, 07:09 PM IST",
-        "status": "success"
+        "lastChecked": "26 Nov 2026, 07:23 PM IST"
       },
       "amazon": {
         "storeId": "amazon",
@@ -396,7 +388,21 @@
         "resolvedUrl": null,
         "sourceType": "demo",
         "status": "catalog_baseline",
-        "lastChecked": "26 Nov 2026, 07:09 PM IST"
+        "lastChecked": "26 Nov 2026, 07:23 PM IST"
+      },
+      "tira": {
+        "storeId": "tira",
+        "storeName": "Tira",
+        "price": 1305.0,
+        "originalPrice": 1450.0,
+        "inStock": true,
+        "stockStatus": "In Stock",
+        "purchaseUrl": "https://www.tirabeauty.com/product/cosrx-advanced-snail-96-mucin-power-essence-100ml-hpvapsmju874",
+        "resolvedUrl": "https://www.tirabeauty.com/product/cosrx-advanced-snail-96-mucin-power-essence-100ml-hpvapsmju874",
+        "sourceType": "cached",
+        "lastChecked": "26 Nov 2026, 07:09 PM IST",
+        "status": "preserved_from_previous",
+        "preservedFrom": "26 Nov 2026, 07:09 PM IST"
       }
     },
     "prod-05": {
@@ -404,19 +410,6 @@
       "productName": "Kumkumadi Miraculous Beauty Ayurvedic Night Serum",
       "brand": "Kama Ayurveda",
       "offers": [
-        {
-          "storeId": "tira",
-          "storeName": "Tira",
-          "price": 4075.0,
-          "originalPrice": 4795.0,
-          "inStock": true,
-          "stockStatus": "In Stock",
-          "purchaseUrl": "https://www.tirabeauty.com/product/kama-ayurveda-kumkumadi-youth-illuminating-silky-serum-30-ml-7617308",
-          "resolvedUrl": "https://www.tirabeauty.com/product/kama-ayurveda-kumkumadi-youth-illuminating-silky-serum-30-ml-7617308",
-          "sourceType": "live",
-          "lastChecked": "26 Nov 2026, 07:09 PM IST",
-          "status": "success"
-        },
         {
           "storeId": "nykaa",
           "storeName": "Nykaa",
@@ -428,22 +421,23 @@
           "resolvedUrl": "https://www.nykaa.com/kama-ayurveda-kumkumadi-miraculous-beauty-fluid-ayurvedic-night-serum/p/1262946?productId=1262946&pps=1",
           "sourceType": "demo",
           "status": "catalog_baseline",
-          "lastChecked": "26 Nov 2026, 07:09 PM IST"
+          "lastChecked": "26 Nov 2026, 07:23 PM IST"
+        },
+        {
+          "storeId": "tira",
+          "storeName": "Tira",
+          "price": 4075.0,
+          "originalPrice": 4795.0,
+          "inStock": true,
+          "stockStatus": "In Stock",
+          "purchaseUrl": "https://www.tirabeauty.com/product/kama-ayurveda-kumkumadi-youth-illuminating-silky-serum-30-ml-7617308",
+          "resolvedUrl": "https://www.tirabeauty.com/product/kama-ayurveda-kumkumadi-youth-illuminating-silky-serum-30-ml-7617308",
+          "sourceType": "cached",
+          "lastChecked": "26 Nov 2026, 07:09 PM IST",
+          "status": "preserved_from_previous",
+          "preservedFrom": "26 Nov 2026, 07:09 PM IST"
         }
       ],
-      "tira": {
-        "storeId": "tira",
-        "storeName": "Tira",
-        "price": 4075.0,
-        "originalPrice": 4795.0,
-        "inStock": true,
-        "stockStatus": "In Stock",
-        "purchaseUrl": "https://www.tirabeauty.com/product/kama-ayurveda-kumkumadi-youth-illuminating-silky-serum-30-ml-7617308",
-        "resolvedUrl": "https://www.tirabeauty.com/product/kama-ayurveda-kumkumadi-youth-illuminating-silky-serum-30-ml-7617308",
-        "sourceType": "live",
-        "lastChecked": "26 Nov 2026, 07:09 PM IST",
-        "status": "success"
-      },
       "nykaa": {
         "storeId": "nykaa",
         "storeName": "Nykaa",
@@ -455,7 +449,21 @@
         "resolvedUrl": "https://www.nykaa.com/kama-ayurveda-kumkumadi-miraculous-beauty-fluid-ayurvedic-night-serum/p/1262946?productId=1262946&pps=1",
         "sourceType": "demo",
         "status": "catalog_baseline",
-        "lastChecked": "26 Nov 2026, 07:09 PM IST"
+        "lastChecked": "26 Nov 2026, 07:23 PM IST"
+      },
+      "tira": {
+        "storeId": "tira",
+        "storeName": "Tira",
+        "price": 4075.0,
+        "originalPrice": 4795.0,
+        "inStock": true,
+        "stockStatus": "In Stock",
+        "purchaseUrl": "https://www.tirabeauty.com/product/kama-ayurveda-kumkumadi-youth-illuminating-silky-serum-30-ml-7617308",
+        "resolvedUrl": "https://www.tirabeauty.com/product/kama-ayurveda-kumkumadi-youth-illuminating-silky-serum-30-ml-7617308",
+        "sourceType": "cached",
+        "lastChecked": "26 Nov 2026, 07:09 PM IST",
+        "status": "preserved_from_previous",
+        "preservedFrom": "26 Nov 2026, 07:09 PM IST"
       }
     },
     "prod-06": {
@@ -463,19 +471,6 @@
       "productName": "Barrier Repair Ceramides & Hyaluronic Moisturizer",
       "brand": "Dot & Key",
       "offers": [
-        {
-          "storeId": "nykaa",
-          "storeName": "Nykaa",
-          "price": 385.0,
-          "originalPrice": 495.0,
-          "inStock": true,
-          "stockStatus": "In Stock",
-          "purchaseUrl": "https://www.nykaa.com/dot-key-ceramides-hyaluronic-barrier-repair-moisturizer/p/15692441?productId=15692441&skuId=7355208&pps=1",
-          "resolvedUrl": "https://www.nykaa.com/dot-key-ceramides-hyaluronic-barrier-repair-moisturizer/p/15692441?productId=15692441&skuId=7355208&pps=1",
-          "sourceType": "demo",
-          "status": "catalog_baseline",
-          "lastChecked": "26 Nov 2026, 07:09 PM IST"
-        },
         {
           "storeId": "purplle",
           "storeName": "Purplle",
@@ -487,7 +482,20 @@
           "resolvedUrl": null,
           "sourceType": "demo",
           "status": "catalog_baseline",
-          "lastChecked": "26 Nov 2026, 07:09 PM IST"
+          "lastChecked": "26 Nov 2026, 07:23 PM IST"
+        },
+        {
+          "storeId": "nykaa",
+          "storeName": "Nykaa",
+          "price": 385.0,
+          "originalPrice": 495.0,
+          "inStock": true,
+          "stockStatus": "In Stock",
+          "purchaseUrl": "https://www.nykaa.com/dot-key-ceramides-hyaluronic-barrier-repair-moisturizer/p/15692441?productId=15692441&skuId=7355208&pps=1",
+          "resolvedUrl": "https://www.nykaa.com/dot-key-ceramides-hyaluronic-barrier-repair-moisturizer/p/15692441?productId=15692441&skuId=7355208&pps=1",
+          "sourceType": "demo",
+          "status": "catalog_baseline",
+          "lastChecked": "26 Nov 2026, 07:23 PM IST"
         },
         {
           "storeId": "amazon",
@@ -500,22 +508,9 @@
           "resolvedUrl": null,
           "sourceType": "demo",
           "status": "catalog_baseline",
-          "lastChecked": "26 Nov 2026, 07:09 PM IST"
+          "lastChecked": "26 Nov 2026, 07:23 PM IST"
         }
       ],
-      "nykaa": {
-        "storeId": "nykaa",
-        "storeName": "Nykaa",
-        "price": 385.0,
-        "originalPrice": 495.0,
-        "inStock": true,
-        "stockStatus": "In Stock",
-        "purchaseUrl": "https://www.nykaa.com/dot-key-ceramides-hyaluronic-barrier-repair-moisturizer/p/15692441?productId=15692441&skuId=7355208&pps=1",
-        "resolvedUrl": "https://www.nykaa.com/dot-key-ceramides-hyaluronic-barrier-repair-moisturizer/p/15692441?productId=15692441&skuId=7355208&pps=1",
-        "sourceType": "demo",
-        "status": "catalog_baseline",
-        "lastChecked": "26 Nov 2026, 07:09 PM IST"
-      },
       "purplle": {
         "storeId": "purplle",
         "storeName": "Purplle",
@@ -527,7 +522,20 @@
         "resolvedUrl": null,
         "sourceType": "demo",
         "status": "catalog_baseline",
-        "lastChecked": "26 Nov 2026, 07:09 PM IST"
+        "lastChecked": "26 Nov 2026, 07:23 PM IST"
+      },
+      "nykaa": {
+        "storeId": "nykaa",
+        "storeName": "Nykaa",
+        "price": 385.0,
+        "originalPrice": 495.0,
+        "inStock": true,
+        "stockStatus": "In Stock",
+        "purchaseUrl": "https://www.nykaa.com/dot-key-ceramides-hyaluronic-barrier-repair-moisturizer/p/15692441?productId=15692441&skuId=7355208&pps=1",
+        "resolvedUrl": "https://www.nykaa.com/dot-key-ceramides-hyaluronic-barrier-repair-moisturizer/p/15692441?productId=15692441&skuId=7355208&pps=1",
+        "sourceType": "demo",
+        "status": "catalog_baseline",
+        "lastChecked": "26 Nov 2026, 07:23 PM IST"
       },
       "amazon": {
         "storeId": "amazon",
@@ -540,7 +548,7 @@
         "resolvedUrl": null,
         "sourceType": "demo",
         "status": "catalog_baseline",
-        "lastChecked": "26 Nov 2026, 07:09 PM IST"
+        "lastChecked": "26 Nov 2026, 07:23 PM IST"
       }
     },
     "prod-07": {
@@ -548,19 +556,6 @@
       "productName": "Soundarya Radiance Cream with 24K Gold & SPF 25",
       "brand": "Forest Essentials",
       "offers": [
-        {
-          "storeId": "tira",
-          "storeName": "Tira",
-          "price": 2475.0,
-          "originalPrice": 2475.0,
-          "inStock": true,
-          "stockStatus": "In Stock",
-          "purchaseUrl": "https://www.tirabeauty.com/product/forest-essentials-soundarya-radiance-cream-with-24k-gold-spf-25-15g-1prbagomez",
-          "resolvedUrl": "https://www.tirabeauty.com/product/forest-essentials-soundarya-radiance-cream-with-24k-gold-spf-25-15g-1prbagomez",
-          "sourceType": "live",
-          "lastChecked": "26 Nov 2026, 07:09 PM IST",
-          "status": "success"
-        },
         {
           "storeId": "nykaa",
           "storeName": "Nykaa",
@@ -572,22 +567,23 @@
           "resolvedUrl": "https://www.nykaa.com/forest-essentials-soundarya-radiance-cream-with-24k-gold-and-spf25-config/p/255105?productId=255105&skuId=34182&pps=1",
           "sourceType": "demo",
           "status": "catalog_baseline",
-          "lastChecked": "26 Nov 2026, 07:09 PM IST"
+          "lastChecked": "26 Nov 2026, 07:23 PM IST"
+        },
+        {
+          "storeId": "tira",
+          "storeName": "Tira",
+          "price": 2475.0,
+          "originalPrice": 2475.0,
+          "inStock": true,
+          "stockStatus": "In Stock",
+          "purchaseUrl": "https://www.tirabeauty.com/product/forest-essentials-soundarya-radiance-cream-with-24k-gold-spf-25-15g-1prbagomez",
+          "resolvedUrl": "https://www.tirabeauty.com/product/forest-essentials-soundarya-radiance-cream-with-24k-gold-spf-25-15g-1prbagomez",
+          "sourceType": "cached",
+          "lastChecked": "26 Nov 2026, 07:09 PM IST",
+          "status": "preserved_from_previous",
+          "preservedFrom": "26 Nov 2026, 07:09 PM IST"
         }
       ],
-      "tira": {
-        "storeId": "tira",
-        "storeName": "Tira",
-        "price": 2475.0,
-        "originalPrice": 2475.0,
-        "inStock": true,
-        "stockStatus": "In Stock",
-        "purchaseUrl": "https://www.tirabeauty.com/product/forest-essentials-soundarya-radiance-cream-with-24k-gold-spf-25-15g-1prbagomez",
-        "resolvedUrl": "https://www.tirabeauty.com/product/forest-essentials-soundarya-radiance-cream-with-24k-gold-spf-25-15g-1prbagomez",
-        "sourceType": "live",
-        "lastChecked": "26 Nov 2026, 07:09 PM IST",
-        "status": "success"
-      },
       "nykaa": {
         "storeId": "nykaa",
         "storeName": "Nykaa",
@@ -599,7 +595,21 @@
         "resolvedUrl": "https://www.nykaa.com/forest-essentials-soundarya-radiance-cream-with-24k-gold-and-spf25-config/p/255105?productId=255105&skuId=34182&pps=1",
         "sourceType": "demo",
         "status": "catalog_baseline",
-        "lastChecked": "26 Nov 2026, 07:09 PM IST"
+        "lastChecked": "26 Nov 2026, 07:23 PM IST"
+      },
+      "tira": {
+        "storeId": "tira",
+        "storeName": "Tira",
+        "price": 2475.0,
+        "originalPrice": 2475.0,
+        "inStock": true,
+        "stockStatus": "In Stock",
+        "purchaseUrl": "https://www.tirabeauty.com/product/forest-essentials-soundarya-radiance-cream-with-24k-gold-spf-25-15g-1prbagomez",
+        "resolvedUrl": "https://www.tirabeauty.com/product/forest-essentials-soundarya-radiance-cream-with-24k-gold-spf-25-15g-1prbagomez",
+        "sourceType": "cached",
+        "lastChecked": "26 Nov 2026, 07:09 PM IST",
+        "status": "preserved_from_previous",
+        "preservedFrom": "26 Nov 2026, 07:09 PM IST"
       }
     },
     "prod-08": {
@@ -618,7 +628,7 @@
           "resolvedUrl": "https://www.nykaa.com/clinique-moisture-surge-100h-auto-replenishing-hydrator/p/1129289?productId=1129289&pps=1&skuId=1129287",
           "sourceType": "demo",
           "status": "catalog_baseline",
-          "lastChecked": "26 Nov 2026, 07:09 PM IST"
+          "lastChecked": "26 Nov 2026, 07:23 PM IST"
         },
         {
           "storeId": "tira",
@@ -629,22 +639,23 @@
           "stockStatus": "In Stock",
           "purchaseUrl": "https://www.tirabeauty.com/product/clinique-moisture-surge-100h-auto-replenishing-hydrator-30ml-xd-94qhanji",
           "resolvedUrl": "https://www.tirabeauty.com/product/clinique-moisture-surge-100h-auto-replenishing-hydrator-30ml-xd-94qhanji",
-          "sourceType": "live",
+          "sourceType": "cached",
           "lastChecked": "26 Nov 2026, 07:09 PM IST",
-          "status": "success"
+          "status": "preserved_from_previous",
+          "preservedFrom": "26 Nov 2026, 07:09 PM IST"
         },
         {
           "storeId": "myntra",
           "storeName": "Myntra",
-          "price": 3100.0,
-          "originalPrice": 3200.0,
+          "price": 4950.0,
+          "originalPrice": 4950.0,
           "inStock": true,
           "stockStatus": "In Stock",
-          "purchaseUrl": "https://www.myntra.com/clinique-moisture-surge-100h-auto-replenishing-hydrator",
-          "resolvedUrl": "https://www.myntra.com/clinique-moisture-surge-100h-auto-replenishing-hydrator",
-          "sourceType": "demo",
-          "status": "catalog_baseline",
-          "lastChecked": "26 Nov 2026, 07:09 PM IST"
+          "purchaseUrl": "https://www.myntra.com/day-cream/clinique/clinique-moisture-surge-100h-auto-replenishing-hydrator-moisturiser---75-ml/13378340/buy",
+          "resolvedUrl": "https://www.myntra.com/day-cream/clinique/clinique-moisture-surge-100h-auto-replenishing-hydrator-moisturiser---75-ml/13378340/buy",
+          "sourceType": "live",
+          "lastChecked": "26 Nov 2026, 07:23 PM IST",
+          "status": "success"
         }
       ],
       "nykaa": {
@@ -658,7 +669,7 @@
         "resolvedUrl": "https://www.nykaa.com/clinique-moisture-surge-100h-auto-replenishing-hydrator/p/1129289?productId=1129289&pps=1&skuId=1129287",
         "sourceType": "demo",
         "status": "catalog_baseline",
-        "lastChecked": "26 Nov 2026, 07:09 PM IST"
+        "lastChecked": "26 Nov 2026, 07:23 PM IST"
       },
       "tira": {
         "storeId": "tira",
@@ -669,22 +680,23 @@
         "stockStatus": "In Stock",
         "purchaseUrl": "https://www.tirabeauty.com/product/clinique-moisture-surge-100h-auto-replenishing-hydrator-30ml-xd-94qhanji",
         "resolvedUrl": "https://www.tirabeauty.com/product/clinique-moisture-surge-100h-auto-replenishing-hydrator-30ml-xd-94qhanji",
-        "sourceType": "live",
+        "sourceType": "cached",
         "lastChecked": "26 Nov 2026, 07:09 PM IST",
-        "status": "success"
+        "status": "preserved_from_previous",
+        "preservedFrom": "26 Nov 2026, 07:09 PM IST"
       },
       "myntra": {
         "storeId": "myntra",
         "storeName": "Myntra",
-        "price": 3100.0,
-        "originalPrice": 3200.0,
+        "price": 4950.0,
+        "originalPrice": 4950.0,
         "inStock": true,
         "stockStatus": "In Stock",
-        "purchaseUrl": "https://www.myntra.com/clinique-moisture-surge-100h-auto-replenishing-hydrator",
-        "resolvedUrl": "https://www.myntra.com/clinique-moisture-surge-100h-auto-replenishing-hydrator",
-        "sourceType": "demo",
-        "status": "catalog_baseline",
-        "lastChecked": "26 Nov 2026, 07:09 PM IST"
+        "purchaseUrl": "https://www.myntra.com/day-cream/clinique/clinique-moisture-surge-100h-auto-replenishing-hydrator-moisturiser---75-ml/13378340/buy",
+        "resolvedUrl": "https://www.myntra.com/day-cream/clinique/clinique-moisture-surge-100h-auto-replenishing-hydrator-moisturiser---75-ml/13378340/buy",
+        "sourceType": "live",
+        "lastChecked": "26 Nov 2026, 07:23 PM IST",
+        "status": "success"
       }
     },
     "prod-09": {
@@ -703,7 +715,7 @@
           "resolvedUrl": "https://www.nykaa.com/cetaphil-cleansing-lotion/p/22032?productId=22032&pps=1",
           "sourceType": "demo",
           "status": "catalog_baseline",
-          "lastChecked": "26 Nov 2026, 07:09 PM IST"
+          "lastChecked": "26 Nov 2026, 07:23 PM IST"
         },
         {
           "storeId": "amazon",
@@ -716,7 +728,7 @@
           "resolvedUrl": null,
           "sourceType": "demo",
           "status": "catalog_baseline",
-          "lastChecked": "26 Nov 2026, 07:09 PM IST"
+          "lastChecked": "26 Nov 2026, 07:23 PM IST"
         },
         {
           "storeId": "purplle",
@@ -729,7 +741,7 @@
           "resolvedUrl": null,
           "sourceType": "demo",
           "status": "catalog_baseline",
-          "lastChecked": "26 Nov 2026, 07:09 PM IST"
+          "lastChecked": "26 Nov 2026, 07:23 PM IST"
         }
       ],
       "nykaa": {
@@ -743,7 +755,7 @@
         "resolvedUrl": "https://www.nykaa.com/cetaphil-cleansing-lotion/p/22032?productId=22032&pps=1",
         "sourceType": "demo",
         "status": "catalog_baseline",
-        "lastChecked": "26 Nov 2026, 07:09 PM IST"
+        "lastChecked": "26 Nov 2026, 07:23 PM IST"
       },
       "amazon": {
         "storeId": "amazon",
@@ -756,7 +768,7 @@
         "resolvedUrl": null,
         "sourceType": "demo",
         "status": "catalog_baseline",
-        "lastChecked": "26 Nov 2026, 07:09 PM IST"
+        "lastChecked": "26 Nov 2026, 07:23 PM IST"
       },
       "purplle": {
         "storeId": "purplle",
@@ -769,7 +781,7 @@
         "resolvedUrl": null,
         "sourceType": "demo",
         "status": "catalog_baseline",
-        "lastChecked": "26 Nov 2026, 07:09 PM IST"
+        "lastChecked": "26 Nov 2026, 07:23 PM IST"
       }
     },
     "prod-10": {
@@ -777,19 +789,6 @@
       "productName": "Clear Face Cleansing Foam with pH 5.5",
       "brand": "Sebamed",
       "offers": [
-        {
-          "storeId": "amazon",
-          "storeName": "Amazon India",
-          "price": 580.0,
-          "originalPrice": 650.0,
-          "inStock": true,
-          "stockStatus": "In Stock",
-          "purchaseUrl": "https://www.amazon.in/s?k=Sebamed%20Clear%20Face%20Cleansing%20Foam%20with%20pH%205.5",
-          "resolvedUrl": null,
-          "sourceType": "demo",
-          "status": "catalog_baseline",
-          "lastChecked": "26 Nov 2026, 07:09 PM IST"
-        },
         {
           "storeId": "nykaa",
           "storeName": "Nykaa",
@@ -801,22 +800,22 @@
           "resolvedUrl": "https://www.nykaa.com/sebamed-clear-face-cleansing-foam/p/4725?productId=4725&pps=1",
           "sourceType": "demo",
           "status": "catalog_baseline",
-          "lastChecked": "26 Nov 2026, 07:09 PM IST"
+          "lastChecked": "26 Nov 2026, 07:23 PM IST"
+        },
+        {
+          "storeId": "amazon",
+          "storeName": "Amazon India",
+          "price": 580.0,
+          "originalPrice": 650.0,
+          "inStock": true,
+          "stockStatus": "In Stock",
+          "purchaseUrl": "https://www.amazon.in/s?k=Sebamed%20Clear%20Face%20Cleansing%20Foam%20with%20pH%205.5",
+          "resolvedUrl": null,
+          "sourceType": "demo",
+          "status": "catalog_baseline",
+          "lastChecked": "26 Nov 2026, 07:23 PM IST"
         }
       ],
-      "amazon": {
-        "storeId": "amazon",
-        "storeName": "Amazon India",
-        "price": 580.0,
-        "originalPrice": 650.0,
-        "inStock": true,
-        "stockStatus": "In Stock",
-        "purchaseUrl": "https://www.amazon.in/s?k=Sebamed%20Clear%20Face%20Cleansing%20Foam%20with%20pH%205.5",
-        "resolvedUrl": null,
-        "sourceType": "demo",
-        "status": "catalog_baseline",
-        "lastChecked": "26 Nov 2026, 07:09 PM IST"
-      },
       "nykaa": {
         "storeId": "nykaa",
         "storeName": "Nykaa",
@@ -828,7 +827,20 @@
         "resolvedUrl": "https://www.nykaa.com/sebamed-clear-face-cleansing-foam/p/4725?productId=4725&pps=1",
         "sourceType": "demo",
         "status": "catalog_baseline",
-        "lastChecked": "26 Nov 2026, 07:09 PM IST"
+        "lastChecked": "26 Nov 2026, 07:23 PM IST"
+      },
+      "amazon": {
+        "storeId": "amazon",
+        "storeName": "Amazon India",
+        "price": 580.0,
+        "originalPrice": 650.0,
+        "inStock": true,
+        "stockStatus": "In Stock",
+        "purchaseUrl": "https://www.amazon.in/s?k=Sebamed%20Clear%20Face%20Cleansing%20Foam%20with%20pH%205.5",
+        "resolvedUrl": null,
+        "sourceType": "demo",
+        "status": "catalog_baseline",
+        "lastChecked": "26 Nov 2026, 07:23 PM IST"
       }
     },
     "prod-11": {
@@ -847,7 +859,7 @@
           "resolvedUrl": "https://www.nykaa.com/plum-green-tea-toner-with-glycolic-acid-tightens-pores-fights-pimples-controls-oil-alcohol-free/p/17848586?productId=17848586&pps=1&skuId=23990",
           "sourceType": "demo",
           "status": "catalog_baseline",
-          "lastChecked": "26 Nov 2026, 07:09 PM IST"
+          "lastChecked": "26 Nov 2026, 07:23 PM IST"
         },
         {
           "storeId": "purplle",
@@ -860,7 +872,7 @@
           "resolvedUrl": null,
           "sourceType": "demo",
           "status": "catalog_baseline",
-          "lastChecked": "26 Nov 2026, 07:09 PM IST"
+          "lastChecked": "26 Nov 2026, 07:23 PM IST"
         },
         {
           "storeId": "amazon",
@@ -873,7 +885,7 @@
           "resolvedUrl": null,
           "sourceType": "demo",
           "status": "catalog_baseline",
-          "lastChecked": "26 Nov 2026, 07:09 PM IST"
+          "lastChecked": "26 Nov 2026, 07:23 PM IST"
         }
       ],
       "nykaa": {
@@ -887,7 +899,7 @@
         "resolvedUrl": "https://www.nykaa.com/plum-green-tea-toner-with-glycolic-acid-tightens-pores-fights-pimples-controls-oil-alcohol-free/p/17848586?productId=17848586&pps=1&skuId=23990",
         "sourceType": "demo",
         "status": "catalog_baseline",
-        "lastChecked": "26 Nov 2026, 07:09 PM IST"
+        "lastChecked": "26 Nov 2026, 07:23 PM IST"
       },
       "purplle": {
         "storeId": "purplle",
@@ -900,7 +912,7 @@
         "resolvedUrl": null,
         "sourceType": "demo",
         "status": "catalog_baseline",
-        "lastChecked": "26 Nov 2026, 07:09 PM IST"
+        "lastChecked": "26 Nov 2026, 07:23 PM IST"
       },
       "amazon": {
         "storeId": "amazon",
@@ -913,7 +925,7 @@
         "resolvedUrl": null,
         "sourceType": "demo",
         "status": "catalog_baseline",
-        "lastChecked": "26 Nov 2026, 07:09 PM IST"
+        "lastChecked": "26 Nov 2026, 07:23 PM IST"
       }
     },
     "prod-12": {
@@ -932,7 +944,7 @@
           "resolvedUrl": "https://www.nykaa.com/laneige-lip-sleeping-mask-berry/p/15227410?productId=15227410&pps=1",
           "sourceType": "demo",
           "status": "catalog_baseline",
-          "lastChecked": "26 Nov 2026, 07:09 PM IST"
+          "lastChecked": "26 Nov 2026, 07:23 PM IST"
         },
         {
           "storeId": "tira",
@@ -943,9 +955,10 @@
           "stockStatus": "In Stock",
           "purchaseUrl": "https://www.tirabeauty.com/product/laneige-lip-sleeping-mask-berry-8-g-7600093",
           "resolvedUrl": "https://www.tirabeauty.com/product/laneige-lip-sleeping-mask-berry-8-g-7600093",
-          "sourceType": "live",
+          "sourceType": "cached",
           "lastChecked": "26 Nov 2026, 07:09 PM IST",
-          "status": "success"
+          "status": "preserved_from_previous",
+          "preservedFrom": "26 Nov 2026, 07:09 PM IST"
         }
       ],
       "nykaa": {
@@ -959,7 +972,7 @@
         "resolvedUrl": "https://www.nykaa.com/laneige-lip-sleeping-mask-berry/p/15227410?productId=15227410&pps=1",
         "sourceType": "demo",
         "status": "catalog_baseline",
-        "lastChecked": "26 Nov 2026, 07:09 PM IST"
+        "lastChecked": "26 Nov 2026, 07:23 PM IST"
       },
       "tira": {
         "storeId": "tira",
@@ -970,9 +983,10 @@
         "stockStatus": "In Stock",
         "purchaseUrl": "https://www.tirabeauty.com/product/laneige-lip-sleeping-mask-berry-8-g-7600093",
         "resolvedUrl": "https://www.tirabeauty.com/product/laneige-lip-sleeping-mask-berry-8-g-7600093",
-        "sourceType": "live",
+        "sourceType": "cached",
         "lastChecked": "26 Nov 2026, 07:09 PM IST",
-        "status": "success"
+        "status": "preserved_from_previous",
+        "preservedFrom": "26 Nov 2026, 07:09 PM IST"
       }
     },
     "prod-13": {
@@ -980,19 +994,6 @@
       "productName": "Fit Me Matte + Poreless Liquid Foundation",
       "brand": "Maybelline New York",
       "offers": [
-        {
-          "storeId": "nykaa",
-          "storeName": "Nykaa",
-          "price": 549.0,
-          "originalPrice": 699.0,
-          "inStock": true,
-          "stockStatus": "In Stock",
-          "purchaseUrl": "https://www.nykaa.com/maybelline-new-york-fit-me-matte-poreless-foundation/p/31074?productId=31074&pps=2&skuId=520720",
-          "resolvedUrl": "https://www.nykaa.com/maybelline-new-york-fit-me-matte-poreless-foundation/p/31074?productId=31074&pps=2&skuId=520720",
-          "sourceType": "demo",
-          "status": "catalog_baseline",
-          "lastChecked": "26 Nov 2026, 07:09 PM IST"
-        },
         {
           "storeId": "amazon",
           "storeName": "Amazon India",
@@ -1004,20 +1005,20 @@
           "resolvedUrl": null,
           "sourceType": "demo",
           "status": "catalog_baseline",
-          "lastChecked": "26 Nov 2026, 07:09 PM IST"
+          "lastChecked": "26 Nov 2026, 07:23 PM IST"
         },
         {
-          "storeId": "myntra",
-          "storeName": "Myntra",
-          "price": 579.0,
+          "storeId": "nykaa",
+          "storeName": "Nykaa",
+          "price": 549.0,
           "originalPrice": 699.0,
           "inStock": true,
           "stockStatus": "In Stock",
-          "purchaseUrl": "https://www.myntra.com/maybelline-new-york-fit-me-matte-poreless-liquid-foundation",
-          "resolvedUrl": "https://www.myntra.com/maybelline-new-york-fit-me-matte-poreless-liquid-foundation",
+          "purchaseUrl": "https://www.nykaa.com/maybelline-new-york-fit-me-matte-poreless-foundation/p/31074?productId=31074&pps=2&skuId=520720",
+          "resolvedUrl": "https://www.nykaa.com/maybelline-new-york-fit-me-matte-poreless-foundation/p/31074?productId=31074&pps=2&skuId=520720",
           "sourceType": "demo",
           "status": "catalog_baseline",
-          "lastChecked": "26 Nov 2026, 07:09 PM IST"
+          "lastChecked": "26 Nov 2026, 07:23 PM IST"
         },
         {
           "storeId": "purplle",
@@ -1030,22 +1031,22 @@
           "resolvedUrl": null,
           "sourceType": "demo",
           "status": "catalog_baseline",
-          "lastChecked": "26 Nov 2026, 07:09 PM IST"
+          "lastChecked": "26 Nov 2026, 07:23 PM IST"
+        },
+        {
+          "storeId": "myntra",
+          "storeName": "Myntra",
+          "price": 187.0,
+          "originalPrice": 329.0,
+          "inStock": true,
+          "stockStatus": "In Stock",
+          "purchaseUrl": "https://www.myntra.com/foundation/maybelline/maybelline-new-york-fit-me-matteporeless-liquid-foundation-18-ml---sun-beige-310/8119809/buy",
+          "resolvedUrl": "https://www.myntra.com/foundation/maybelline/maybelline-new-york-fit-me-matteporeless-liquid-foundation-18-ml---sun-beige-310/8119809/buy",
+          "sourceType": "live",
+          "lastChecked": "26 Nov 2026, 07:23 PM IST",
+          "status": "success"
         }
       ],
-      "nykaa": {
-        "storeId": "nykaa",
-        "storeName": "Nykaa",
-        "price": 549.0,
-        "originalPrice": 699.0,
-        "inStock": true,
-        "stockStatus": "In Stock",
-        "purchaseUrl": "https://www.nykaa.com/maybelline-new-york-fit-me-matte-poreless-foundation/p/31074?productId=31074&pps=2&skuId=520720",
-        "resolvedUrl": "https://www.nykaa.com/maybelline-new-york-fit-me-matte-poreless-foundation/p/31074?productId=31074&pps=2&skuId=520720",
-        "sourceType": "demo",
-        "status": "catalog_baseline",
-        "lastChecked": "26 Nov 2026, 07:09 PM IST"
-      },
       "amazon": {
         "storeId": "amazon",
         "storeName": "Amazon India",
@@ -1057,20 +1058,20 @@
         "resolvedUrl": null,
         "sourceType": "demo",
         "status": "catalog_baseline",
-        "lastChecked": "26 Nov 2026, 07:09 PM IST"
+        "lastChecked": "26 Nov 2026, 07:23 PM IST"
       },
-      "myntra": {
-        "storeId": "myntra",
-        "storeName": "Myntra",
-        "price": 579.0,
+      "nykaa": {
+        "storeId": "nykaa",
+        "storeName": "Nykaa",
+        "price": 549.0,
         "originalPrice": 699.0,
         "inStock": true,
         "stockStatus": "In Stock",
-        "purchaseUrl": "https://www.myntra.com/maybelline-new-york-fit-me-matte-poreless-liquid-foundation",
-        "resolvedUrl": "https://www.myntra.com/maybelline-new-york-fit-me-matte-poreless-liquid-foundation",
+        "purchaseUrl": "https://www.nykaa.com/maybelline-new-york-fit-me-matte-poreless-foundation/p/31074?productId=31074&pps=2&skuId=520720",
+        "resolvedUrl": "https://www.nykaa.com/maybelline-new-york-fit-me-matte-poreless-foundation/p/31074?productId=31074&pps=2&skuId=520720",
         "sourceType": "demo",
         "status": "catalog_baseline",
-        "lastChecked": "26 Nov 2026, 07:09 PM IST"
+        "lastChecked": "26 Nov 2026, 07:23 PM IST"
       },
       "purplle": {
         "storeId": "purplle",
@@ -1083,7 +1084,20 @@
         "resolvedUrl": null,
         "sourceType": "demo",
         "status": "catalog_baseline",
-        "lastChecked": "26 Nov 2026, 07:09 PM IST"
+        "lastChecked": "26 Nov 2026, 07:23 PM IST"
+      },
+      "myntra": {
+        "storeId": "myntra",
+        "storeName": "Myntra",
+        "price": 187.0,
+        "originalPrice": 329.0,
+        "inStock": true,
+        "stockStatus": "In Stock",
+        "purchaseUrl": "https://www.myntra.com/foundation/maybelline/maybelline-new-york-fit-me-matteporeless-liquid-foundation-18-ml---sun-beige-310/8119809/buy",
+        "resolvedUrl": "https://www.myntra.com/foundation/maybelline/maybelline-new-york-fit-me-matteporeless-liquid-foundation-18-ml---sun-beige-310/8119809/buy",
+        "sourceType": "live",
+        "lastChecked": "26 Nov 2026, 07:23 PM IST",
+        "status": "success"
       }
     },
     "prod-14": {
@@ -1100,9 +1114,10 @@
           "stockStatus": "In Stock",
           "purchaseUrl": "https://www.tirabeauty.com/product/m-a-c-studio-fix-fluid-spf-15-foundation-nc20-30-ml-7593398",
           "resolvedUrl": "https://www.tirabeauty.com/product/m-a-c-studio-fix-fluid-spf-15-foundation-nc20-30-ml-7593398",
-          "sourceType": "live",
+          "sourceType": "cached",
           "lastChecked": "26 Nov 2026, 07:09 PM IST",
-          "status": "success"
+          "status": "preserved_from_previous",
+          "preservedFrom": "26 Nov 2026, 07:09 PM IST"
         },
         {
           "storeId": "nykaa",
@@ -1115,7 +1130,7 @@
           "resolvedUrl": "https://www.nykaa.com/m-a-cstudio-fix-fluid-spf-15-foundation/p/14327558?productId=14327558&pps=2&skuId=14327504",
           "sourceType": "demo",
           "status": "catalog_baseline",
-          "lastChecked": "26 Nov 2026, 07:09 PM IST"
+          "lastChecked": "26 Nov 2026, 07:23 PM IST"
         }
       ],
       "tira": {
@@ -1127,9 +1142,10 @@
         "stockStatus": "In Stock",
         "purchaseUrl": "https://www.tirabeauty.com/product/m-a-c-studio-fix-fluid-spf-15-foundation-nc20-30-ml-7593398",
         "resolvedUrl": "https://www.tirabeauty.com/product/m-a-c-studio-fix-fluid-spf-15-foundation-nc20-30-ml-7593398",
-        "sourceType": "live",
+        "sourceType": "cached",
         "lastChecked": "26 Nov 2026, 07:09 PM IST",
-        "status": "success"
+        "status": "preserved_from_previous",
+        "preservedFrom": "26 Nov 2026, 07:09 PM IST"
       },
       "nykaa": {
         "storeId": "nykaa",
@@ -1142,7 +1158,7 @@
         "resolvedUrl": "https://www.nykaa.com/m-a-cstudio-fix-fluid-spf-15-foundation/p/14327558?productId=14327558&pps=2&skuId=14327504",
         "sourceType": "demo",
         "status": "catalog_baseline",
-        "lastChecked": "26 Nov 2026, 07:09 PM IST"
+        "lastChecked": "26 Nov 2026, 07:23 PM IST"
       }
     },
     "prod-15": {
@@ -1161,7 +1177,7 @@
           "resolvedUrl": "https://www.nykaa.com/charlotte-tilbury-hollywood-filter/p/985214?productId=985214&skuId=959726&pps=1",
           "sourceType": "demo",
           "status": "catalog_baseline",
-          "lastChecked": "26 Nov 2026, 07:09 PM IST"
+          "lastChecked": "26 Nov 2026, 07:23 PM IST"
         },
         {
           "storeId": "tira",
@@ -1172,9 +1188,10 @@
           "stockStatus": "In Stock",
           "purchaseUrl": "https://www.tirabeauty.com/product/essence-magic-filter-glow-booster-40-tan-14-ml-7602579",
           "resolvedUrl": "https://www.tirabeauty.com/product/essence-magic-filter-glow-booster-40-tan-14-ml-7602579",
-          "sourceType": "live",
+          "sourceType": "cached",
           "lastChecked": "26 Nov 2026, 07:09 PM IST",
-          "status": "success"
+          "status": "preserved_from_previous",
+          "preservedFrom": "26 Nov 2026, 07:09 PM IST"
         }
       ],
       "nykaa": {
@@ -1188,7 +1205,7 @@
         "resolvedUrl": "https://www.nykaa.com/charlotte-tilbury-hollywood-filter/p/985214?productId=985214&skuId=959726&pps=1",
         "sourceType": "demo",
         "status": "catalog_baseline",
-        "lastChecked": "26 Nov 2026, 07:09 PM IST"
+        "lastChecked": "26 Nov 2026, 07:23 PM IST"
       },
       "tira": {
         "storeId": "tira",
@@ -1199,9 +1216,10 @@
         "stockStatus": "In Stock",
         "purchaseUrl": "https://www.tirabeauty.com/product/essence-magic-filter-glow-booster-40-tan-14-ml-7602579",
         "resolvedUrl": "https://www.tirabeauty.com/product/essence-magic-filter-glow-booster-40-tan-14-ml-7602579",
-        "sourceType": "live",
+        "sourceType": "cached",
         "lastChecked": "26 Nov 2026, 07:09 PM IST",
-        "status": "success"
+        "status": "preserved_from_previous",
+        "preservedFrom": "26 Nov 2026, 07:09 PM IST"
       }
     },
     "prod-16": {
@@ -1220,7 +1238,7 @@
           "resolvedUrl": null,
           "sourceType": "demo",
           "status": "catalog_baseline",
-          "lastChecked": "26 Nov 2026, 07:09 PM IST"
+          "lastChecked": "26 Nov 2026, 07:23 PM IST"
         },
         {
           "storeId": "nykaa",
@@ -1233,20 +1251,20 @@
           "resolvedUrl": "https://www.nykaa.com/maybelline-new-york-instant-age-rewind-concealer/p/189967?productId=189967&pps=1&skuId=328470",
           "sourceType": "demo",
           "status": "catalog_baseline",
-          "lastChecked": "26 Nov 2026, 07:09 PM IST"
+          "lastChecked": "26 Nov 2026, 07:23 PM IST"
         },
         {
           "storeId": "myntra",
           "storeName": "Myntra",
-          "price": 639.0,
-          "originalPrice": 799.0,
+          "price": 282.0,
+          "originalPrice": 299.0,
           "inStock": true,
           "stockStatus": "In Stock",
-          "purchaseUrl": "https://www.myntra.com/maybelline-new-york-instant-age-rewind-eraser-multi-use-concealer",
-          "resolvedUrl": "https://www.myntra.com/maybelline-new-york-instant-age-rewind-eraser-multi-use-concealer",
-          "sourceType": "demo",
-          "status": "catalog_baseline",
-          "lastChecked": "26 Nov 2026, 07:09 PM IST"
+          "purchaseUrl": "https://www.myntra.com/concealer/swiss+beauty/swiss-beauty-cover-play-concealer-palette---13-g/42411691/buy",
+          "resolvedUrl": "https://www.myntra.com/concealer/swiss+beauty/swiss-beauty-cover-play-concealer-palette---13-g/42411691/buy",
+          "sourceType": "live",
+          "lastChecked": "26 Nov 2026, 07:23 PM IST",
+          "status": "success"
         }
       ],
       "amazon": {
@@ -1260,7 +1278,7 @@
         "resolvedUrl": null,
         "sourceType": "demo",
         "status": "catalog_baseline",
-        "lastChecked": "26 Nov 2026, 07:09 PM IST"
+        "lastChecked": "26 Nov 2026, 07:23 PM IST"
       },
       "nykaa": {
         "storeId": "nykaa",
@@ -1273,20 +1291,20 @@
         "resolvedUrl": "https://www.nykaa.com/maybelline-new-york-instant-age-rewind-concealer/p/189967?productId=189967&pps=1&skuId=328470",
         "sourceType": "demo",
         "status": "catalog_baseline",
-        "lastChecked": "26 Nov 2026, 07:09 PM IST"
+        "lastChecked": "26 Nov 2026, 07:23 PM IST"
       },
       "myntra": {
         "storeId": "myntra",
         "storeName": "Myntra",
-        "price": 639.0,
-        "originalPrice": 799.0,
+        "price": 282.0,
+        "originalPrice": 299.0,
         "inStock": true,
         "stockStatus": "In Stock",
-        "purchaseUrl": "https://www.myntra.com/maybelline-new-york-instant-age-rewind-eraser-multi-use-concealer",
-        "resolvedUrl": "https://www.myntra.com/maybelline-new-york-instant-age-rewind-eraser-multi-use-concealer",
-        "sourceType": "demo",
-        "status": "catalog_baseline",
-        "lastChecked": "26 Nov 2026, 07:09 PM IST"
+        "purchaseUrl": "https://www.myntra.com/concealer/swiss+beauty/swiss-beauty-cover-play-concealer-palette---13-g/42411691/buy",
+        "resolvedUrl": "https://www.myntra.com/concealer/swiss+beauty/swiss-beauty-cover-play-concealer-palette---13-g/42411691/buy",
+        "sourceType": "live",
+        "lastChecked": "26 Nov 2026, 07:23 PM IST",
+        "status": "success"
       }
     },
     "prod-17": {
@@ -1305,7 +1323,7 @@
           "resolvedUrl": "https://www.nykaa.com/kay-matteinee-lip-crayon/p/573181?productId=573181&pps=2",
           "sourceType": "demo",
           "status": "catalog_baseline",
-          "lastChecked": "26 Nov 2026, 07:09 PM IST"
+          "lastChecked": "26 Nov 2026, 07:23 PM IST"
         },
         {
           "storeId": "tira",
@@ -1316,9 +1334,10 @@
           "stockStatus": "In Stock",
           "purchaseUrl": "https://www.tirabeauty.com/product/kylie-cosmetics-matte-liquid-lipstick-802-candy-k-3-ml-7616098",
           "resolvedUrl": "https://www.tirabeauty.com/product/kylie-cosmetics-matte-liquid-lipstick-802-candy-k-3-ml-7616098",
-          "sourceType": "live",
+          "sourceType": "cached",
           "lastChecked": "26 Nov 2026, 07:09 PM IST",
-          "status": "success"
+          "status": "preserved_from_previous",
+          "preservedFrom": "26 Nov 2026, 07:09 PM IST"
         }
       ],
       "nykaa": {
@@ -1332,7 +1351,7 @@
         "resolvedUrl": "https://www.nykaa.com/kay-matteinee-lip-crayon/p/573181?productId=573181&pps=2",
         "sourceType": "demo",
         "status": "catalog_baseline",
-        "lastChecked": "26 Nov 2026, 07:09 PM IST"
+        "lastChecked": "26 Nov 2026, 07:23 PM IST"
       },
       "tira": {
         "storeId": "tira",
@@ -1343,9 +1362,10 @@
         "stockStatus": "In Stock",
         "purchaseUrl": "https://www.tirabeauty.com/product/kylie-cosmetics-matte-liquid-lipstick-802-candy-k-3-ml-7616098",
         "resolvedUrl": "https://www.tirabeauty.com/product/kylie-cosmetics-matte-liquid-lipstick-802-candy-k-3-ml-7616098",
-        "sourceType": "live",
+        "sourceType": "cached",
         "lastChecked": "26 Nov 2026, 07:09 PM IST",
-        "status": "success"
+        "status": "preserved_from_previous",
+        "preservedFrom": "26 Nov 2026, 07:09 PM IST"
       }
     },
     "prod-18": {
@@ -1353,19 +1373,6 @@
       "productName": "Soft Pinch Liquid Blush - Encourage",
       "brand": "Rare Beauty",
       "offers": [
-        {
-          "storeId": "tira",
-          "storeName": "Tira",
-          "price": 486.0,
-          "originalPrice": 695.0,
-          "inStock": true,
-          "stockStatus": "In Stock",
-          "purchaseUrl": "https://www.tirabeauty.com/product/akind-one-for-all-multi-tint-power-nap-5-5-ml-8676139",
-          "resolvedUrl": "https://www.tirabeauty.com/product/akind-one-for-all-multi-tint-power-nap-5-5-ml-8676139",
-          "sourceType": "live",
-          "lastChecked": "26 Nov 2026, 07:09 PM IST",
-          "status": "success"
-        },
         {
           "storeId": "nykaa",
           "storeName": "Nykaa",
@@ -1377,22 +1384,23 @@
           "resolvedUrl": "https://www.nykaa.com/rare-beauty-soft-pinch-dewy-liquid-blush/p/26114771?productId=26114771&pps=2",
           "sourceType": "demo",
           "status": "catalog_baseline",
-          "lastChecked": "26 Nov 2026, 07:09 PM IST"
+          "lastChecked": "26 Nov 2026, 07:23 PM IST"
+        },
+        {
+          "storeId": "tira",
+          "storeName": "Tira",
+          "price": 486.0,
+          "originalPrice": 695.0,
+          "inStock": true,
+          "stockStatus": "In Stock",
+          "purchaseUrl": "https://www.tirabeauty.com/product/akind-one-for-all-multi-tint-power-nap-5-5-ml-8676139",
+          "resolvedUrl": "https://www.tirabeauty.com/product/akind-one-for-all-multi-tint-power-nap-5-5-ml-8676139",
+          "sourceType": "cached",
+          "lastChecked": "26 Nov 2026, 07:09 PM IST",
+          "status": "preserved_from_previous",
+          "preservedFrom": "26 Nov 2026, 07:09 PM IST"
         }
       ],
-      "tira": {
-        "storeId": "tira",
-        "storeName": "Tira",
-        "price": 486.0,
-        "originalPrice": 695.0,
-        "inStock": true,
-        "stockStatus": "In Stock",
-        "purchaseUrl": "https://www.tirabeauty.com/product/akind-one-for-all-multi-tint-power-nap-5-5-ml-8676139",
-        "resolvedUrl": "https://www.tirabeauty.com/product/akind-one-for-all-multi-tint-power-nap-5-5-ml-8676139",
-        "sourceType": "live",
-        "lastChecked": "26 Nov 2026, 07:09 PM IST",
-        "status": "success"
-      },
       "nykaa": {
         "storeId": "nykaa",
         "storeName": "Nykaa",
@@ -1404,7 +1412,21 @@
         "resolvedUrl": "https://www.nykaa.com/rare-beauty-soft-pinch-dewy-liquid-blush/p/26114771?productId=26114771&pps=2",
         "sourceType": "demo",
         "status": "catalog_baseline",
-        "lastChecked": "26 Nov 2026, 07:09 PM IST"
+        "lastChecked": "26 Nov 2026, 07:23 PM IST"
+      },
+      "tira": {
+        "storeId": "tira",
+        "storeName": "Tira",
+        "price": 486.0,
+        "originalPrice": 695.0,
+        "inStock": true,
+        "stockStatus": "In Stock",
+        "purchaseUrl": "https://www.tirabeauty.com/product/akind-one-for-all-multi-tint-power-nap-5-5-ml-8676139",
+        "resolvedUrl": "https://www.tirabeauty.com/product/akind-one-for-all-multi-tint-power-nap-5-5-ml-8676139",
+        "sourceType": "cached",
+        "lastChecked": "26 Nov 2026, 07:09 PM IST",
+        "status": "preserved_from_previous",
+        "preservedFrom": "26 Nov 2026, 07:09 PM IST"
       }
     },
     "prod-19": {
@@ -1423,7 +1445,7 @@
           "resolvedUrl": null,
           "sourceType": "demo",
           "status": "catalog_baseline",
-          "lastChecked": "26 Nov 2026, 07:09 PM IST"
+          "lastChecked": "26 Nov 2026, 07:23 PM IST"
         },
         {
           "storeId": "amazon",
@@ -1436,7 +1458,7 @@
           "resolvedUrl": null,
           "sourceType": "demo",
           "status": "catalog_baseline",
-          "lastChecked": "26 Nov 2026, 07:09 PM IST"
+          "lastChecked": "26 Nov 2026, 07:23 PM IST"
         },
         {
           "storeId": "nykaa",
@@ -1449,7 +1471,7 @@
           "resolvedUrl": "https://www.nykaa.com/swiss-beauty-ultra-blush-palette/p/8423344?productId=8423344&skuId=832320&pps=2",
           "sourceType": "demo",
           "status": "catalog_baseline",
-          "lastChecked": "26 Nov 2026, 07:09 PM IST"
+          "lastChecked": "26 Nov 2026, 07:23 PM IST"
         }
       ],
       "purplle": {
@@ -1463,7 +1485,7 @@
         "resolvedUrl": null,
         "sourceType": "demo",
         "status": "catalog_baseline",
-        "lastChecked": "26 Nov 2026, 07:09 PM IST"
+        "lastChecked": "26 Nov 2026, 07:23 PM IST"
       },
       "amazon": {
         "storeId": "amazon",
@@ -1476,7 +1498,7 @@
         "resolvedUrl": null,
         "sourceType": "demo",
         "status": "catalog_baseline",
-        "lastChecked": "26 Nov 2026, 07:09 PM IST"
+        "lastChecked": "26 Nov 2026, 07:23 PM IST"
       },
       "nykaa": {
         "storeId": "nykaa",
@@ -1489,7 +1511,7 @@
         "resolvedUrl": "https://www.nykaa.com/swiss-beauty-ultra-blush-palette/p/8423344?productId=8423344&skuId=832320&pps=2",
         "sourceType": "demo",
         "status": "catalog_baseline",
-        "lastChecked": "26 Nov 2026, 07:09 PM IST"
+        "lastChecked": "26 Nov 2026, 07:23 PM IST"
       }
     },
     "prod-20": {
@@ -1508,7 +1530,7 @@
           "resolvedUrl": "https://www.nykaa.com/huda-beauty-nude-obsessions-mini-eyeshadow-palette/p/692792?productId=692792&pps=1&skuId=692790",
           "sourceType": "demo",
           "status": "catalog_baseline",
-          "lastChecked": "26 Nov 2026, 07:09 PM IST"
+          "lastChecked": "26 Nov 2026, 07:23 PM IST"
         },
         {
           "storeId": "tira",
@@ -1519,9 +1541,10 @@
           "stockStatus": "In Stock",
           "purchaseUrl": "https://www.tirabeauty.com/product/huda-beauty-nude-obsessions-eye-shadow-palette---medium-99g-mbmnwjwksyw",
           "resolvedUrl": "https://www.tirabeauty.com/product/huda-beauty-nude-obsessions-eye-shadow-palette---medium-99g-mbmnwjwksyw",
-          "sourceType": "live",
+          "sourceType": "cached",
           "lastChecked": "26 Nov 2026, 07:09 PM IST",
-          "status": "success"
+          "status": "preserved_from_previous",
+          "preservedFrom": "26 Nov 2026, 07:09 PM IST"
         }
       ],
       "nykaa": {
@@ -1535,7 +1558,7 @@
         "resolvedUrl": "https://www.nykaa.com/huda-beauty-nude-obsessions-mini-eyeshadow-palette/p/692792?productId=692792&pps=1&skuId=692790",
         "sourceType": "demo",
         "status": "catalog_baseline",
-        "lastChecked": "26 Nov 2026, 07:09 PM IST"
+        "lastChecked": "26 Nov 2026, 07:23 PM IST"
       },
       "tira": {
         "storeId": "tira",
@@ -1546,9 +1569,10 @@
         "stockStatus": "In Stock",
         "purchaseUrl": "https://www.tirabeauty.com/product/huda-beauty-nude-obsessions-eye-shadow-palette---medium-99g-mbmnwjwksyw",
         "resolvedUrl": "https://www.tirabeauty.com/product/huda-beauty-nude-obsessions-eye-shadow-palette---medium-99g-mbmnwjwksyw",
-        "sourceType": "live",
+        "sourceType": "cached",
         "lastChecked": "26 Nov 2026, 07:09 PM IST",
-        "status": "success"
+        "status": "preserved_from_previous",
+        "preservedFrom": "26 Nov 2026, 07:09 PM IST"
       }
     },
     "prod-21": {
@@ -1567,7 +1591,7 @@
           "resolvedUrl": "https://www.nykaa.com/simple-kind-to-skin-micellar-cleansing-water/p/947978?productId=947978&pps=1&skuId=390986",
           "sourceType": "demo",
           "status": "catalog_baseline",
-          "lastChecked": "26 Nov 2026, 07:09 PM IST"
+          "lastChecked": "26 Nov 2026, 07:23 PM IST"
         },
         {
           "storeId": "amazon",
@@ -1580,7 +1604,7 @@
           "resolvedUrl": null,
           "sourceType": "demo",
           "status": "catalog_baseline",
-          "lastChecked": "26 Nov 2026, 07:09 PM IST"
+          "lastChecked": "26 Nov 2026, 07:23 PM IST"
         },
         {
           "storeId": "purplle",
@@ -1593,7 +1617,7 @@
           "resolvedUrl": null,
           "sourceType": "demo",
           "status": "catalog_baseline",
-          "lastChecked": "26 Nov 2026, 07:09 PM IST"
+          "lastChecked": "26 Nov 2026, 07:23 PM IST"
         }
       ],
       "nykaa": {
@@ -1607,7 +1631,7 @@
         "resolvedUrl": "https://www.nykaa.com/simple-kind-to-skin-micellar-cleansing-water/p/947978?productId=947978&pps=1&skuId=390986",
         "sourceType": "demo",
         "status": "catalog_baseline",
-        "lastChecked": "26 Nov 2026, 07:09 PM IST"
+        "lastChecked": "26 Nov 2026, 07:23 PM IST"
       },
       "amazon": {
         "storeId": "amazon",
@@ -1620,7 +1644,7 @@
         "resolvedUrl": null,
         "sourceType": "demo",
         "status": "catalog_baseline",
-        "lastChecked": "26 Nov 2026, 07:09 PM IST"
+        "lastChecked": "26 Nov 2026, 07:23 PM IST"
       },
       "purplle": {
         "storeId": "purplle",
@@ -1633,7 +1657,7 @@
         "resolvedUrl": null,
         "sourceType": "demo",
         "status": "catalog_baseline",
-        "lastChecked": "26 Nov 2026, 07:09 PM IST"
+        "lastChecked": "26 Nov 2026, 07:23 PM IST"
       }
     },
     "prod-22": {
@@ -1652,20 +1676,7 @@
           "resolvedUrl": null,
           "sourceType": "demo",
           "status": "catalog_baseline",
-          "lastChecked": "26 Nov 2026, 07:09 PM IST"
-        },
-        {
-          "storeId": "nykaa",
-          "storeName": "Nykaa",
-          "price": 599.0,
-          "originalPrice": 599.0,
-          "inStock": true,
-          "stockStatus": "In Stock",
-          "purchaseUrl": "https://www.nykaa.com/minimalist-hair-repair-complex-5percent-serum/p/10039736?productId=10039736&pps=1",
-          "resolvedUrl": "https://www.nykaa.com/minimalist-hair-repair-complex-5percent-serum/p/10039736?productId=10039736&pps=1",
-          "sourceType": "demo",
-          "status": "catalog_baseline",
-          "lastChecked": "26 Nov 2026, 07:09 PM IST"
+          "lastChecked": "26 Nov 2026, 07:23 PM IST"
         },
         {
           "storeId": "purplle",
@@ -1678,7 +1689,20 @@
           "resolvedUrl": null,
           "sourceType": "demo",
           "status": "catalog_baseline",
-          "lastChecked": "26 Nov 2026, 07:09 PM IST"
+          "lastChecked": "26 Nov 2026, 07:23 PM IST"
+        },
+        {
+          "storeId": "nykaa",
+          "storeName": "Nykaa",
+          "price": 599.0,
+          "originalPrice": 599.0,
+          "inStock": true,
+          "stockStatus": "In Stock",
+          "purchaseUrl": "https://www.nykaa.com/minimalist-hair-repair-complex-5percent-serum/p/10039736?productId=10039736&pps=1",
+          "resolvedUrl": "https://www.nykaa.com/minimalist-hair-repair-complex-5percent-serum/p/10039736?productId=10039736&pps=1",
+          "sourceType": "demo",
+          "status": "catalog_baseline",
+          "lastChecked": "26 Nov 2026, 07:23 PM IST"
         }
       ],
       "amazon": {
@@ -1692,20 +1716,7 @@
         "resolvedUrl": null,
         "sourceType": "demo",
         "status": "catalog_baseline",
-        "lastChecked": "26 Nov 2026, 07:09 PM IST"
-      },
-      "nykaa": {
-        "storeId": "nykaa",
-        "storeName": "Nykaa",
-        "price": 599.0,
-        "originalPrice": 599.0,
-        "inStock": true,
-        "stockStatus": "In Stock",
-        "purchaseUrl": "https://www.nykaa.com/minimalist-hair-repair-complex-5percent-serum/p/10039736?productId=10039736&pps=1",
-        "resolvedUrl": "https://www.nykaa.com/minimalist-hair-repair-complex-5percent-serum/p/10039736?productId=10039736&pps=1",
-        "sourceType": "demo",
-        "status": "catalog_baseline",
-        "lastChecked": "26 Nov 2026, 07:09 PM IST"
+        "lastChecked": "26 Nov 2026, 07:23 PM IST"
       },
       "purplle": {
         "storeId": "purplle",
@@ -1718,7 +1729,20 @@
         "resolvedUrl": null,
         "sourceType": "demo",
         "status": "catalog_baseline",
-        "lastChecked": "26 Nov 2026, 07:09 PM IST"
+        "lastChecked": "26 Nov 2026, 07:23 PM IST"
+      },
+      "nykaa": {
+        "storeId": "nykaa",
+        "storeName": "Nykaa",
+        "price": 599.0,
+        "originalPrice": 599.0,
+        "inStock": true,
+        "stockStatus": "In Stock",
+        "purchaseUrl": "https://www.nykaa.com/minimalist-hair-repair-complex-5percent-serum/p/10039736?productId=10039736&pps=1",
+        "resolvedUrl": "https://www.nykaa.com/minimalist-hair-repair-complex-5percent-serum/p/10039736?productId=10039736&pps=1",
+        "sourceType": "demo",
+        "status": "catalog_baseline",
+        "lastChecked": "26 Nov 2026, 07:23 PM IST"
       }
     },
     "prod-23": {
@@ -1737,7 +1761,7 @@
           "resolvedUrl": "https://www.nykaa.com/chemist-at-play-exfoliating-body-wash/p/5597634?productId=5597634&pps=1",
           "sourceType": "demo",
           "status": "catalog_baseline",
-          "lastChecked": "26 Nov 2026, 07:09 PM IST"
+          "lastChecked": "26 Nov 2026, 07:23 PM IST"
         },
         {
           "storeId": "amazon",
@@ -1750,7 +1774,7 @@
           "resolvedUrl": null,
           "sourceType": "demo",
           "status": "catalog_baseline",
-          "lastChecked": "26 Nov 2026, 07:09 PM IST"
+          "lastChecked": "26 Nov 2026, 07:23 PM IST"
         },
         {
           "storeId": "purplle",
@@ -1763,7 +1787,7 @@
           "resolvedUrl": null,
           "sourceType": "demo",
           "status": "catalog_baseline",
-          "lastChecked": "26 Nov 2026, 07:09 PM IST"
+          "lastChecked": "26 Nov 2026, 07:23 PM IST"
         }
       ],
       "nykaa": {
@@ -1777,7 +1801,7 @@
         "resolvedUrl": "https://www.nykaa.com/chemist-at-play-exfoliating-body-wash/p/5597634?productId=5597634&pps=1",
         "sourceType": "demo",
         "status": "catalog_baseline",
-        "lastChecked": "26 Nov 2026, 07:09 PM IST"
+        "lastChecked": "26 Nov 2026, 07:23 PM IST"
       },
       "amazon": {
         "storeId": "amazon",
@@ -1790,7 +1814,7 @@
         "resolvedUrl": null,
         "sourceType": "demo",
         "status": "catalog_baseline",
-        "lastChecked": "26 Nov 2026, 07:09 PM IST"
+        "lastChecked": "26 Nov 2026, 07:23 PM IST"
       },
       "purplle": {
         "storeId": "purplle",
@@ -1803,7 +1827,7 @@
         "resolvedUrl": null,
         "sourceType": "demo",
         "status": "catalog_baseline",
-        "lastChecked": "26 Nov 2026, 07:09 PM IST"
+        "lastChecked": "26 Nov 2026, 07:23 PM IST"
       }
     }
   }
