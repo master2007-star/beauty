@@ -6,6 +6,9 @@ Designed to run directly on an Android device (Termux) over local Indian mobile 
 Uses ThreadPoolExecutor(max_workers=5) with curl_cffi / requests (Chrome 124 TLS) and beautifulsoup4.
 Scrapes live prices, resolves canonical product URLs, and writes updated snapshots to
 frontend/public/data/live-prices.json with real-time terminal progress and a summary table.
+
+Preserves previously verified live prices (sourceType == 'live') when a store is temporarily
+throttled or returns no data, ensuring live prices are never wiped out.
 """
 
 from __future__ import annotations
@@ -22,6 +25,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 from bs4 import BeautifulSoup
+import requests as std_requests
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 PRODUCTS_FILE = REPO_ROOT / "frontend" / "src" / "data" / "products.ts"
@@ -160,40 +164,85 @@ def resolve_via_search_engine(
     product_name: str,
     canonical_marker: str,
 ) -> Optional[str]:
-    """Search engine fallback to resolve canonical direct product URLs."""
-    clean_b = re.sub(r"[^a-zA-Z0-9\s]", " ", brand).strip()
-    clean_p = re.sub(r"[^a-zA-Z0-9\s]", " ", product_name).strip()
-    query_str = f"site:{domain} {clean_b} {clean_p}"
-    ddg_url = f"https://html.duckduckgo.com/html/?q={urllib.parse.quote_plus(query_str)}"
+    """Search engine resolver using standard requests for Yahoo search with DuckDuckGo fallback."""
+    clean_b = re.sub(r"\s+", " ", re.sub(r"[^a-zA-Z0-9]", " ", brand)).strip()
+    clean_p = re.sub(r"\s+", " ", re.sub(r"[^a-zA-Z0-9]", " ", product_name)).strip()
+    words = clean_p.split()[:4]
+    query_str = f"site:{domain} {clean_b} {' '.join(words)}"
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        "Accept-Language": "en-IN,en;q=0.9",
+    }
 
-    resp = client.get(ddg_url)
-    if not resp or resp.status_code != 200 or not resp.text:
-        return None
+    # 1. Try Yahoo Search using standard requests
+    try:
+        y_url = f"https://search.yahoo.com/search?p={urllib.parse.quote_plus(query_str)}"
+        r = std_requests.get(y_url, headers=headers, timeout=6)
+        if r.status_code == 200 and r.text:
+            soup = BeautifulSoup(r.text, "html.parser")
+            for a in soup.find_all("a", href=True):
+                h = a["href"]
+                ru_m = re.search(r"/RU=([^/]+)", h)
+                target = urllib.parse.unquote(ru_m.group(1)) if ru_m else urllib.parse.unquote(h)
+                if domain in target and canonical_marker in target:
+                    if domain == "amazon.in":
+                        asin_m = re.search(r"(/dp/[A-Z0-9]{10})", target)
+                        if asin_m:
+                            return f"https://www.amazon.in{asin_m.group(1)}"
+                    elif domain == "nykaa.com":
+                        p_m = re.search(r"(https://www\.nykaa\.com/[^?#&]*/p/\d+)", target)
+                        if p_m:
+                            return p_m.group(1)
+                    elif domain == "purplle.com":
+                        p_m = re.search(r"(https://www\.purplle\.com/product/[^?#&/]+)", target)
+                        if p_m:
+                            return p_m.group(1)
+                    elif domain == "tirabeauty.com":
+                        p_m = re.search(r"(https://www\.tirabeauty\.com/product/[^?#&/]+)", target)
+                        if p_m:
+                            return p_m.group(1)
+                    elif domain == "myntra.com":
+                        p_m = re.search(r"(https://www\.myntra\.com/[^?#&]*/buy)", target)
+                        if p_m:
+                            return p_m.group(1)
+                    return target.split("?")[0].split("&")[0].split("/RK=")[0]
+    except Exception:
+        pass
 
-    soup = BeautifulSoup(resp.text, "html.parser")
-    for link in soup.find_all("a", href=True):
-        href = link["href"]
-        m = re.search(r"uddg=([^&]+)", href)
-        target = urllib.parse.unquote(m.group(1)) if m else href
-
-        if domain in target and canonical_marker in target:
-            if domain == "amazon.in":
-                asin_m = re.search(r"(/dp/[A-Z0-9]{10})", target)
-                if asin_m:
-                    return f"https://www.amazon.in{asin_m.group(1)}"
-            elif domain == "nykaa.com":
-                p_m = re.search(r"(https://www\.nykaa\.com/[^?#]*/p/\d+)", target)
-                if p_m:
-                    return p_m.group(1)
-            elif domain == "purplle.com":
-                p_m = re.search(r"(https://www\.purplle\.com/product/[^?#]+)", target)
-                if p_m:
-                    return p_m.group(1)
-            elif domain == "myntra.com":
-                p_m = re.search(r"(https://www\.myntra\.com/[^?#]*/buy)", target)
-                if p_m:
-                    return p_m.group(1)
-            return target.split("?")[0]
+    # 2. Try DuckDuckGo HTML as fallback
+    try:
+        ddg_url = f"https://html.duckduckgo.com/html/?q={urllib.parse.quote_plus(query_str)}"
+        r = std_requests.get(ddg_url, headers=headers, timeout=6)
+        if r.status_code == 200 and r.text:
+            soup = BeautifulSoup(r.text, "html.parser")
+            for link in soup.find_all("a", href=True):
+                href = link["href"]
+                m = re.search(r"uddg=([^&]+)", href)
+                target = urllib.parse.unquote(m.group(1)) if m else href
+                if domain in target and canonical_marker in target:
+                    if domain == "amazon.in":
+                        asin_m = re.search(r"(/dp/[A-Z0-9]{10})", target)
+                        if asin_m:
+                            return f"https://www.amazon.in{asin_m.group(1)}"
+                    elif domain == "nykaa.com":
+                        p_m = re.search(r"(https://www\.nykaa\.com/[^?#&]*/p/\d+)", target)
+                        if p_m:
+                            return p_m.group(1)
+                    elif domain == "purplle.com":
+                        p_m = re.search(r"(https://www\.purplle\.com/product/[^?#&/]+)", target)
+                        if p_m:
+                            return p_m.group(1)
+                    elif domain == "tirabeauty.com":
+                        p_m = re.search(r"(https://www\.tirabeauty\.com/product/[^?#&/]+)", target)
+                        if p_m:
+                            return p_m.group(1)
+                    elif domain == "myntra.com":
+                        p_m = re.search(r"(https://www\.myntra\.com/[^?#&]*/buy)", target)
+                        if p_m:
+                            return p_m.group(1)
+                    return target.split("?")[0]
+    except Exception:
+        pass
 
     return None
 
@@ -202,57 +251,142 @@ def resolve_via_search_engine(
 # Store Handlers
 # ==============================================================================
 
+def extract_nykaa_product_id(url: str) -> Optional[str]:
+    """Extract numeric Nykaa product ID from URL query params or path."""
+    m = re.search(r"productId=(\d+)", url)
+    if m:
+        return m.group(1)
+    m = re.search(r"/p/(?:[^/?#]+/)?(\d+)", url)
+    if m:
+        return m.group(1)
+    if "/p/" in url:
+        p_part = url.split("/p/")[-1].split("?")[0].split("#")[0].strip("/")
+        tokens = p_part.split("/")
+        for token in reversed(tokens):
+            if token.isdigit() and len(token) >= 4:
+                return token
+    return None
+
+
 def scrape_nykaa(client: HttpClient, url: str, name: str, brand: str) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
     direct_url = url
-    prod_id_match = re.search(r"productId=(\d+)", url) or re.search(r"/p/(\d+)", url)
+    prod_id = extract_nykaa_product_id(url)
 
-    if is_search_url(url) or "/p/" not in url:
+    if not prod_id and (is_search_url(url) or "/p/" not in url):
         resolved = resolve_via_search_engine(client, "nykaa.com", brand, name, "/p/")
         if resolved:
             direct_url = resolved
-            prod_id_match = re.search(r"productId=(\d+)", direct_url) or re.search(r"/p/(\d+)", direct_url)
+            prod_id = extract_nykaa_product_id(direct_url)
 
-    if prod_id_match:
-        api_url = f"https://www.nykaa.com/app-api/index.php/products/details?product_id={prod_id_match.group(1)}"
-        headers = {
-            "Accept": "application/json, text/plain, */*",
-            "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15",
-        }
-        resp = client.get(api_url, headers=headers)
-        if resp and resp.status_code == 200:
-            try:
-                data = resp.json()
-                p_info = data.get("response", {}).get("product", {}) if isinstance(data.get("response"), dict) else {}
-                if p_info:
-                    p = parse_numeric_price(p_info.get("offer_price") or p_info.get("final_price") or p_info.get("price"))
-                    m = parse_numeric_price(p_info.get("mrp") or p_info.get("price"))
-                    in_stock = bool(p_info.get("in_stock", True))
-                    if p and p > 0:
-                        return {"price": p, "originalPrice": m if (m and m >= p) else None, "inStock": in_stock, "stockStatus": "In Stock" if in_stock else "Out of Stock"}, direct_url
-            except Exception:
-                pass
+    # 1. Nykaa public product details API (Mobile & Chrome headers)
+    if prod_id:
+        api_url = f"https://www.nykaa.com/app-api/index.php/products/details?product_id={prod_id}"
+        header_candidates = [
+            {
+                "Accept": "application/json, text/plain, */*",
+                "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4.1 Mobile/15E148 Safari/604.1",
+                "Accept-Language": "en-IN,en;q=0.9",
+                "Origin": "https://www.nykaa.com",
+                "Referer": "https://www.nykaa.com/",
+            },
+            {
+                "Accept": "application/json, text/plain, */*",
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+                "Accept-Language": "en-IN,en;q=0.9",
+                "Origin": "https://www.nykaa.com",
+                "Referer": "https://www.nykaa.com/",
+            }
+        ]
+        for hdrs in header_candidates:
+            resp = client.get(api_url, headers=hdrs)
+            if resp and resp.status_code == 200:
+                try:
+                    data = resp.json()
+                    resp_obj = data.get("response", {})
+                    p_info = resp_obj.get("product") if isinstance(resp_obj.get("product"), dict) else resp_obj
+                    if isinstance(p_info, dict) and p_info:
+                        price = parse_numeric_price(
+                            p_info.get("final_price")
+                            or p_info.get("offer_price")
+                            or p_info.get("discounted_price")
+                            or p_info.get("price")
+                        )
+                        orig = parse_numeric_price(p_info.get("mrp") or p_info.get("price"))
+                        in_stock = bool(p_info.get("is_saleable", True)) and bool(p_info.get("gludo_stock", True))
+                        if p_info.get("in_stock") is not None:
+                            in_stock = bool(p_info.get("in_stock"))
+                        slug = p_info.get("slug")
+                        if slug:
+                            direct_url = f"https://www.nykaa.com/{slug.lstrip('/')}"
+                        if price and price > 0:
+                            return {
+                                "price": price,
+                                "originalPrice": orig if (orig and orig >= price) else None,
+                                "inStock": in_stock,
+                                "stockStatus": "In Stock" if in_stock else "Out of Stock",
+                            }, direct_url
+                except Exception:
+                    pass
 
-    resp = client.get(direct_url)
+    # 2. HTML Fallback: window.__PRELOADED_STATE__ & Schema.org JSON-LD
+    target_url = direct_url or url
+    resp = client.get(target_url)
     if resp and resp.status_code == 200 and resp.text:
-        soup = BeautifulSoup(resp.text, "html.parser")
+        html = resp.text
+        if "__PRELOADED_STATE__" in html:
+            m = re.search(r"window\.__PRELOADED_STATE__\s*=\s*(\{.*?\});?\s*</script>", html, re.DOTALL)
+            if m:
+                try:
+                    st_data = json.loads(m.group(1))
+                    pdp = st_data.get("product", {}) or st_data.get("pdp", {})
+                    p = parse_numeric_price(pdp.get("offerPrice") or pdp.get("finalPrice") or pdp.get("price"))
+                    mrp = parse_numeric_price(pdp.get("mrp") or pdp.get("price"))
+                    if p and p > 0:
+                        return {"price": p, "originalPrice": mrp if (mrp and mrp >= p) else None, "inStock": True, "stockStatus": "In Stock"}, direct_url
+                except Exception:
+                    pass
+            off_m = re.search(r'["\'](?:offerPrice|finalPrice|discountedPrice)["\']\s*:\s*(\d+(?:\.\d+)?)', html)
+            mrp_m = re.search(r'["\'](?:mrp|price)["\']\s*:\s*(\d+(?:\.\d+)?)', html)
+            if off_m:
+                p = parse_numeric_price(off_m.group(1))
+                m = parse_numeric_price(mrp_m.group(1)) if mrp_m else None
+                if p and p > 0:
+                    return {"price": p, "originalPrice": m if (m and m >= p) else None, "inStock": True, "stockStatus": "In Stock"}, direct_url
+
+        soup = BeautifulSoup(html, "html.parser")
         ld = extract_schema_org_jsonld(soup)
         if ld and ld.get("price"):
             return ld, direct_url
+
+        css_price = soup.select_one("span.css-1jczs19, [data-testid='pdp-price'], .post-card__price-offer")
+        css_mrp = soup.select_one("span.css-u05rr, [data-testid='mrp']")
+        p = parse_numeric_price(css_price.get_text(strip=True)) if css_price else None
+        m = parse_numeric_price(css_mrp.get_text(strip=True)) if css_mrp else None
+        if p and p > 0:
+            return {"price": p, "originalPrice": m if (m and m >= p) else None, "inStock": True, "stockStatus": "In Stock"}, direct_url
 
     return None, direct_url
 
 
 def scrape_amazon(client: HttpClient, url: str, name: str, brand: str) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
     direct_url: Optional[str] = None
+    asin_match = re.search(r"/(?:dp|gp/product)/([A-Z0-9]{10})", url)
+    if asin_match:
+        direct_url = f"https://www.amazon.in/dp/{asin_match.group(1)}"
 
+    # If it is a search URL, first parse search results for first organic card & price
     if is_search_url(url):
-        resp = client.get(url)
+        headers = {
+            "Accept-Language": "en-IN,en;q=0.9",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        }
+        resp = client.get(url, headers=headers)
         if resp and resp.status_code == 200 and resp.text:
             soup = BeautifulSoup(resp.text, "html.parser")
             for card in soup.select('div[data-component-type="s-search-result"]'):
                 if "AdHolder" in card.get("class", []):
                     continue
-                if card.select_one(".s-sponsored-label-info-icon, .puis-sponsored-label-text"):
+                if card.select_one(".s-sponsored-label-info-icon, .puis-sponsored-label-text, .s-sponsored-label"):
                     continue
                 asin = card.get("data-asin", "").strip()
                 if asin and len(asin) == 10:
@@ -268,38 +402,65 @@ def scrape_amazon(client: HttpClient, url: str, name: str, brand: str) -> Tuple[
                 p = parse_numeric_price(whole.get_text(strip=True).rstrip(".")) if whole else None
                 m = parse_numeric_price(orig.get_text(strip=True)) if orig else None
                 if p and p > 0:
-                    return {"price": p, "originalPrice": m if (m and m >= p) else None, "inStock": True, "stockStatus": "In Stock"}, direct_url
+                    return {
+                        "price": p,
+                        "originalPrice": m if (m and m >= p) else None,
+                        "inStock": True,
+                        "stockStatus": "In Stock"
+                    }, direct_url
                 break
 
+    # If direct url not resolved yet, use search engine fallback
     if not direct_url and (is_search_url(url) or "/dp/" not in url):
         direct_url = resolve_via_search_engine(client, "amazon.in", brand, name, "/dp/")
 
     target_url = direct_url or (url if not is_search_url(url) else None)
     if target_url:
-        resp = client.get(target_url)
+        headers = {
+            "Accept-Language": "en-IN,en;q=0.9",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        }
+        resp = client.get(target_url, headers=headers)
         if resp and resp.status_code == 200 and resp.text:
             soup = BeautifulSoup(resp.text, "html.parser")
             whole = soup.select_one("span.a-price-whole")
             orig = soup.select_one("span.a-text-price span.a-offscreen, span.basisPrice span.a-offscreen")
             p = parse_numeric_price(whole.get_text(strip=True).rstrip(".")) if whole else None
             m = parse_numeric_price(orig.get_text(strip=True)) if orig else None
+            if not p:
+                ld = extract_schema_org_jsonld(soup)
+                if ld and ld.get("price"):
+                    return ld, direct_url or target_url
+
             avail_elem = soup.select_one("#availability")
             in_stock = True
             if avail_elem and any(w in avail_elem.get_text().lower() for w in ["currently unavailable", "out of stock"]):
                 in_stock = False
             if p and p > 0:
-                return {"price": p, "originalPrice": m if (m and m >= p) else None, "inStock": in_stock, "stockStatus": "In Stock" if in_stock else "Out of Stock"}, direct_url or target_url
+                return {
+                    "price": p,
+                    "originalPrice": m if (m and m >= p) else None,
+                    "inStock": in_stock,
+                    "stockStatus": "In Stock" if in_stock else "Out of Stock"
+                }, direct_url or target_url
 
     return None, direct_url
 
 
 def scrape_tira(client: HttpClient, url: str, name: str, brand: str) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
     direct_url: Optional[str] = None
+    slug_match = re.search(r"/product/([^/?#]+)", url)
+    if slug_match:
+        direct_url = f"https://www.tirabeauty.com/product/{slug_match.group(1)}"
+
+    # Build search query
     query = ""
     parsed = urllib.parse.urlparse(url)
     qs = urllib.parse.parse_qs(parsed.query)
     if "q" in qs and qs["q"]:
         query = qs["q"][0]
+    elif slug_match:
+        query = slug_match.group(1).replace("-", " ")
     elif name:
         query = f"{brand} {name}".strip()
 
@@ -307,8 +468,16 @@ def scrape_tira(client: HttpClient, url: str, name: str, brand: str) -> Tuple[Op
         api_url = f"https://www.tirabeauty.com/ext/search/application/api/v1.0/products?q={urllib.parse.quote(query)}&page_size=5"
         headers = {
             "Accept": "application/json, text/plain, */*",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+            "Accept-Language": "en-IN,en;q=0.9",
             "Origin": "https://www.tirabeauty.com",
-            "Referer": url,
+            "Referer": "https://www.tirabeauty.com/",
+            "Sec-Ch-Ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
+            "Sec-Ch-Ua-Mobile": "?0",
+            "Sec-Ch-Ua-Platform": '"Windows"',
+            "Sec-Fetch-Dest": "empty",
+            "Sec-Fetch-Mode": "cors",
+            "Sec-Fetch-Site": "same-origin",
         }
         resp = client.get(api_url, headers=headers)
         if resp and resp.status_code == 200:
@@ -316,18 +485,32 @@ def scrape_tira(client: HttpClient, url: str, name: str, brand: str) -> Tuple[Op
                 data = resp.json()
                 items = data.get("items", []) or data.get("products", [])
                 if items and isinstance(items, list):
-                    item = items[0]
-                    slug = item.get("slug")
+                    matched_item = items[0]
+                    brand_lower = brand.lower()
+                    for it in items:
+                        it_brand = str(it.get("brand", {}).get("name", "") if isinstance(it.get("brand"), dict) else it.get("brand", "")).lower()
+                        it_name = str(it.get("name", "")).lower()
+                        if brand_lower and (brand_lower in it_brand or brand_lower in it_name):
+                            matched_item = it
+                            break
+
+                    slug = matched_item.get("slug")
                     if slug:
                         direct_url = f"https://www.tirabeauty.com/product/{slug}"
-                    price_obj = item.get("price", {})
-                    eff = price_obj.get("effective", {})
-                    marked = price_obj.get("marked", {})
+
+                    price_obj = matched_item.get("price", {})
+                    eff = price_obj.get("effective", {}) if isinstance(price_obj, dict) else {}
+                    marked = price_obj.get("marked", {}) if isinstance(price_obj, dict) else {}
                     p = parse_numeric_price(eff.get("min") or eff.get("max") if isinstance(eff, dict) else eff)
                     m = parse_numeric_price(marked.get("min") or marked.get("max") if isinstance(marked, dict) else marked)
-                    in_stock = bool(item.get("is_in_stock", True))
+                    in_stock = bool(matched_item.get("sellable", matched_item.get("is_in_stock", True)))
                     if p and p > 0:
-                        return {"price": p, "originalPrice": m if (m and m >= p) else None, "inStock": in_stock, "stockStatus": "In Stock" if in_stock else "Out of Stock"}, direct_url
+                        return {
+                            "price": p,
+                            "originalPrice": m if (m and m >= p) else None,
+                            "inStock": in_stock,
+                            "stockStatus": "In Stock" if in_stock else "Out of Stock"
+                        }, direct_url
             except Exception:
                 pass
 
@@ -347,9 +530,17 @@ def scrape_tira(client: HttpClient, url: str, name: str, brand: str) -> Tuple[Op
 
 def scrape_purplle(client: HttpClient, url: str, name: str, brand: str) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
     direct_url: Optional[str] = None
+    slug_match = re.search(r"/product/([^/?#]+)", url)
+    if slug_match:
+        direct_url = f"https://www.purplle.com/product/{slug_match.group(1)}"
 
+    # If it is a search URL, first parse search results for first organic card & price
     if is_search_url(url):
-        resp = client.get(url)
+        headers = {
+            "Accept-Language": "en-IN,en;q=0.9",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        }
+        resp = client.get(url, headers=headers)
         if resp and resp.status_code == 200 and resp.text:
             soup = BeautifulSoup(resp.text, "html.parser")
             for a in soup.select('a[href*="/product/"], a[href*="/p/"], a[href*="/pr/"]'):
@@ -361,23 +552,35 @@ def scrape_purplle(client: HttpClient, url: str, name: str, brand: str) -> Tuple
                     direct_url = urllib.parse.urljoin("https://www.purplle.com", href)
                     break
 
+    # If direct_url not resolved yet, use search engine fallback
     if not direct_url and (is_search_url(url) or "/product/" not in url):
         direct_url = resolve_via_search_engine(client, "purplle.com", brand, name, "/product/")
 
-    target_url = direct_url or url
-    if not is_search_url(target_url):
-        resp = client.get(target_url)
+    target_url = direct_url or (url if not is_search_url(url) else None)
+    if target_url:
+        headers = {
+            "Accept-Language": "en-IN,en;q=0.9",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        }
+        resp = client.get(target_url, headers=headers)
         if resp and resp.status_code == 200 and resp.text:
             soup = BeautifulSoup(resp.text, "html.parser")
             ld = extract_schema_org_jsonld(soup)
             if ld and ld.get("price"):
-                return ld, direct_url
-            p_el = soup.select_one(".pd-price, .actual-price, span[class*='price']")
+                return ld, direct_url or target_url
+
+            p_el = soup.select_one(".pd-price, .actual-price, span[class*='price'], span[data-price]")
             m_el = soup.select_one(".pd-mrp, .cut-price, span[class*='mrp']")
             p = parse_numeric_price(p_el.get_text(strip=True)) if p_el else None
             m = parse_numeric_price(m_el.get_text(strip=True)) if m_el else None
             if p and p > 0:
-                return {"price": p, "originalPrice": m if (m and m >= p) else None, "inStock": True, "stockStatus": "In Stock"}, direct_url
+                in_stock = not any(w in soup.get_text().lower() for w in ["out of stock", "sold out", "currently unavailable"])
+                return {
+                    "price": p,
+                    "originalPrice": m if (m and m >= p) else None,
+                    "inStock": in_stock,
+                    "stockStatus": "In Stock" if in_stock else "Out of Stock"
+                }, direct_url or target_url
 
     return None, direct_url
 
@@ -392,7 +595,11 @@ def scrape_myntra(client: HttpClient, url: str, name: str, brand: str) -> Tuple[
             direct_url = resolved
             target_url = resolved
 
-    resp = client.get(target_url)
+    headers = {
+        "Accept-Language": "en-IN,en;q=0.9",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+    }
+    resp = client.get(target_url, headers=headers)
     if resp and resp.status_code == 200 and resp.text:
         html = resp.text
         idx = html.find("window.__myx = ")
@@ -418,7 +625,12 @@ def scrape_myntra(client: HttpClient, url: str, name: str, brand: str) -> Tuple[
                     sizes = pdp.get("sizes", [])
                     in_stock = any(s.get("available") for s in sizes) if sizes else bool(pdp.get("inStock", True))
                     if p and p > 0:
-                        return {"price": p, "originalPrice": m if (m and m >= p) else None, "inStock": in_stock, "stockStatus": "In Stock" if in_stock else "Out of Stock"}, direct_url
+                        return {
+                            "price": p,
+                            "originalPrice": m if (m and m >= p) else None,
+                            "inStock": in_stock,
+                            "stockStatus": "In Stock" if in_stock else "Out of Stock"
+                        }, direct_url
 
                 if "searchData" in data and isinstance(data["searchData"], dict):
                     prods = data["searchData"].get("results", {}).get("products", [])
@@ -432,7 +644,12 @@ def scrape_myntra(client: HttpClient, url: str, name: str, brand: str) -> Tuple[
                         inv = first.get("inventoryInfo", [])
                         in_stock = any(i.get("available") for i in inv) if inv else not first.get("outOfStock", False)
                         if p and p > 0:
-                            return {"price": p, "originalPrice": m if (m and m >= p) else None, "inStock": in_stock, "stockStatus": "In Stock" if in_stock else "Out of Stock"}, direct_url
+                            return {
+                                "price": p,
+                                "originalPrice": m if (m and m >= p) else None,
+                                "inStock": in_stock,
+                                "stockStatus": "In Stock" if in_stock else "Out of Stock"
+                            }, direct_url
             except Exception:
                 pass
 
@@ -476,14 +693,20 @@ def scrape_single_offer(item: Dict[str, Any], client: HttpClient) -> Dict[str, A
     }
 
 
-def render_progress_bar(completed: int, total: int, counts: Dict[str, int]) -> None:
-    bar_len = 22
+def render_progress_bar(completed: int, total: int, live_counts: Dict[str, int], pres_counts: Dict[str, int]) -> None:
+    bar_len = 20
     frac = completed / total if total > 0 else 1.0
     filled = int(frac * bar_len)
     bar = "█" * filled + "░" * (bar_len - filled)
     pct = int(frac * 100)
-    counts_str = f"N:{counts.get('nykaa', 0)} A:{counts.get('amazon', 0)} T:{counts.get('tira', 0)} P:{counts.get('purplle', 0)} M:{counts.get('myntra', 0)}"
-    sys.stdout.write(f"\r[{bar}] {completed}/{total} ({pct}%) | Live: {counts_str}")
+    counts_str = (
+        f"N:{live_counts.get('nykaa',0)}+{pres_counts.get('nykaa',0)} "
+        f"A:{live_counts.get('amazon',0)}+{pres_counts.get('amazon',0)} "
+        f"T:{live_counts.get('tira',0)}+{pres_counts.get('tira',0)} "
+        f"P:{live_counts.get('purplle',0)}+{pres_counts.get('purplle',0)} "
+        f"M:{live_counts.get('myntra',0)}+{pres_counts.get('myntra',0)}"
+    )
+    sys.stdout.write(f"\r[{bar}] {completed}/{total} ({pct}%) | Live+Preserved: {counts_str}")
     sys.stdout.flush()
 
 
@@ -540,12 +763,12 @@ def main() -> None:
     updated_at_iso = now_utc.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
     updated_label_ist = format_ist_label(now_utc)
 
-    print("\n" + "=" * 80)
+    print("\n" + "=" * 85)
     print(" PriceWise AI - Mobile Indian-IP Price Synchronizer (Termux/Mobile)")
     print(f" Timestamp : {updated_label_ist}")
     print(f" HTTP Mode : {'curl_cffi (Chrome 124 TLS)' if HAS_CURL_CFFI else 'requests (Chrome 124 User-Agent)'}")
     print(" Concurrency: ThreadPoolExecutor(max_workers=5)")
-    print("=" * 80 + "\n")
+    print("=" * 85 + "\n")
 
     products = parse_products_catalogue(PRODUCTS_FILE)
     prev_snapshot: Dict[str, Any] = {}
@@ -576,13 +799,14 @@ def main() -> None:
     total_tasks = len(tasks)
     completed_tasks = 0
     live_counts: Dict[str, int] = {"nykaa": 0, "amazon": 0, "tira": 0, "purplle": 0, "myntra": 0}
+    pres_counts: Dict[str, int] = {"nykaa": 0, "amazon": 0, "tira": 0, "purplle": 0, "myntra": 0}
 
     store_stats: Dict[str, Dict[str, int]] = {
-        "nykaa": {"total": 0, "direct": 0, "live": 0, "cached": 0, "fallback": 0},
-        "amazon": {"total": 0, "direct": 0, "live": 0, "cached": 0, "fallback": 0},
-        "tira": {"total": 0, "direct": 0, "live": 0, "cached": 0, "fallback": 0},
-        "purplle": {"total": 0, "direct": 0, "live": 0, "cached": 0, "fallback": 0},
-        "myntra": {"total": 0, "direct": 0, "live": 0, "cached": 0, "fallback": 0},
+        "nykaa": {"total": 0, "direct": 0, "live": 0, "preserved": 0, "pending": 0},
+        "amazon": {"total": 0, "direct": 0, "live": 0, "preserved": 0, "pending": 0},
+        "tira": {"total": 0, "direct": 0, "live": 0, "preserved": 0, "pending": 0},
+        "purplle": {"total": 0, "direct": 0, "live": 0, "preserved": 0, "pending": 0},
+        "myntra": {"total": 0, "direct": 0, "live": 0, "preserved": 0, "pending": 0},
     }
 
     # Group results by productId
@@ -604,7 +828,7 @@ def main() -> None:
             scraped = res["scrapedData"]
 
             if sid not in store_stats:
-                store_stats[sid] = {"total": 0, "direct": 0, "live": 0, "cached": 0, "fallback": 0}
+                store_stats[sid] = {"total": 0, "direct": 0, "live": 0, "preserved": 0, "pending": 0}
             store_stats[sid]["total"] += 1
 
             if direct_url and not is_search_url(direct_url):
@@ -612,11 +836,23 @@ def main() -> None:
 
             prev_prod_data = prev_products.get(pid, {})
             prev_offer_data = prev_prod_data.get(sid) or next(
-                (o for o in prev_prod_data.get("offers", []) if o.get("storeId") == sid),
+                (o for o in prev_prod_data.get("offers", []) if str(o.get("storeId", "")).lower() == sid.lower()),
                 None
             )
 
-            # Strict price determination
+            # Check if previous offer was a verified live price
+            prev_price = parse_numeric_price(prev_offer_data.get("price")) if prev_offer_data else None
+            is_prev_valid_live = bool(
+                prev_offer_data
+                and prev_price
+                and prev_price > 0
+                and (
+                    prev_offer_data.get("sourceType") in ["live", "cached", "verified_live"]
+                    or prev_offer_data.get("status") in ["success", "preserved_from_previous"]
+                )
+            )
+
+            # 1. Scrape Succeeded on this run
             if scraped and scraped.get("price") and scraped["price"] > 0:
                 store_stats[sid]["live"] += 1
                 live_counts[sid] = live_counts.get(sid, 0) + 1
@@ -630,20 +866,36 @@ def main() -> None:
                     "purchaseUrl": direct_url or res["originalUrl"],
                     "resolvedUrl": direct_url,
                     "sourceType": "live",
+                    "lastUpdated": updated_label_ist,
                     "lastChecked": updated_label_ist,
                     "status": "success",
                 }
-            elif prev_offer_data and prev_offer_data.get("price") and prev_offer_data["price"] > 0 and prev_offer_data.get("sourceType") == "live":
-                store_stats[sid]["cached"] += 1
-                final_offer = dict(prev_offer_data)
-                final_offer["sourceType"] = "cached"
-                final_offer["status"] = "preserved_from_previous"
-                final_offer["preservedFrom"] = prev_offer_data.get("lastChecked", updated_label_ist)
-                if direct_url:
-                    final_offer["resolvedUrl"] = direct_url
-                    final_offer["purchaseUrl"] = direct_url
+
+            # 2. Scrape failed/None, but valid live entry exists from previous run
+            # NEVER overwrite a valid sourceType == 'live' entry with empty/fallback data!
+            elif is_prev_valid_live and prev_offer_data:
+                store_stats[sid]["preserved"] += 1
+                pres_counts[sid] = pres_counts.get(sid, 0) + 1
+                preserved_url = direct_url or prev_offer_data.get("resolvedUrl") or prev_offer_data.get("purchaseUrl") or res["originalUrl"]
+                final_offer = {
+                    "storeId": sid,
+                    "storeName": res["storeName"],
+                    "price": prev_offer_data["price"],
+                    "originalPrice": prev_offer_data.get("originalPrice"),
+                    "inStock": prev_offer_data.get("inStock", True),
+                    "stockStatus": prev_offer_data.get("stockStatus", "In Stock"),
+                    "purchaseUrl": preserved_url,
+                    "resolvedUrl": direct_url or prev_offer_data.get("resolvedUrl"),
+                    "sourceType": "live",
+                    "lastUpdated": prev_offer_data.get("lastUpdated") or prev_offer_data.get("lastChecked") or updated_label_ist,
+                    "lastChecked": updated_label_ist,
+                    "status": "preserved_from_previous",
+                    "preservedFrom": prev_offer_data.get("lastChecked") or prev_offer_data.get("lastUpdated") or updated_label_ist,
+                }
+
+            # 3. No live data and no previous live data -> Catalog baseline / Pending
             else:
-                store_stats[sid]["fallback"] += 1
+                store_stats[sid]["pending"] += 1
                 final_offer = {
                     "storeId": sid,
                     "storeName": res["storeName"],
@@ -654,20 +906,20 @@ def main() -> None:
                     "purchaseUrl": direct_url or res["originalUrl"],
                     "resolvedUrl": direct_url,
                     "sourceType": "demo",
-                    "status": "catalog_baseline",
+                    "status": "pending_scrape",
                     "lastChecked": updated_label_ist,
                 }
 
             results_by_prod[pid]["offers"].append(final_offer)
             results_by_prod[pid][sid] = final_offer
 
-            render_progress_bar(completed_tasks, total_tasks, live_counts)
+            render_progress_bar(completed_tasks, total_tasks, live_counts, pres_counts)
 
-    print("\n\n" + "=" * 80)
+    print("\n\n" + "=" * 85)
     print(f" FINAL RETAILER LIVE PRICE SYNC SUMMARY ({updated_label_ist})")
-    print("=" * 80)
-    print(f" {'Retailer':<16} {'Offers':<10} {'Direct URLs':<14} {'Live Scraped':<14} {'Cached':<10} {'Fallback':<10}")
-    print("-" * 80)
+    print("=" * 85)
+    print(f" {'Retailer':<16} {'Offers':<10} {'Direct URLs':<14} {'Live Scraped':<14} {'Preserved':<12} {'Pending':<10}")
+    print("-" * 85)
 
     display_names = {
         "nykaa": "Nykaa",
@@ -679,16 +931,16 @@ def main() -> None:
     tot_offers = sum(s["total"] for s in store_stats.values())
     tot_direct = sum(s["direct"] for s in store_stats.values())
     tot_live = sum(s["live"] for s in store_stats.values())
-    tot_cached = sum(s["cached"] for s in store_stats.values())
-    tot_fallback = sum(s["fallback"] for s in store_stats.values())
+    tot_preserved = sum(s["preserved"] for s in store_stats.values())
+    tot_pending = sum(s["pending"] for s in store_stats.values())
 
     for sid, label in display_names.items():
-        st = store_stats.get(sid, {"total": 0, "direct": 0, "live": 0, "cached": 0, "fallback": 0})
-        print(f" {label:<16} {st['total']:<10} {st['direct']:<14} {st['live']:<14} {st['cached']:<10} {st['fallback']:<10}")
+        st = store_stats.get(sid, {"total": 0, "direct": 0, "live": 0, "preserved": 0, "pending": 0})
+        print(f" {label:<16} {st['total']:<10} {st['direct']:<14} {st['live']:<14} {st['preserved']:<12} {st['pending']:<10}")
 
-    print("-" * 80)
-    print(f" {'TOTAL':<16} {tot_offers:<10} {tot_direct:<14} {tot_live:<14} {tot_cached:<10} {tot_fallback:<10}")
-    print("=" * 80 + "\n")
+    print("-" * 85)
+    print(f" {'TOTAL':<16} {tot_offers:<10} {tot_direct:<14} {tot_live:<14} {tot_preserved:<12} {tot_pending:<10}")
+    print("=" * 85 + "\n")
 
     snapshot_output = {
         "updatedAt": updated_at_iso,
@@ -696,8 +948,8 @@ def main() -> None:
         "totalProducts": len(products),
         "totalOffers": tot_offers,
         "scrapedSuccessCount": tot_live,
-        "preservedCount": tot_cached,
-        "fallbackCount": tot_fallback,
+        "preservedCount": tot_preserved,
+        "pendingCount": tot_pending,
         "products": results_by_prod,
     }
 

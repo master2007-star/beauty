@@ -63,10 +63,10 @@ export function PriceProvider({ children }: { children: ReactNode }) {
             const updatedOffers: RetailerOffer[] = product.storeOffers.map((existingOffer) => {
               const liveMatch = liveOffersMap[existingOffer.storeId.toLowerCase()];
 
-              // ONLY set sourceType: 'live' when liveMatch actually exists and has sourceType === 'live' with valid price > 0
+              // ONLY set sourceType: 'live' when liveMatch actually exists and has sourceType === 'live' | 'cached' with valid price > 0
               const isTrulyLive = Boolean(
                 liveMatch &&
-                liveMatch.sourceType === 'live' &&
+                (liveMatch.sourceType === 'live' || liveMatch.sourceType === 'cached') &&
                 liveMatch.price !== undefined &&
                 liveMatch.price !== null &&
                 Number(liveMatch.price) > 0
