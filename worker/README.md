@@ -2,19 +2,28 @@
 
 Serverless Edge API running on Cloudflare Workers for 5-Store Indian beauty price comparison (Nykaa, Amazon India, Tira Beauty, Purplle, Myntra).
 
-## Deployment
+## Automatic Deployment via GitHub Actions
 
-Deploy in 10 seconds using [Wrangler](https://developers.cloudflare.com/workers/wrangler/):
+This repository includes `.github/workflows/deploy-worker.yml`.
+To deploy automatically:
+1. In your GitHub repo settings, go to **Settings → Secrets and variables → Actions**.
+2. Add a repository secret named `CLOUDFLARE_API_TOKEN` containing your Cloudflare Workers API token (create one at https://dash.cloudflare.com/profile/api-tokens with template "Edit Cloudflare Workers").
+3. Push to `main` (or run **Actions → Deploy Cloudflare Worker → Run workflow**).
+
+Wrangler deploys the worker as `pricewise-compare` with compatibility date `2026-11-01`.
+
+## Local / Manual Deployment
 
 ```bash
 cd worker
 npx wrangler deploy
 ```
 
-Once deployed, copy your worker URL (e.g., `https://pricewise-beauty-worker.<your-subdomain>.workers.dev`) and set it in your frontend `.env`:
-
+Once deployed, copy your worker URL (e.g., `https://pricewise-compare.<your-subdomain>.workers.dev`):
+- Paste it into the search modal settings (⚙️ icon) in PriceWise Beauty. It persists in browser `localStorage` (`PRICEWISE_WORKER_URL`) without rebuilding the site!
+- Or set it in your frontend `.env`:
 ```env
-VITE_LIVE_SEARCH_API=https://pricewise-beauty-worker.<your-subdomain>.workers.dev
+VITE_LIVE_SEARCH_API=https://pricewise-compare.<your-subdomain>.workers.dev
 ```
 
 ## API Endpoint

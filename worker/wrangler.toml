@@ -1,6 +1,6 @@
-name = "pricewise-beauty-worker"
+name = "pricewise-compare"
 main = "src/index.ts"
-compatibility_date = "2024-04-01"
+compatibility_date = "2026-11-01"
 
 [vars]
 ENVIRONMENT = "production"

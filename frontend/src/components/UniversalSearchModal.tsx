@@ -116,9 +116,14 @@ const TRENDING_QUERIES = [
   'Plum Green Tea Toner',
 ];
 
-const DEFAULT_WORKER_URL =
-  (import.meta.env.VITE_LIVE_SEARCH_API as string) ||
-  'https://pricewise-beauty-worker.workers.dev';
+const getInitialWorkerUrl = (): string => {
+  return (
+    localStorage.getItem('PRICEWISE_WORKER_URL') ||
+    localStorage.getItem('pricewise_worker_api') ||
+    (import.meta.env.VITE_LIVE_SEARCH_API as string) ||
+    ''
+  );
+};
 
 export const UniversalSearchModal: React.FC<UniversalSearchModalProps> = ({
   isOpen,
@@ -132,9 +137,7 @@ export const UniversalSearchModal: React.FC<UniversalSearchModalProps> = ({
   const { products: PRODUCTS_DATA } = useCatalogue();
 
   // Cloudflare Worker Live Search State
-  const [workerApiUrl, setWorkerApiUrl] = useState<string>(() => {
-    return localStorage.getItem('pricewise_worker_api') || DEFAULT_WORKER_URL;
-  });
+  const [workerApiUrl, setWorkerApiUrl] = useState<string>(getInitialWorkerUrl);
   const [isEditingApi, setIsEditingApi] = useState(false);
   const [tempApiUrl, setTempApiUrl] = useState(workerApiUrl);
   const [apiStatus, setApiStatus] = useState<'idle' | 'testing' | 'valid' | 'invalid'>('idle');
@@ -201,15 +204,23 @@ export const UniversalSearchModal: React.FC<UniversalSearchModalProps> = ({
   }, [query, workerApiUrl]);
 
   // Fetch from Cloudflare Worker
-  const fetchLiveWebPrices = async (searchTerm: string) => {
+  const fetchLiveWebPrices = async (searchTerm: string, overrideUrl?: string) => {
     if (!searchTerm) return;
+    const activeUrl = (overrideUrl !== undefined ? overrideUrl : workerApiUrl).trim().replace(/\/+$/, '');
+
+    if (!activeUrl) {
+      setWebResults([]);
+      setWebBestPrice(null);
+      setWebError(null);
+      return;
+    }
+
     setIsLoadingWeb(true);
     setWebError(null);
     setHasSearchedWeb(true);
 
     try {
-      const cleanBase = workerApiUrl.trim().replace(/\/+$/, '');
-      const endpoint = `${cleanBase}/compare?q=${encodeURIComponent(searchTerm)}`;
+      const endpoint = `${activeUrl}/compare?q=${encodeURIComponent(searchTerm)}`;
       const res = await fetch(endpoint, {
         headers: { Accept: 'application/json' },
       });
@@ -223,7 +234,7 @@ export const UniversalSearchModal: React.FC<UniversalSearchModalProps> = ({
       setWebResults(validResults);
       setWebBestPrice(data.bestPrice || (validResults[0]?.price ?? null));
     } catch {
-      setWebError('Live Edge Search unavailable. Connect your Cloudflare Worker endpoint.');
+      setWebError('Live Edge Search unavailable. Verify your Cloudflare Worker endpoint in Settings (⚙️).');
       setWebResults([]);
       setWebBestPrice(null);
     } finally {
@@ -235,6 +246,10 @@ export const UniversalSearchModal: React.FC<UniversalSearchModalProps> = ({
     setApiStatus('testing');
     try {
       const cleanBase = testUrl.trim().replace(/\/+$/, '');
+      if (!cleanBase) {
+        setApiStatus('invalid');
+        return;
+      }
       const res = await fetch(`${cleanBase}/health`, {
         headers: { Accept: 'application/json' },
       });
@@ -249,12 +264,18 @@ export const UniversalSearchModal: React.FC<UniversalSearchModalProps> = ({
   };
 
   const handleSaveApiUrl = () => {
-    const clean = tempApiUrl.trim();
+    const clean = tempApiUrl.trim().replace(/\/+$/, '');
     setWorkerApiUrl(clean);
-    localStorage.setItem('pricewise_worker_api', clean);
+    if (clean) {
+      localStorage.setItem('PRICEWISE_WORKER_URL', clean);
+      localStorage.setItem('pricewise_worker_api', clean);
+    } else {
+      localStorage.removeItem('PRICEWISE_WORKER_URL');
+      localStorage.removeItem('pricewise_worker_api');
+    }
     setIsEditingApi(false);
     if (query.trim().length >= 3) {
-      fetchLiveWebPrices(query.trim());
+      fetchLiveWebPrices(query.trim(), clean);
     }
   };
 
@@ -385,7 +406,7 @@ export const UniversalSearchModal: React.FC<UniversalSearchModalProps> = ({
                         setTempApiUrl(e.target.value);
                         setApiStatus('idle');
                       }}
-                      placeholder="https://pricewise-beauty-worker.<subdomain>.workers.dev"
+                      placeholder="https://pricewise-compare.<your-subdomain>.workers.dev"
                       className="flex-1 px-3 py-2 bg-white rounded-xl border border-stone-300 text-espresso-900 focus:outline-hidden focus:border-rose-500 font-mono text-[11px]"
                     />
                     <button
@@ -404,6 +425,10 @@ export const UniversalSearchModal: React.FC<UniversalSearchModalProps> = ({
                       Save
                     </button>
                   </div>
+
+                  <p className="text-[10px] text-espresso-400">
+                    Paste your <code>*.workers.dev</code> URL here once. It is saved in <code>localStorage</code> (key: <code>PRICEWISE_WORKER_URL</code>) with no app rebuild needed.
+                  </p>
 
                   {apiStatus === 'valid' && (
                     <p className="text-[11px] text-emerald-700 flex items-center space-x-1">
@@ -817,6 +842,30 @@ export const UniversalSearchModal: React.FC<UniversalSearchModalProps> = ({
                         </div>
                       );
                     })}
+                  </div>
+                )}
+
+                {/* If worker URL is not configured yet */}
+                {!workerApiUrl && !topMatch && (
+                  <div className="p-4 sm:p-5 text-center bg-white rounded-2xl border border-dashed border-rose-200/90 space-y-2.5">
+                    <div className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-rose-50 text-rose-700 text-xs font-semibold">
+                      <Globe className="w-3.5 h-3.5" />
+                      <span>Free Cloudflare Worker Live Search</span>
+                    </div>
+                    <p className="text-xs sm:text-sm font-bold text-espresso-950">
+                      Connect your Cloudflare Worker URL for live web prices
+                    </p>
+                    <p className="text-xs text-espresso-500 max-w-md mx-auto">
+                      Deployed your worker? Paste your <code>*.workers.dev</code> endpoint once in Settings to scan Nykaa, Amazon India, Tira, Purplle, and Myntra live.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setIsEditingApi(true)}
+                      className="px-3.5 py-1.5 rounded-xl bg-espresso-900 hover:bg-espresso-800 text-ivory text-xs font-bold transition-all shadow-xs inline-flex items-center space-x-1.5"
+                    >
+                      <Settings className="w-3.5 h-3.5" />
+                      <span>Paste Worker URL in Settings</span>
+                    </button>
                   </div>
                 )}
 
