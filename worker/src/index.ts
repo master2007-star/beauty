@@ -187,6 +187,67 @@ async function fetchWebSnippets(
   return results;
 }
 
+
+async function fetchCatalogMatches(query: string): Promise<RetailerCompareResult[]> {
+  try {
+    const rawUrl = "https://raw.githubusercontent.com/master2007-star/beauty/main/frontend/public/data/live-prices.json";
+    const resp = await fetch(rawUrl, { cf: { cacheTtl: 600, cacheEverything: true } });
+    if (!resp.ok) return [];
+    const data = (await resp.json()) as any;
+    const products = Object.values(data.products || {}) as any[];
+    const tokens = query
+      .toLowerCase()
+      .replace(/[^a-z0-9\s]/g, " ")
+      .split(/\s+/)
+      .filter((t) => t.length > 1);
+    if (tokens.length === 0) return [];
+
+    let bestProduct: any = null;
+    let bestScore = 0;
+
+    for (const prod of products) {
+      const hay = `${prod.brand || ""} ${prod.productName || ""}`.toLowerCase();
+      let matched = 0;
+      for (const tok of tokens) {
+        if (hay.includes(tok)) matched++;
+      }
+      const score = matched / tokens.length;
+      if (matched > 0 && score >= 0.5 && score > bestScore) {
+        bestScore = score;
+        bestProduct = prod;
+      }
+    }
+
+    if (!bestProduct || !Array.isArray(bestProduct.offers)) return [];
+
+    const out: RetailerCompareResult[] = [];
+    for (const offer of bestProduct.offers) {
+      const price = parsePrice(offer.price);
+      if (!price) continue;
+      const storeMap: Record<string, string> = {
+        nykaa: "Nykaa",
+        tira: "Tira Beauty",
+        amazon: "Amazon India",
+        purplle: "Purplle",
+        myntra: "Myntra",
+      };
+      const retailer = storeMap[String(offer.storeId || "").toLowerCase()] || offer.storeName || "Store";
+      out.push({
+        retailer,
+        productTitle: `${bestProduct.brand ? bestProduct.brand + " " : ""}${bestProduct.productName || query}`.trim(),
+        imageUrl: offer.imageUrl || bestProduct.imageUrl || null,
+        price,
+        mrp: parsePrice(offer.originalPrice),
+        productUrl: offer.purchaseUrl || offer.resolvedUrl || "",
+        inStock: offer.inStock !== false,
+      });
+    }
+    return out;
+  } catch {
+    return [];
+  }
+}
+
 // ==============================================================================
 // Store Handlers
 // ==============================================================================
@@ -589,6 +650,16 @@ export default {
       }
       if (myntraRes.status === 'fulfilled' && myntraRes.value) {
         results.push(myntraRes.value);
+      }
+
+      // Merge verified catalog snapshot offers for missing retailers
+      const catalogMatches = await fetchCatalogMatches(q);
+      const seenRetailers = new Set(results.map((r) => r.retailer.toLowerCase()));
+      for (const item of catalogMatches) {
+        if (!seenRetailers.has(item.retailer.toLowerCase())) {
+          results.push(item);
+          seenRetailers.add(item.retailer.toLowerCase());
+        }
       }
 
       // Sort by price ascending (lowest price first)
