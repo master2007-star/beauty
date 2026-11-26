@@ -8,7 +8,7 @@ on:
     branches:
       - main
     paths:
-      - 'frontend/public/data/live-prices.json'
+      - 'frontend/**'
 
 permissions:
   contents: write
@@ -45,7 +45,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add frontend/public/data/live-prices.json
+          git add frontend/**
           if git diff --staged --quiet; then
             echo "No price changes detected. Snapshot remains up to date."
           else
