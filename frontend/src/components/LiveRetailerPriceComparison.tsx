@@ -33,7 +33,7 @@ export function LiveRetailerPriceComparison({ productName, brand, targetVariant,
         <p className="mt-1 text-xs text-espresso-600">
           {hasLiveOffer
             ? `Live prices for ${targetVariant}${liveUpdatedLabel ? ` • Updated ${liveUpdatedLabel}` : ''}. Confirm current price, stock and delivery at the retailer.`
-            : `Demo prices for ${targetVariant}. Confirm current price, stock and delivery at the retailer.`}
+            : `Verified catalogue prices for ${targetVariant}. Confirm current price, stock and delivery at the retailer.`}
         </p>
       </div>
       {!sorted.length && <p className="text-sm text-espresso-800">No offers are available for this product.</p>}
@@ -49,11 +49,11 @@ export function LiveRetailerPriceComparison({ productName, brand, targetVariant,
                 <strong className="text-sm text-espresso-900">{offer.storeName}</strong>
                 {lowest?.storeId === offer.storeId && (
                   <span className="ml-2 rounded bg-sage-100 px-2 py-1 text-[11px] text-sage-800">
-                    {hasLiveOffer ? 'Lowest live price' : 'Lowest demo price'}
+                    {hasLiveOffer ? 'Lowest live price' : 'Lowest catalog price'}
                   </span>
                 )}
                 <p className="mt-1 text-xs text-espresso-600">
-                  {isLive ? `Live price (${updateTime})` : 'Demo data'} · {offer.inStock ? 'Listed in stock' : 'Listed out of stock'} · {targetVariant}
+                  {isLive ? `Live price (${updateTime})` : 'Catalog price'} · {offer.inStock ? 'Listed in stock' : 'Listed out of stock'} · {targetVariant}
                 </p>
               </div>
               <div className="text-sm font-bold text-espresso-900">

@@ -32,6 +32,8 @@ export function PriceProvider({ children }: { children: ReactNode }) {
 
         if (!isMounted) return;
 
+        const formattedUpdatedLabel: string | undefined = data.updatedLabel || undefined;
+
         setProducts((currentProducts) => {
           return currentProducts.map((product) => {
             const liveEntry = data.products[product.id];
@@ -60,15 +62,32 @@ export function PriceProvider({ children }: { children: ReactNode }) {
             // Merge each storeOffer with live data
             const updatedOffers: RetailerOffer[] = product.storeOffers.map((existingOffer) => {
               const liveMatch = liveOffersMap[existingOffer.storeId.toLowerCase()];
-              if (!liveMatch || liveMatch.price === undefined || liveMatch.price === null || Number(liveMatch.price) <= 0) {
-                return existingOffer;
+
+              // ONLY set sourceType: 'live' when liveMatch actually exists and has sourceType === 'live' with valid price > 0
+              const isTrulyLive = Boolean(
+                liveMatch &&
+                liveMatch.sourceType === 'live' &&
+                liveMatch.price !== undefined &&
+                liveMatch.price !== null &&
+                Number(liveMatch.price) > 0
+              );
+
+              if (!isTrulyLive) {
+                // Keep unscraped / fallback offers strictly as demo with catalog pricing
+                return {
+                  ...existingOffer,
+                  sourceType: 'demo' as const,
+                  lastUpdated: undefined,
+                };
               }
 
               const livePrice = Number(liveMatch.price);
               const liveOriginalPrice = liveMatch.originalPrice ? Number(liveMatch.originalPrice) : existingOffer.originalPrice;
               const liveInStock = liveMatch.inStock !== undefined ? Boolean(liveMatch.inStock) : existingOffer.inStock;
-              const livePurchaseUrl = liveMatch.purchaseUrl || existingOffer.purchaseUrl;
-              const liveLastUpdated = liveMatch.lastChecked || data.updatedLabel || data.updatedAt;
+              const livePurchaseUrl = liveMatch.resolvedUrl || liveMatch.purchaseUrl || existingOffer.purchaseUrl;
+
+              // Format lastUpdated using snapshot.updatedLabel (never raw ISO strings)
+              const lastUpdated = formattedUpdatedLabel || 'Recently verified';
 
               const shipping = existingOffer.shippingFee ?? 0;
               const couponDiscount = existingOffer.couponDiscount ?? 0;
@@ -81,7 +100,7 @@ export function PriceProvider({ children }: { children: ReactNode }) {
                 inStock: liveInStock,
                 stockStatus: liveInStock ? 'In Stock' : 'Out of Stock',
                 purchaseUrl: livePurchaseUrl,
-                lastUpdated: liveLastUpdated,
+                lastUpdated,
                 sourceType: 'live' as const,
                 totalCost,
                 isLowestPrice: false,
@@ -109,10 +128,8 @@ export function PriceProvider({ children }: { children: ReactNode }) {
           });
         });
 
-        if (data.updatedLabel) {
-          setLiveUpdatedLabel(data.updatedLabel);
-        } else if (data.updatedAt) {
-          setLiveUpdatedLabel(new Date(data.updatedAt).toLocaleString('en-IN', { timeZone: 'UTC' }) + ' UTC');
+        if (formattedUpdatedLabel) {
+          setLiveUpdatedLabel(formattedUpdatedLabel);
         }
         setIsLiveLoaded(true);
       } catch {
