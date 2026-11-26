@@ -10,8 +10,15 @@ import {
   TrendingUp,
   Layers,
   Crown,
+  RefreshCw,
+  Settings,
+  Check,
+  AlertCircle,
+  ShoppingBag,
+  Globe,
+  Zap,
 } from 'lucide-react';
-import type { Product } from '../types';
+import type { Product, WebCompareResult, WebCompareResponse } from '../types';
 import { ProductImage } from './ProductImage';
 import { useCatalogue } from '../context/PriceContext';
 
@@ -38,21 +45,21 @@ const FIVE_STORES: StoreSearchMeta[] = [
   {
     id: 'nykaa',
     name: 'Nykaa',
-    badge: '100% Authentic Guarantee',
-    colorBg: 'bg-pink-50',
+    badge: '100% Authentic',
+    colorBg: 'bg-pink-50/70',
     colorText: 'text-pink-700',
-    borderColor: 'border-pink-200/80',
+    borderColor: 'border-pink-200/90',
     logoBg: 'bg-pink-600',
-    perks: 'Free delivery above ₹499 • 2-4 Days',
+    perks: 'Free shipping > ₹499 • 2-4 Days',
     getSearchUrl: (q) => `https://www.nykaa.com/search/result/?q=${encodeURIComponent(q)}`,
   },
   {
     id: 'amazon',
     name: 'Amazon India',
-    badge: 'Fastest Prime Delivery',
-    colorBg: 'bg-amber-50',
+    badge: 'Fast Prime',
+    colorBg: 'bg-amber-50/70',
     colorText: 'text-amber-800',
-    borderColor: 'border-amber-200/80',
+    borderColor: 'border-amber-200/90',
     logoBg: 'bg-amber-600',
     perks: 'Free Prime shipping • 1-2 Days',
     getSearchUrl: (q) => `https://www.amazon.in/s?k=${encodeURIComponent(q)}`,
@@ -60,34 +67,34 @@ const FIVE_STORES: StoreSearchMeta[] = [
   {
     id: 'tira',
     name: 'Tira Beauty',
-    badge: 'Reliance Beauty Luxe',
-    colorBg: 'bg-rose-50',
+    badge: 'Reliance Luxe',
+    colorBg: 'bg-rose-50/70',
     colorText: 'text-rose-900',
-    borderColor: 'border-rose-200/80',
+    borderColor: 'border-rose-200/90',
     logoBg: 'bg-[#671A37]',
-    perks: 'Free delivery above ₹499 • 1-3 Days',
+    perks: 'Free shipping > ₹499 • 1-3 Days',
     getSearchUrl: (q) => `https://www.tirabeauty.com/search?q=${encodeURIComponent(q)}`,
   },
   {
     id: 'purplle',
     name: 'Purplle',
-    badge: 'Best Budget Offers',
-    colorBg: 'bg-purple-50',
+    badge: 'Best Budget',
+    colorBg: 'bg-purple-50/70',
     colorText: 'text-purple-700',
-    borderColor: 'border-purple-200/80',
+    borderColor: 'border-purple-200/90',
     logoBg: 'bg-[#78206E]',
-    perks: 'Free delivery above ₹399 • 3-5 Days',
+    perks: 'Free shipping > ₹399 • 3-5 Days',
     getSearchUrl: (q) => `https://www.purplle.com/search?q=${encodeURIComponent(q)}`,
   },
   {
     id: 'myntra',
     name: 'Myntra',
-    badge: 'Fashion & Beauty Insider',
-    colorBg: 'bg-rose-50',
+    badge: 'Beauty Insider',
+    colorBg: 'bg-rose-50/70',
     colorText: 'text-rose-700',
-    borderColor: 'border-rose-200/80',
+    borderColor: 'border-rose-200/90',
     logoBg: 'bg-[#EE5F73]',
-    perks: 'Free delivery above ₹799 • 2-4 Days',
+    perks: 'Free shipping > ₹799 • 2-4 Days',
     getSearchUrl: (q) =>
       `https://www.myntra.com/${encodeURIComponent(
         q
@@ -109,6 +116,10 @@ const TRENDING_QUERIES = [
   'Plum Green Tea Toner',
 ];
 
+const DEFAULT_WORKER_URL =
+  (import.meta.env.VITE_LIVE_SEARCH_API as string) ||
+  'https://pricewise-beauty-worker.workers.dev';
+
 export const UniversalSearchModal: React.FC<UniversalSearchModalProps> = ({
   isOpen,
   onClose,
@@ -120,6 +131,21 @@ export const UniversalSearchModal: React.FC<UniversalSearchModalProps> = ({
   const navigate = useNavigate();
   const { products: PRODUCTS_DATA } = useCatalogue();
 
+  // Cloudflare Worker Live Search State
+  const [workerApiUrl, setWorkerApiUrl] = useState<string>(() => {
+    return localStorage.getItem('pricewise_worker_api') || DEFAULT_WORKER_URL;
+  });
+  const [isEditingApi, setIsEditingApi] = useState(false);
+  const [tempApiUrl, setTempApiUrl] = useState(workerApiUrl);
+  const [apiStatus, setApiStatus] = useState<'idle' | 'testing' | 'valid' | 'invalid'>('idle');
+
+  const [isLoadingWeb, setIsLoadingWeb] = useState(false);
+  const [webResults, setWebResults] = useState<WebCompareResult[]>([]);
+  const [webBestPrice, setWebBestPrice] = useState<number | null>(null);
+  const [webError, setWebError] = useState<string | null>(null);
+  const [hasSearchedWeb, setHasSearchedWeb] = useState(false);
+
+  // Focus and initialize on open
   useEffect(() => {
     if (isOpen) {
       setQuery(initialQuery);
@@ -127,6 +153,7 @@ export const UniversalSearchModal: React.FC<UniversalSearchModalProps> = ({
     }
   }, [isOpen, initialQuery]);
 
+  // Handle ESC key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isOpen) {
@@ -137,7 +164,7 @@ export const UniversalSearchModal: React.FC<UniversalSearchModalProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
-  // Autocomplete matching products in local catalogue
+  // Autocomplete matching products in local catalogue (already enriched with live-prices.json)
   const matchingProducts = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return [];
@@ -152,8 +179,84 @@ export const UniversalSearchModal: React.FC<UniversalSearchModalProps> = ({
     }).slice(0, 6);
   }, [query, PRODUCTS_DATA]);
 
-  // Best single match (for store-specific live price preview)
   const topMatch = matchingProducts[0] || null;
+
+  // Auto-debounced Live Web Search via Cloudflare Worker
+  useEffect(() => {
+    const trimmed = query.trim();
+    if (!trimmed || trimmed.length < 3) {
+      setWebResults([]);
+      setWebBestPrice(null);
+      setWebError(null);
+      setHasSearchedWeb(false);
+      setIsLoadingWeb(false);
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      fetchLiveWebPrices(trimmed);
+    }, 700);
+
+    return () => clearTimeout(timer);
+  }, [query, workerApiUrl]);
+
+  // Fetch from Cloudflare Worker
+  const fetchLiveWebPrices = async (searchTerm: string) => {
+    if (!searchTerm) return;
+    setIsLoadingWeb(true);
+    setWebError(null);
+    setHasSearchedWeb(true);
+
+    try {
+      const cleanBase = workerApiUrl.trim().replace(/\/+$/, '');
+      const endpoint = `${cleanBase}/compare?q=${encodeURIComponent(searchTerm)}`;
+      const res = await fetch(endpoint, {
+        headers: { Accept: 'application/json' },
+      });
+
+      if (!res.ok) {
+        throw new Error(`Worker returned status ${res.status}`);
+      }
+
+      const data: WebCompareResponse = await res.json();
+      const validResults = (data.results || []).filter((r) => r.price && r.price > 0);
+      setWebResults(validResults);
+      setWebBestPrice(data.bestPrice || (validResults[0]?.price ?? null));
+    } catch {
+      setWebError('Live Edge Search unavailable. Connect your Cloudflare Worker endpoint.');
+      setWebResults([]);
+      setWebBestPrice(null);
+    } finally {
+      setIsLoadingWeb(false);
+    }
+  };
+
+  const testApiConnection = async (testUrl: string) => {
+    setApiStatus('testing');
+    try {
+      const cleanBase = testUrl.trim().replace(/\/+$/, '');
+      const res = await fetch(`${cleanBase}/health`, {
+        headers: { Accept: 'application/json' },
+      });
+      if (res.ok) {
+        setApiStatus('valid');
+      } else {
+        setApiStatus('invalid');
+      }
+    } catch {
+      setApiStatus('invalid');
+    }
+  };
+
+  const handleSaveApiUrl = () => {
+    const clean = tempApiUrl.trim();
+    setWorkerApiUrl(clean);
+    localStorage.setItem('pricewise_worker_api', clean);
+    setIsEditingApi(false);
+    if (query.trim().length >= 3) {
+      fetchLiveWebPrices(query.trim());
+    }
+  };
 
   const handleOpenAllStores = () => {
     const trimmed = query.trim() || 'beauty';
@@ -171,23 +274,53 @@ export const UniversalSearchModal: React.FC<UniversalSearchModalProps> = ({
     }
   };
 
+  // Helper to map store names to metadata
+  const getStoreMeta = (retailerName: string): StoreSearchMeta => {
+    const lower = retailerName.toLowerCase();
+    const found = FIVE_STORES.find(
+      (s) => lower.includes(s.id) || s.name.toLowerCase().includes(lower)
+    );
+    return (
+      found || {
+        id: 'generic',
+        name: retailerName,
+        badge: 'Verified Retailer',
+        colorBg: 'bg-stone-50',
+        colorText: 'text-stone-800',
+        borderColor: 'border-stone-200',
+        logoBg: 'bg-stone-800',
+        perks: 'Standard shipping • Express available',
+        getSearchUrl: (q) => `https://www.google.com/search?q=${encodeURIComponent(retailerName + ' ' + q)}`,
+      }
+    );
+  };
+
   if (!isOpen) return null;
+
+  // Stores that did NOT return an exact price for custom search
+  const coveredStoreIds = new Set(
+    topMatch
+      ? topMatch.storeOffers.filter((o) => o.price > 0).map((o) => o.storeId.toLowerCase())
+      : webResults.map((r) => getStoreMeta(r.retailer).id)
+  );
+
+  const missingStores = FIVE_STORES.filter((s) => !coveredStoreIds.has(s.id));
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 overflow-y-auto bg-espresso-950/65 backdrop-blur-md flex items-start justify-center p-3 sm:p-6 pt-10 sm:pt-16">
+      <div className="fixed inset-0 z-50 overflow-y-auto bg-espresso-950/70 backdrop-blur-md flex items-start justify-center p-3 sm:p-6 pt-8 sm:pt-14">
         <motion.div
           initial={{ opacity: 0, scale: 0.96, y: -15 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.96, y: -15 }}
           transition={{ duration: 0.25, ease: 'easeOut' }}
-          className="relative w-full max-w-4xl bg-ivory rounded-3xl shadow-2xl border border-rose-200/80 overflow-hidden flex flex-col max-h-[88vh]"
+          className="relative w-full max-w-4xl bg-[#FDFCFA] rounded-3xl shadow-2xl border border-stone-200/90 overflow-hidden flex flex-col max-h-[90vh]"
         >
           {/* Header & Search Input */}
-          <div className="p-4 sm:p-6 border-b border-rose-100 bg-white/90 backdrop-blur-md sticky top-0 z-20">
+          <div className="p-4 sm:p-6 border-b border-stone-200/80 bg-white/95 backdrop-blur-md sticky top-0 z-20">
             <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-rose-400 to-rose-600 text-ivory flex items-center justify-center font-serif font-bold text-sm shadow-xs">
+              <div className="flex items-center space-x-2.5">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-700 via-rose-600 to-espresso-900 text-ivory flex items-center justify-center font-serif font-bold text-sm shadow-xs">
                   5S
                 </div>
                 <div>
@@ -195,29 +328,108 @@ export const UniversalSearchModal: React.FC<UniversalSearchModalProps> = ({
                     5-Store Universal Beauty Compare
                   </h2>
                   <span className="text-[10px] tracking-widest uppercase text-espresso-400 font-sans block mt-1">
-                    Nykaa • Amazon India • Tira • Purplle • Myntra
+                    Nykaa • Amazon India • Tira Beauty • Purplle • Myntra
                   </span>
                 </div>
               </div>
 
-              <button
-                onClick={onClose}
-                className="p-2 rounded-full hover:bg-rose-100 text-espresso-400 hover:text-espresso-700 transition-colors"
-                aria-label="Close modal"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              <div className="flex items-center space-x-2">
+                <button
+                  type="button"
+                  onClick={() => setIsEditingApi((prev) => !prev)}
+                  title="Configure Cloudflare Worker Edge Search API"
+                  className={`p-2 rounded-full border transition-all ${
+                    isEditingApi
+                      ? 'bg-rose-50 text-rose-700 border-rose-300'
+                      : 'hover:bg-stone-100 text-espresso-400 hover:text-espresso-700 border-transparent'
+                  }`}
+                  aria-label="Worker settings"
+                >
+                  <Settings className="w-4 h-4" />
+                </button>
+
+                <button
+                  onClick={onClose}
+                  className="p-2 rounded-full hover:bg-rose-100 text-espresso-400 hover:text-espresso-700 transition-colors"
+                  aria-label="Close modal"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
+            {/* Cloudflare Worker Endpoint Settings Panel */}
+            <AnimatePresence>
+              {isEditingApi && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="overflow-hidden mb-3 p-3.5 bg-stone-50 rounded-2xl border border-stone-200 text-xs space-y-2.5"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-espresso-800 flex items-center space-x-1.5">
+                      <Globe className="w-3.5 h-3.5 text-rose-600" />
+                      <span>Cloudflare Worker Live Search Edge Endpoint</span>
+                    </span>
+                    <span className="text-[10px] text-espresso-400">
+                      Free serverless deployment
+                    </span>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="url"
+                      value={tempApiUrl}
+                      onChange={(e) => {
+                        setTempApiUrl(e.target.value);
+                        setApiStatus('idle');
+                      }}
+                      placeholder="https://pricewise-beauty-worker.<subdomain>.workers.dev"
+                      className="flex-1 px-3 py-2 bg-white rounded-xl border border-stone-300 text-espresso-900 focus:outline-hidden focus:border-rose-500 font-mono text-[11px]"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => testApiConnection(tempApiUrl)}
+                      disabled={apiStatus === 'testing'}
+                      className="px-3 py-2 rounded-xl bg-stone-200 hover:bg-stone-300 text-espresso-800 font-semibold text-[11px] transition-colors shrink-0"
+                    >
+                      {apiStatus === 'testing' ? 'Testing...' : 'Test'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSaveApiUrl}
+                      className="px-3.5 py-2 rounded-xl bg-espresso-900 hover:bg-espresso-800 text-ivory font-semibold text-[11px] transition-colors shrink-0"
+                    >
+                      Save
+                    </button>
+                  </div>
+
+                  {apiStatus === 'valid' && (
+                    <p className="text-[11px] text-emerald-700 flex items-center space-x-1">
+                      <Check className="w-3 h-3 text-emerald-600" />
+                      <span>Worker is online and reachable! Live search active.</span>
+                    </p>
+                  )}
+                  {apiStatus === 'invalid' && (
+                    <p className="text-[11px] text-rose-600 flex items-center space-x-1">
+                      <AlertCircle className="w-3 h-3 text-rose-500" />
+                      <span>Could not reach worker. Verify URL or deploy from /worker.</span>
+                    </p>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             {/* Input Form */}
-            <div className="relative flex items-center bg-ivory-50 rounded-2xl border-2 border-rose-200/90 focus-within:border-rose-500 focus-within:ring-3 focus-within:ring-rose-200/50 transition-all shadow-inner">
+            <div className="relative flex items-center bg-stone-50/80 rounded-2xl border-2 border-stone-200 focus-within:border-rose-500 focus-within:ring-3 focus-within:ring-rose-200/50 transition-all shadow-inner">
               <Search className="w-5 h-5 text-espresso-400 ml-4 shrink-0" />
               <input
                 ref={inputRef}
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Type any beauty product (e.g. Dot & Key Sunscreen, Maybelline Sky High, Snail Mucin)..."
+                placeholder="Search any product (e.g. Dot & Key Sunscreen, Minimalist Niacinamide, Snail Mucin)..."
                 className="w-full bg-transparent px-3 py-3.5 text-sm sm:text-base text-espresso-900 placeholder-espresso-400 focus:outline-hidden font-medium"
               />
               {query && (
@@ -230,14 +442,17 @@ export const UniversalSearchModal: React.FC<UniversalSearchModalProps> = ({
                   <X className="w-4 h-4" />
                 </button>
               )}
-              <div className="hidden sm:flex items-center pr-3 shrink-0">
-                <kbd className="px-2 py-0.5 text-[10px] font-bold text-espresso-400 bg-white border border-rose-200 rounded-md shadow-2xs">
+              <div className="hidden sm:flex items-center pr-3 shrink-0 space-x-1.5">
+                {isLoadingWeb && (
+                  <RefreshCw className="w-4 h-4 text-rose-500 animate-spin mr-1" />
+                )}
+                <kbd className="px-2 py-0.5 text-[10px] font-bold text-espresso-400 bg-white border border-stone-200 rounded-md shadow-2xs">
                   ESC
                 </kbd>
               </div>
             </div>
 
-            {/* Trending Chips if query is short */}
+            {/* Trending Chips if query is empty */}
             {!query.trim() && (
               <div className="mt-3 flex items-center flex-wrap gap-1.5 text-xs text-espresso-600">
                 <span className="text-[11px] font-semibold text-espresso-400 flex items-center space-x-1 mr-1">
@@ -249,7 +464,7 @@ export const UniversalSearchModal: React.FC<UniversalSearchModalProps> = ({
                     key={t}
                     type="button"
                     onClick={() => setQuery(t)}
-                    className="px-2.5 py-1 rounded-full bg-white hover:bg-rose-50 text-espresso-700 hover:text-rose-600 border border-rose-200/70 text-xs font-medium transition-all shadow-2xs"
+                    className="px-2.5 py-1 rounded-full bg-white hover:bg-rose-50 text-espresso-700 hover:text-rose-600 border border-stone-200 text-xs font-medium transition-all shadow-2xs"
                   >
                     {t}
                   </button>
@@ -260,212 +475,455 @@ export const UniversalSearchModal: React.FC<UniversalSearchModalProps> = ({
 
           {/* Modal Body */}
           <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
-            {/* 1-Click "Compare Live Across All 5 Stores" Panel */}
-            <div className="rounded-3xl bg-white border border-rose-200/80 p-4 sm:p-5 shadow-soft-lift space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-rose-100/70 pb-3.5">
+            {/* Action Bar */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3.5 sm:p-4 rounded-2xl border border-stone-200/80 shadow-2xs">
+              <div className="flex items-center space-x-2">
+                <div className="p-2 rounded-xl bg-rose-50 text-rose-700">
+                  <Zap className="w-4 h-4" />
+                </div>
                 <div>
-                  <div className="inline-flex items-center space-x-1.5 text-xs font-bold uppercase tracking-wider text-rose-600 mb-0.5">
-                    <Sparkles className="w-3.5 h-3.5 text-rose-500" />
-                    <span>Instant Live Cross-Store Search</span>
-                  </div>
-                  <h3 className="font-editorial text-lg sm:text-xl font-bold text-espresso-950">
+                  <h3 className="font-editorial text-sm sm:text-base font-bold text-espresso-950 leading-tight">
                     {query.trim()
-                      ? `Compare "${query.trim()}" Live Across 5 Stores`
-                      : 'Compare Across 5 Authorized Indian Retailers'}
+                      ? `Live Comparison for "${query.trim()}"`
+                      : '5-Store Real-Time Beauty Comparison'}
                   </h3>
-                  <p className="text-xs text-espresso-500">
-                    Deep search direct into Nykaa, Amazon India, Tira, Purplle, and Myntra simultaneously.
+                  <p className="text-[11px] text-espresso-500">
+                    Live selling prices, discounts & canonical direct product links.
                   </p>
                 </div>
+              </div>
+
+              <div className="flex items-center space-x-2 shrink-0">
+                {query.trim().length >= 3 && (
+                  <button
+                    type="button"
+                    onClick={() => fetchLiveWebPrices(query.trim())}
+                    disabled={isLoadingWeb}
+                    className="px-3 py-1.5 rounded-xl border border-rose-200 hover:bg-rose-50 text-rose-800 text-xs font-semibold transition-all flex items-center space-x-1 shadow-2xs"
+                  >
+                    <RefreshCw
+                      className={`w-3 h-3 ${isLoadingWeb ? 'animate-spin' : ''}`}
+                    />
+                    <span>Scan Web</span>
+                  </button>
+                )}
 
                 <button
                   type="button"
                   onClick={handleOpenAllStores}
-                  className="px-4 py-2 rounded-xl bg-espresso-800 hover:bg-espresso-950 text-ivory text-xs font-bold tracking-wide transition-all shadow-xs flex items-center justify-center space-x-1.5 shrink-0 self-start sm:self-auto"
+                  className="px-3.5 py-1.5 rounded-xl bg-espresso-900 hover:bg-espresso-800 text-ivory text-xs font-bold tracking-wide transition-all shadow-xs flex items-center space-x-1.5"
                 >
-                  <span>Open All 5 in Tabs</span>
-                  <ExternalLink className="w-3.5 h-3.5 text-champagne-300" />
+                  <span>Open 5 Tabs</span>
+                  <ExternalLink className="w-3 h-3 text-champagne-300" />
                 </button>
-              </div>
-
-              {/* 5-Store Comparison Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-                {FIVE_STORES.map((store) => {
-                  const effectiveQuery = query.trim() || 'best skincare';
-                  const storeUrl = store.getSearchUrl(effectiveQuery);
-
-                  // Check if topMatch has an offer for this store
-                  const storeOffer = topMatch?.storeOffers.find(
-                    (o) => o.storeId.toLowerCase() === store.id || o.storeName.toLowerCase().includes(store.id)
-                  );
-
-                  return (
-                    <div
-                      key={store.id}
-                      className={`rounded-2xl p-3.5 border ${store.borderColor} ${store.colorBg} flex flex-col justify-between hover:shadow-md transition-all group`}
-                    >
-                      <div>
-                        {/* Store Badge */}
-                        <div className="flex items-center justify-between mb-2">
-                          <span
-                            className={`px-2 py-0.5 rounded-md text-[10px] font-bold text-white ${store.logoBg}`}
-                          >
-                            {store.name}
-                          </span>
-                          <span className="text-[9px] font-semibold text-espresso-400">
-                            {store.badge.split(' ')[0]}
-                          </span>
-                        </div>
-
-                        {/* Live Price Tag or Search State */}
-                        <div className="my-2">
-                          {storeOffer && storeOffer.price > 0 ? (
-                            <div>
-                              <div className="flex items-baseline space-x-1.5">
-                                <span className="text-lg font-extrabold text-espresso-950 font-sans">
-                                  ₹{storeOffer.price.toLocaleString('en-IN')}
-                                </span>
-                                {storeOffer.originalPrice && storeOffer.originalPrice > storeOffer.price && (
-                                  <span className="text-[10px] text-espresso-400 line-through">
-                                    ₹{storeOffer.originalPrice.toLocaleString('en-IN')}
-                                  </span>
-                                )}
-                              </div>
-                              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100/70 px-1.5 py-0.5 rounded-sm inline-block mt-0.5">
-                                Live In Catalog
-                              </span>
-                            </div>
-                          ) : (
-                            <div>
-                              <span className="text-xs font-semibold text-espresso-700 block">
-                                Live Store Search
-                              </span>
-                              <span className="text-[10px] text-espresso-400 block mt-0.5">
-                                View instant results
-                              </span>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Perks */}
-                        <p className="text-[10px] text-espresso-500 leading-tight mb-3">
-                          {store.perks}
-                        </p>
-                      </div>
-
-                      {/* Direct Link CTA */}
-                      <a
-                        href={storeUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="w-full py-2 px-2.5 rounded-xl bg-white hover:bg-espresso-800 hover:text-ivory text-espresso-800 border border-rose-200/80 text-xs font-bold tracking-wide transition-all flex items-center justify-center space-x-1 shadow-2xs group-hover:border-espresso-800"
-                      >
-                        <span>Search {store.name}</span>
-                        <ExternalLink className="w-3 h-3 text-espresso-400 group-hover:text-champagne-300" />
-                      </a>
-                    </div>
-                  );
-                })}
               </div>
             </div>
 
-            {/* Section: Matching Catalog Products */}
-            {query.trim() && (
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <h4 className="font-editorial text-lg font-bold text-espresso-950 flex items-center space-x-2">
-                    <Layers className="w-4 h-4 text-rose-500" />
-                    <span>Curated Indian Catalog Matches ({matchingProducts.length})</span>
-                  </h4>
-                  <span className="text-xs text-espresso-500">
-                    Live pricing verified across Indian stores
-                  </span>
-                </div>
+            {/* CASE 1: Instant Catalog Match Found (Local Catalog + Live-Prices Sync) */}
+            {topMatch && (
+              <div className="space-y-4">
+                <div className="p-4 sm:p-5 rounded-3xl bg-white border border-rose-200/90 shadow-soft-lift space-y-4">
+                  {/* Hero Showcase Header of Matched Product */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-100 pb-4">
+                    <div className="flex items-center space-x-3.5">
+                      <ProductImage
+                        compact
+                        src={topMatch.image}
+                        alt={topMatch.name}
+                        className="w-16 h-16 rounded-2xl object-cover border border-stone-200 shadow-2xs"
+                      />
+                      <div>
+                        <div className="flex items-center space-x-2 text-[10px] uppercase font-bold text-rose-600 mb-0.5">
+                          <Sparkles className="w-3 h-3" />
+                          <span>Exact Verified Product Match</span>
+                          <span>•</span>
+                          <span className="text-espresso-400">{topMatch.brand}</span>
+                        </div>
+                        <h4 className="font-editorial text-base sm:text-lg font-bold text-espresso-950 leading-tight">
+                          {topMatch.name}
+                        </h4>
+                        <span className="text-[11px] text-espresso-500 font-sans block mt-0.5">
+                          {topMatch.quantity || topMatch.subcategory} • Live Synced across authorized Indian retailers
+                        </span>
+                      </div>
+                    </div>
 
-                {matchingProducts.length === 0 ? (
-                  <div className="p-8 text-center bg-white rounded-2xl border border-rose-100 space-y-2">
-                    <p className="text-sm font-semibold text-espresso-700">
-                      No exact catalog match for "{query}"
-                    </p>
-                    <p className="text-xs text-espresso-500 max-w-md mx-auto">
-                      Use the 5-store comparison buttons above to search directly across Nykaa, Amazon India, Tira, Purplle, and Myntra!
-                    </p>
+                    <div className="flex sm:flex-col items-baseline sm:items-end justify-between sm:justify-center border-t sm:border-t-0 pt-2 sm:pt-0 border-stone-100">
+                      <span className="text-[10px] uppercase tracking-wider text-espresso-400 font-bold block">
+                        Lowest In-Stock Price
+                      </span>
+                      <div className="flex items-baseline space-x-1.5">
+                        <span className="text-xl sm:text-2xl font-extrabold text-espresso-950 font-sans">
+                          ₹{topMatch.price.toLocaleString('en-IN')}
+                        </span>
+                        {topMatch.originalPrice && topMatch.originalPrice > topMatch.price && (
+                          <span className="text-xs text-espresso-400 line-through">
+                            ₹{topMatch.originalPrice.toLocaleString('en-IN')}
+                          </span>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {matchingProducts.map((p) => {
-                      const lowestOffer = p.storeOffers.reduce(
-                        (min, o) => (o.price < min.price ? o : min),
-                        p.storeOffers[0]
+
+                  {/* 5-Store Grid for Matched Product */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                    {FIVE_STORES.map((store) => {
+                      const offer = topMatch.storeOffers.find(
+                        (o) =>
+                          o.storeId.toLowerCase() === store.id ||
+                          o.storeName.toLowerCase().includes(store.id)
                       );
-                      const savings = p.originalPrice ? p.originalPrice - p.price : 0;
+
+                      if (!offer || offer.price <= 0) return null;
+
+                      const isLowest = offer.isLowestPrice || offer.price === topMatch.price;
+                      const savings = offer.originalPrice && offer.originalPrice > offer.price
+                        ? offer.originalPrice - offer.price
+                        : 0;
                       const savingsPct =
-                        p.originalPrice && p.originalPrice > p.price
-                          ? Math.round((savings / p.originalPrice) * 100)
+                        offer.originalPrice && offer.originalPrice > offer.price
+                          ? Math.round((savings / offer.originalPrice) * 100)
                           : 0;
 
                       return (
                         <div
-                          key={p.id}
-                          onClick={() => handleSelectProductItem(p)}
-                          className="p-3.5 rounded-2xl bg-white border border-rose-100/90 hover:border-rose-400 hover:shadow-luxury-card cursor-pointer transition-all flex items-center space-x-3.5 group"
+                          key={store.id}
+                          className={`rounded-2xl p-3.5 border transition-all flex flex-col justify-between ${
+                            isLowest
+                              ? 'bg-amber-50/50 border-amber-300 ring-2 ring-amber-400/30 shadow-md'
+                              : `${store.colorBg} ${store.borderColor} hover:shadow-xs`
+                          }`}
                         >
-                          <ProductImage
-                            compact
-                            src={p.image}
-                            alt={p.name}
-                            className="w-16 h-16 rounded-xl object-cover border border-rose-100 group-hover:scale-105 transition-transform"
-                          />
-
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center space-x-1.5 text-[10px] text-espresso-400 mb-0.5">
-                              <span className="font-bold uppercase tracking-wider text-rose-500">
-                                {p.brand}
+                          <div>
+                            {/* Retailer Header */}
+                            <div className="flex items-center justify-between mb-2">
+                              <span
+                                className={`px-2 py-0.5 rounded-md text-[10px] font-bold text-white ${store.logoBg}`}
+                              >
+                                {store.name}
                               </span>
-                              <span>•</span>
-                              <span>{p.subcategory}</span>
-                            </div>
-
-                            <h5 className="text-xs sm:text-sm font-bold text-espresso-900 truncate group-hover:text-rose-600 transition-colors">
-                              {p.name}
-                            </h5>
-
-                            {/* Lowest Price and Best Store Badge */}
-                            <div className="flex items-center justify-between mt-1.5">
-                              <div className="flex items-baseline space-x-1.5">
-                                <span className="text-sm font-extrabold text-espresso-950 font-sans">
-                                  ₹{p.price.toLocaleString('en-IN')}
+                              {isLowest ? (
+                                <span className="inline-flex items-center space-x-0.5 px-1.5 py-0.5 rounded-md bg-amber-500 text-ivory text-[9px] font-extrabold shadow-2xs">
+                                  <Crown className="w-2.5 h-2.5 mr-0.5" />
+                                  <span>BEST PRICE</span>
                                 </span>
-                                {p.originalPrice && p.originalPrice > p.price && (
-                                  <span className="text-[11px] text-espresso-400 line-through">
-                                    ₹{p.originalPrice.toLocaleString('en-IN')}
-                                  </span>
-                                )}
-                              </div>
-
-                              {savingsPct > 0 && (
-                                <span className="text-[10px] font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200">
-                                  Save {savingsPct}%
+                              ) : (
+                                <span className="text-[9px] font-semibold text-espresso-400">
+                                  {store.badge}
                                 </span>
                               )}
                             </div>
 
-                            {lowestOffer && (
-                              <div className="mt-1 flex items-center space-x-1 text-[10px] text-espresso-500">
-                                <Crown className="w-3 h-3 text-amber-500" />
-                                <span>Lowest on <strong>{lowestOffer.storeName}</strong></span>
+                            {/* Live Price */}
+                            <div className="my-2">
+                              <div className="flex items-baseline space-x-1.5">
+                                <span className="text-xl font-extrabold text-espresso-950 font-sans">
+                                  ₹{offer.price.toLocaleString('en-IN')}
+                                </span>
+                                {offer.originalPrice && offer.originalPrice > offer.price && (
+                                  <span className="text-[10px] text-espresso-400 line-through">
+                                    ₹{offer.originalPrice.toLocaleString('en-IN')}
+                                  </span>
+                                )}
                               </div>
-                            )}
+
+                              <div className="flex items-center space-x-1 mt-1">
+                                {savingsPct > 0 ? (
+                                  <span className="text-[9px] font-bold text-emerald-800 bg-emerald-100/80 px-1.5 py-0.5 rounded-md">
+                                    Save ₹{savings} ({savingsPct}%)
+                                  </span>
+                                ) : (
+                                  <span className="text-[9px] font-bold text-stone-600 bg-stone-100 px-1.5 py-0.5 rounded-md">
+                                    Verified In Stock
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+
+                            <p className="text-[10px] text-espresso-500 leading-tight mb-3">
+                              {store.perks}
+                            </p>
                           </div>
 
-                          <div className="p-2 rounded-full bg-ivory-100 group-hover:bg-rose-500 group-hover:text-white text-espresso-400 transition-all shrink-0">
-                            <ArrowRight className="w-4 h-4" />
+                          {/* Direct Canonical Buy CTA */}
+                          <a
+                            href={offer.purchaseUrl || store.getSearchUrl(topMatch.name)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={`w-full py-2 px-2.5 rounded-xl text-xs font-bold tracking-wide transition-all flex items-center justify-center space-x-1.5 shadow-2xs ${
+                              isLowest
+                                ? 'bg-amber-600 hover:bg-amber-700 text-white shadow-amber-900/10'
+                                : 'bg-white hover:bg-espresso-900 hover:text-white text-espresso-900 border border-stone-200'
+                            }`}
+                          >
+                            <span>Buy at ₹{offer.price}</span>
+                            <ExternalLink className="w-3 h-3 shrink-0" />
+                          </a>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Compact Direct Search for Stores without an offer */}
+                  {missingStores.length > 0 && (
+                    <div className="pt-2 border-t border-stone-100 flex flex-wrap items-center gap-2 text-xs text-espresso-500">
+                      <span className="text-[11px] font-semibold text-espresso-400">
+                        Check remaining stores directly:
+                      </span>
+                      {missingStores.map((ms) => (
+                        <a
+                          key={ms.id}
+                          href={ms.getSearchUrl(topMatch.name)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-2.5 py-1 rounded-lg bg-stone-100 hover:bg-stone-200 text-espresso-800 text-[11px] font-semibold transition-colors flex items-center space-x-1"
+                        >
+                          <span>{ms.name}</span>
+                          <ExternalLink className="w-2.5 h-2.5 text-espresso-400" />
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* CASE 2: Live Web Search via Cloudflare Worker */}
+            {query.trim().length >= 3 && (
+              <div className="space-y-4">
+                {/* Section Header */}
+                <div className="flex items-center justify-between">
+                  <h4 className="font-editorial text-base sm:text-lg font-bold text-espresso-950 flex items-center space-x-2">
+                    <Globe className="w-4 h-4 text-rose-600" />
+                    <span>
+                      Live Web Compare Across 5 Retailers ({webResults.length})
+                    </span>
+                  </h4>
+                  <span className="text-[11px] text-espresso-400">
+                    Fetched via Cloudflare Edge API
+                  </span>
+                </div>
+
+                {/* Loading Skeleton */}
+                {isLoadingWeb && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {[1, 2, 3].map((n) => (
+                      <div
+                        key={n}
+                        className="p-4 rounded-2xl bg-white border border-stone-200 animate-pulse space-y-3"
+                      >
+                        <div className="flex justify-between items-center">
+                          <div className="w-20 h-5 bg-stone-200 rounded-md" />
+                          <div className="w-12 h-4 bg-stone-100 rounded-md" />
+                        </div>
+                        <div className="w-full h-4 bg-stone-200 rounded-md" />
+                        <div className="w-2/3 h-4 bg-stone-200 rounded-md" />
+                        <div className="w-24 h-6 bg-stone-300 rounded-md" />
+                        <div className="w-full h-9 bg-stone-200 rounded-xl" />
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Web Results Found */}
+                {!isLoadingWeb && webResults.length > 0 && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {webResults.map((r, idx) => {
+                      const meta = getStoreMeta(r.retailer);
+                      const isBestPrice =
+                        webBestPrice !== null && r.price <= webBestPrice;
+                      const savings =
+                        r.mrp && r.mrp > r.price ? r.mrp - r.price : 0;
+                      const savingsPct =
+                        r.mrp && r.mrp > r.price
+                          ? Math.round((savings / r.mrp) * 100)
+                          : 0;
+
+                      return (
+                        <div
+                          key={idx}
+                          className={`rounded-2xl p-4 border transition-all flex flex-col justify-between ${
+                            isBestPrice
+                              ? 'bg-amber-50/60 border-amber-300 ring-2 ring-amber-400/30 shadow-md'
+                              : 'bg-white border-stone-200/90 hover:shadow-xs'
+                          }`}
+                        >
+                          <div>
+                            {/* Retailer badge & Lowest winner pill */}
+                            <div className="flex items-center justify-between mb-2.5">
+                              <span
+                                className={`px-2 py-0.5 rounded-md text-[10px] font-bold text-white ${meta.logoBg}`}
+                              >
+                                {r.retailer}
+                              </span>
+                              {isBestPrice ? (
+                                <span className="inline-flex items-center space-x-0.5 px-1.5 py-0.5 rounded-md bg-amber-500 text-ivory text-[9px] font-extrabold shadow-2xs">
+                                  <Crown className="w-2.5 h-2.5 mr-0.5" />
+                                  <span>LOWEST ONLINE</span>
+                                </span>
+                              ) : (
+                                <span className="text-[9px] font-semibold text-espresso-400">
+                                  {meta.badge}
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Exact Matched Product Title */}
+                            <h5 className="text-xs sm:text-sm font-bold text-espresso-900 line-clamp-2 leading-snug mb-2">
+                              {r.productTitle}
+                            </h5>
+
+                            {/* Price Block */}
+                            <div className="my-2.5">
+                              <div className="flex items-baseline space-x-2">
+                                <span className="text-xl font-extrabold text-espresso-950 font-sans">
+                                  ₹{r.price.toLocaleString('en-IN')}
+                                </span>
+                                {r.mrp && r.mrp > r.price && (
+                                  <span className="text-xs text-espresso-400 line-through">
+                                    ₹{r.mrp.toLocaleString('en-IN')}
+                                  </span>
+                                )}
+                              </div>
+
+                              <div className="flex items-center space-x-1 mt-1">
+                                {savingsPct > 0 ? (
+                                  <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100/80 px-1.5 py-0.5 rounded-md">
+                                    Save ₹{savings} ({savingsPct}% OFF)
+                                  </span>
+                                ) : (
+                                  <span className="text-[10px] font-bold text-stone-600 bg-stone-100 px-1.5 py-0.5 rounded-md">
+                                    Live Price Verified
+                                  </span>
+                                )}
+                              </div>
+                            </div>
                           </div>
+
+                          {/* Direct Canonical Buy Button */}
+                          <a
+                            href={r.productUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={`w-full mt-3 py-2 px-3 rounded-xl text-xs font-bold tracking-wide transition-all flex items-center justify-center space-x-1.5 shadow-2xs ${
+                              isBestPrice
+                                ? 'bg-amber-600 hover:bg-amber-700 text-white'
+                                : 'bg-espresso-900 hover:bg-espresso-800 text-ivory'
+                            }`}
+                          >
+                            <span>Buy on {r.retailer} at ₹{r.price}</span>
+                            <ExternalLink className="w-3 h-3 shrink-0" />
+                          </a>
                         </div>
                       );
                     })}
                   </div>
                 )}
+
+                {/* If web search returned no direct match or offline error */}
+                {!isLoadingWeb && hasSearchedWeb && webResults.length === 0 && !topMatch && (
+                  <div className="p-6 text-center bg-white rounded-2xl border border-stone-200 space-y-2">
+                    <p className="text-sm font-semibold text-espresso-800">
+                      No automated prices indexed for "{query}" yet
+                    </p>
+                    <p className="text-xs text-espresso-500 max-w-md mx-auto">
+                      Use the direct links below to search "{query}" live on Nykaa, Amazon India, Tira, Purplle, and Myntra.
+                    </p>
+                    {webError && (
+                      <p className="text-[11px] text-amber-700 bg-amber-50 py-1.5 px-3 rounded-lg inline-block border border-amber-200">
+                        {webError}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* Compact Direct Search for Remaining Retailers */}
+                {!isLoadingWeb && missingStores.length > 0 && (
+                  <div className="p-3 bg-stone-50 rounded-2xl border border-stone-200/90 flex flex-wrap items-center justify-between gap-2 text-xs">
+                    <span className="text-[11px] font-semibold text-espresso-600 flex items-center space-x-1.5">
+                      <ShoppingBag className="w-3.5 h-3.5 text-rose-500" />
+                      <span>Direct 1-click search for "{query}":</span>
+                    </span>
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {missingStores.map((ms) => (
+                        <a
+                          key={ms.id}
+                          href={ms.getSearchUrl(query)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-2.5 py-1 rounded-lg bg-white hover:bg-rose-50 text-espresso-800 hover:text-rose-700 text-[11px] font-semibold border border-stone-200 transition-colors flex items-center space-x-1 shadow-2xs"
+                        >
+                          <span>{ms.name}</span>
+                          <ExternalLink className="w-2.5 h-2.5 text-espresso-400" />
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Other Matching Catalog Products (if user typed brand or category) */}
+            {matchingProducts.length > 1 && (
+              <div className="space-y-3 pt-2 border-t border-stone-200/70">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-editorial text-sm sm:text-base font-bold text-espresso-950 flex items-center space-x-1.5">
+                    <Layers className="w-4 h-4 text-rose-500" />
+                    <span>Other Catalog Matches ({matchingProducts.length - 1})</span>
+                  </h4>
+                  <span className="text-xs text-espresso-400">
+                    Click to switch product
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {matchingProducts.slice(1).map((p) => {
+                    const savings = p.originalPrice ? p.originalPrice - p.price : 0;
+                    const savingsPct =
+                      p.originalPrice && p.originalPrice > p.price
+                        ? Math.round((savings / p.originalPrice) * 100)
+                        : 0;
+
+                    return (
+                      <div
+                        key={p.id}
+                        onClick={() => handleSelectProductItem(p)}
+                        className="p-3 rounded-2xl bg-white border border-stone-200 hover:border-rose-400 hover:shadow-xs cursor-pointer transition-all flex items-center space-x-3 group"
+                      >
+                        <ProductImage
+                          compact
+                          src={p.image}
+                          alt={p.name}
+                          className="w-12 h-12 rounded-xl object-cover border border-stone-100 group-hover:scale-105 transition-transform"
+                        />
+
+                        <div className="flex-1 min-w-0">
+                          <span className="text-[9px] font-bold uppercase tracking-wider text-rose-600 block">
+                            {p.brand}
+                          </span>
+                          <h5 className="text-xs font-bold text-espresso-900 truncate group-hover:text-rose-600 transition-colors">
+                            {p.name}
+                          </h5>
+
+                          <div className="flex items-center space-x-2 mt-1">
+                            <span className="text-xs font-extrabold text-espresso-950 font-sans">
+                              ₹{p.price.toLocaleString('en-IN')}
+                            </span>
+                            {savingsPct > 0 && (
+                              <span className="text-[9px] font-bold text-emerald-800 bg-emerald-100/80 px-1.5 py-0.5 rounded-md">
+                                {savingsPct}% OFF
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="p-1.5 rounded-full bg-stone-100 group-hover:bg-rose-600 group-hover:text-white text-espresso-400 transition-all shrink-0">
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             )}
           </div>

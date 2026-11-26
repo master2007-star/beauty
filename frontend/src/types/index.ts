@@ -308,3 +308,21 @@ export interface RecommendedProduct {
   suitable_skin_types: string[];
   addressed_concerns: string[];
 }
+
+export interface WebCompareResult {
+  retailer: string;
+  productTitle: string;
+  imageUrl?: string | null;
+  price: number;
+  mrp?: number | null;
+  productUrl: string;
+  inStock: boolean;
+}
+
+export interface WebCompareResponse {
+  query: string;
+  updatedAt: string;
+  bestPrice: number | null;
+  results: WebCompareResult[];
+}
+

@@ -1,0 +1,22 @@
+{
+  "name": "pricewise-beauty-worker",
+  "version": "1.0.0",
+  "description": "Cloudflare Worker Edge API for real-time 5-store beauty price comparison",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "keywords": [
+    "cloudflare-worker",
+    "beauty",
+    "price-comparison",
+    "edge"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240405.0",
+    "typescript": "^5.4.5",
+    "wrangler": "^3.50.0"
+  }
+}
