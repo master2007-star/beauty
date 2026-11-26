@@ -3,14 +3,17 @@
 Automated Live Retailer Price Scraper for PriceWise AI Beauty.
 
 1. Reads product catalogue from frontend/src/data/products.ts.
-2. Resolves direct product URLs and scrapes live prices for Indian retailers:
-   - Nykaa: Product Details API (app-api/index.php/products/details?product_id=...),
-     window.__PRELOADED_STATE__ HTML parsing, Schema.org JSON-LD, & DDG /p/ fallback.
-   - Purplle: Organic product card parsing, Schema.org / HTML selectors, & DDG /product/ fallback.
-   - Tira: Catalog search API (ext/search/application/api/v1.0/products?q=...) for direct slugs & prices.
-   - Amazon India: Chrome 124 TLS impersonation (en-IN locale), non-sponsored result extraction,
-     and DDG /dp/<ASIN> fallback.
-   - Myntra: Direct product URLs, window.__myx pdpData / searchData, & DDG /buy fallback.
+2. Resolves direct canonical product URLs and scrapes live prices for Indian retailers:
+   - Nykaa: Fast API / Preloaded State / Schema.org with Playwright headless Chromium fallback
+     (waiting for span.css-1jczs19, [data-testid="pdp-price"], etc.).
+   - Amazon India: Fast parsing with Playwright Chromium fallback on search results, extracting
+     first non-sponsored [data-component-type="s-search-result"]:not(.AdHolder) with canonical
+     https://www.amazon.in/dp/<ASIN> and .a-price-whole price.
+   - Purplle & Tira: Fast catalog API/HTML with Playwright Chromium fallback, resolving direct
+     /product/... canonical URLs and live prices.
+   - Myntra: Fast window.__myx parsing with Playwright Chromium fallback, resolving canonical
+     /buy URLs and discounted prices.
+   - Canonical search engine fallback (DDG) for when any retailer endpoint is blocked.
 3. Formats updatedLabel in clean Indian Standard Time (IST).
 4. Strictly marks sourceType='live' ONLY when a real numeric price was actually extracted from the retailer.
 5. Preserves valid cached prices from frontend/public/data/live-prices.json if a retailer temporarily blocks.
@@ -58,6 +61,15 @@ except ImportError:
     HAS_CURL_CFFI = False
     logger.warning("curl_cffi unavailable; falling back to standard requests.")
 
+# Import Playwright with graceful fallback
+try:
+    from playwright.sync_api import sync_playwright, Browser, BrowserContext, Page, TimeoutError as PlaywrightTimeoutError
+    HAS_PLAYWRIGHT = True
+    logger.info("Playwright sync_api available for headless Chromium browser scraping.")
+except ImportError:
+    HAS_PLAYWRIGHT = False
+    logger.info("Playwright not installed; headless browser mode disabled (HTTP mode only).")
+
 
 class ScraperClient:
     """HTTP Client wrapping curl_cffi with Chrome 124 impersonation and retry logic."""
@@ -87,8 +99,78 @@ class ScraperClient:
                 return self.session.get(url, headers=req_headers, impersonate="chrome124", **kwargs)
             return self.session.get(url, headers=req_headers, **kwargs)
         except Exception as e:
-            logger.debug("Request failed for %s: %s", url[:80], e)
+            logger.debug("HTTP request failed for %s: %s", url[:80], e)
             return None
+
+
+class PlaywrightBrowserManager:
+    """Manages headless Chromium browser instance with Indian locale & timezone."""
+
+    def __init__(self):
+        self._pw = None
+        self._browser = None
+        self._context = None
+
+    def get_context(self) -> Optional[BrowserContext]:
+        if not HAS_PLAYWRIGHT:
+            return None
+        if self._context is None:
+            try:
+                self._pw = sync_playwright().start()
+                self._browser = self._pw.chromium.launch(
+                    headless=True,
+                    args=[
+                        "--no-sandbox",
+                        "--disable-setuid-sandbox",
+                        "--disable-dev-shm-usage",
+                        "--disable-blink-features=AutomationControlled",
+                    ],
+                )
+                self._context = self._browser.new_context(
+                    user_agent=(
+                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                        "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+                    ),
+                    locale="en-IN",
+                    timezone_id="Asia/Kolkata",
+                    viewport={"width": 1366, "height": 768},
+                    geolocation={"latitude": 19.0760, "longitude": 72.8777},  # Mumbai, India
+                    permissions=["geolocation"],
+                )
+                # Block tracking / analytics to speed up page loads
+                def handle_route(route):
+                    req = route.request
+                    if req.resource_type in ["image", "media", "font"] and "google" in req.url:
+                        route.abort()
+                    elif any(trk in req.url for trk in ["google-analytics", "doubleclick", "criteo", "hotjar"]):
+                        route.abort()
+                    else:
+                        route.continue_()
+                self._context.route("**/*", handle_route)
+            except Exception as e:
+                logger.warning("Could not launch Playwright Chromium: %s", e)
+                return None
+        return self._context
+
+    def new_page(self) -> Optional[Page]:
+        ctx = self.get_context()
+        if ctx:
+            try:
+                return ctx.new_page()
+            except Exception as e:
+                logger.warning("Could not create Playwright page: %s", e)
+        return None
+
+    def close(self):
+        try:
+            if self._context:
+                self._context.close()
+            if self._browser:
+                self._browser.close()
+            if self._pw:
+                self._pw.stop()
+        except Exception:
+            pass
 
 
 def parse_numeric_price(val: Any) -> Optional[float]:
@@ -192,10 +274,7 @@ def resolve_via_search_engine(
     product_name: str,
     canonical_marker: str,
 ) -> Optional[str]:
-    """
-    Search-engine fallback to resolve canonical direct product URL
-    (e.g. /p/ for Nykaa, /dp/ for Amazon India, /product/ for Purplle, /buy for Myntra).
-    """
+    """Search-engine fallback to resolve canonical direct product URL."""
     clean_b = re.sub(r"[^a-zA-Z0-9\s]", " ", brand).strip()
     clean_p = re.sub(r"[^a-zA-Z0-9\s]", " ", product_name).strip()
     query_str = f"site:{domain} {clean_b} {clean_p}"
@@ -234,71 +313,16 @@ def resolve_via_search_engine(
 
 
 # ==============================================================================
-# Retailer-Specific Scrapers & Resolvers
+# Retailer-Specific Scrapers with Playwright Headless Chromium Fallback
 # ==============================================================================
-
-def extract_nykaa_preloaded_state(html: str) -> Optional[Dict[str, Any]]:
-    """Parse window.__PRELOADED_STATE__ JSON from Nykaa HTML to extract live prices."""
-    match = re.search(r"window\.__PRELOADED_STATE__\s*=\s*(\{.*?\});\s*(?:</script>|window\.)", html, re.DOTALL)
-    if not match:
-        idx = html.find("window.__PRELOADED_STATE__ = ")
-        if idx == -1:
-            return None
-        end = html.find("</script>", idx)
-        if end == -1:
-            end = len(html)
-        json_str = html[idx + len("window.__PRELOADED_STATE__ = "):end].strip().rstrip(";")
-    else:
-        json_str = match.group(1)
-
-    try:
-        data = json.loads(json_str)
-    except Exception:
-        return None
-
-    def find_price(obj, depth=0):
-        if depth > 8 or not isinstance(obj, (dict, list)):
-            return None
-        if isinstance(obj, dict):
-            for p_key in ["offerPrice", "finalPrice", "discountedPrice", "offer_price"]:
-                if p_key in obj and obj[p_key] is not None:
-                    p = parse_numeric_price(obj[p_key])
-                    mrp = parse_numeric_price(obj.get("mrp") or obj.get("price"))
-                    in_stock = bool(obj.get("inStock", obj.get("in_stock", True)))
-                    if p and p > 0:
-                        return {
-                            "price": p,
-                            "originalPrice": mrp if (mrp and mrp >= p) else None,
-                            "inStock": in_stock,
-                            "stockStatus": "In Stock" if in_stock else "Out of Stock",
-                        }
-            for k, v in obj.items():
-                if isinstance(v, (dict, list)):
-                    res = find_price(v, depth + 1)
-                    if res:
-                        return res
-        elif isinstance(obj, list):
-            for item in obj:
-                res = find_price(item, depth + 1)
-                if res:
-                    return res
-        return None
-
-    return find_price(data)
-
 
 def scrape_nykaa(
     client: ScraperClient,
+    browser_mgr: PlaywrightBrowserManager,
     purchase_url: str,
     product_name: str = "",
     brand: str = "",
 ) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
-    """
-    Nykaa:
-    1. Checks for productId / /p/<id>. If search URL, falls back to DDG search for direct /p/ URL.
-    2. Queries public product details API: app-api/index.php/products/details?product_id=<id>
-    3. If API is 403 or unavailable, parses HTML window.__PRELOADED_STATE__ and Schema.org JSON-LD.
-    """
     direct_url = purchase_url
     prod_id_match = re.search(r"productId=(\d+)", purchase_url) or re.search(r"/p/(\d+)", purchase_url)
 
@@ -308,13 +332,13 @@ def scrape_nykaa(
             direct_url = resolved
             prod_id_match = re.search(r"productId=(\d+)", direct_url) or re.search(r"/p/(\d+)", direct_url)
 
-    # App API check
+    # 1. Fast App API check
     if prod_id_match:
         nykaa_id = prod_id_match.group(1)
         api_url = f"https://www.nykaa.com/app-api/index.php/products/details?product_id={nykaa_id}"
         api_headers = {
             "Accept": "application/json, text/plain, */*",
-            "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148",
+            "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15",
         }
         resp = client.get(api_url, headers=api_headers)
         if resp and resp.status_code == 200:
@@ -340,35 +364,161 @@ def scrape_nykaa(
             except Exception:
                 pass
 
-    # HTML fallback (window.__PRELOADED_STATE__ + Schema.org)
+    # 2. Fast HTTP HTML parsing
     resp = client.get(direct_url)
     if resp and resp.status_code == 200 and resp.text:
-        preloaded = extract_nykaa_preloaded_state(resp.text)
-        if preloaded and preloaded.get("price"):
-            return preloaded, direct_url
-
         soup = BeautifulSoup(resp.text, "html.parser")
         ld_data = extract_schema_org_jsonld(soup)
         if ld_data and ld_data.get("price"):
             return ld_data, direct_url
+
+    # 3. Playwright Headless Chromium Fallback
+    page = browser_mgr.new_page()
+    if page:
+        try:
+            page.goto(direct_url, wait_until="domcontentloaded", timeout=20000)
+            page.wait_for_timeout(1000)
+
+            # Check DOM price selectors
+            eval_result = page.evaluate("""() => {
+                const priceEl = document.querySelector('span.css-1jczs19, [data-testid="pdp-price"], .post-discount-price, span[class*="price"]');
+                const mrpEl = document.querySelector('span.css-u05rr, span.css-175whwo, .cross-price, span[class*="mrp"]');
+                const priceText = priceEl ? priceEl.innerText : null;
+                const mrpText = mrpEl ? mrpEl.innerText : null;
+                const inStock = !document.body.innerText.includes('OUT OF STOCK');
+                return { priceText, mrpText, inStock };
+            }""")
+
+            if eval_result and eval_result.get("priceText"):
+                p = parse_numeric_price(eval_result["priceText"])
+                m = parse_numeric_price(eval_result.get("mrpText"))
+                if p and p > 0:
+                    return {
+                        "price": p,
+                        "originalPrice": m if (m and m >= p) else None,
+                        "inStock": eval_result.get("inStock", True),
+                        "stockStatus": "In Stock" if eval_result.get("inStock", True) else "Out of Stock",
+                    }, direct_url
+        except Exception as e:
+            logger.debug("Playwright Nykaa error: %s", e)
+        finally:
+            page.close()
+
+    return None, direct_url
+
+
+def scrape_amazon(
+    client: ScraperClient,
+    browser_mgr: PlaywrightBrowserManager,
+    purchase_url: str,
+    product_name: str = "",
+    brand: str = "",
+) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
+    direct_url: Optional[str] = None
+
+    # 1. Fast HTTP search cards extraction
+    if is_search_url(purchase_url):
+        resp = client.get(purchase_url, headers={"Accept-Language": "en-IN,en;q=0.9"})
+        if resp and resp.status_code == 200 and resp.text:
+            soup = BeautifulSoup(resp.text, "html.parser")
+            search_cards = soup.select('div[data-component-type="s-search-result"]')
+            for card in search_cards:
+                classes = " ".join(card.get("class", []))
+                if "AdHolder" in classes or card.select_one(".s-sponsored-label-info-icon, .puis-sponsored-label-text"):
+                    continue
+
+                asin = card.get("data-asin", "").strip()
+                if asin and len(asin) == 10:
+                    direct_url = f"https://www.amazon.in/dp/{asin}"
+                else:
+                    link = card.select_one('a.a-link-normal.s-no-outline[href*="/dp/"], h2 a[href*="/dp/"]')
+                    if link:
+                        href = link.get("href", "")
+                        dp_m = re.search(r"(/dp/[A-Z0-9]{10})", href)
+                        if dp_m:
+                            direct_url = f"https://www.amazon.in{dp_m.group(1)}"
+
+                whole = card.select_one("span.a-price-whole")
+                orig_elem = card.select_one("span.a-text-price span.a-offscreen")
+                price = parse_numeric_price(whole.get_text(strip=True).rstrip(".")) if whole else None
+                mrp = parse_numeric_price(orig_elem.get_text(strip=True)) if orig_elem else None
+
+                if price and price > 0:
+                    return {
+                        "price": price,
+                        "originalPrice": mrp if (mrp and mrp >= price) else None,
+                        "inStock": True,
+                        "stockStatus": "In Stock",
+                    }, direct_url
+                break
+
+    # 2. Playwright Headless Chromium for Amazon Search & Card Resolution
+    page = browser_mgr.new_page()
+    if page:
+        try:
+            page.goto(purchase_url, wait_until="domcontentloaded", timeout=20000)
+            page.wait_for_timeout(1000)
+
+            # Find first non-sponsored search result card
+            eval_result = page.evaluate(r"""() => {
+                const cards = Array.from(document.querySelectorAll('div[data-component-type="s-search-result"]'));
+                for (const card of cards) {
+                    if (card.classList.contains('AdHolder')) continue;
+                    if (card.querySelector('.s-sponsored-label-info-icon, .puis-sponsored-label-text')) continue;
+                    const asin = card.getAttribute('data-asin') || '';
+                    const link = card.querySelector('a.a-link-normal.s-no-outline[href*="/dp/"], h2 a[href*="/dp/"]');
+                    const href = link ? link.getAttribute('href') : '';
+                    const whole = card.querySelector('span.a-price-whole');
+                    const orig = card.querySelector('span.a-text-price span.a-offscreen');
+                    let directUrl = null;
+                    if (asin && asin.length === 10) {
+                        directUrl = 'https://www.amazon.in/dp/' + asin;
+                    } else if (href) {
+                        const m = href.match(/\/dp\/[A-Z0-9]{10}/);
+                        directUrl = m ? 'https://www.amazon.in' + m[0] : href;
+                    }
+                    return {
+                        directUrl,
+                        priceText: whole ? whole.innerText : null,
+                        mrpText: orig ? orig.innerText : null
+                    };
+                }
+                return null;
+            }""")
+
+            if eval_result:
+                if eval_result.get("directUrl"):
+                    direct_url = eval_result["directUrl"]
+                if eval_result.get("priceText"):
+                    p = parse_numeric_price(eval_result["priceText"])
+                    m = parse_numeric_price(eval_result.get("mrpText"))
+                    if p and p > 0:
+                        return {
+                            "price": p,
+                            "originalPrice": m if (m and m >= p) else None,
+                            "inStock": True,
+                            "stockStatus": "In Stock",
+                        }, direct_url
+
+        except Exception as e:
+            logger.debug("Playwright Amazon error: %s", e)
+        finally:
+            page.close()
+
+    # 3. Canonical Search-Engine Fallback
+    if not direct_url and (is_search_url(purchase_url) or "/dp/" not in purchase_url):
+        direct_url = resolve_via_search_engine(client, "amazon.in", brand, product_name, "/dp/")
 
     return None, direct_url
 
 
 def scrape_tira(
     client: ScraperClient,
+    browser_mgr: PlaywrightBrowserManager,
     purchase_url: str,
     product_name: str,
     brand: str,
 ) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
-    """
-    Tira:
-    1. For search URLs (tirabeauty.com/search?q=...), queries catalog search API:
-       https://www.tirabeauty.com/ext/search/application/api/v1.0/products?q=...&page_size=5
-       Extracts direct product slug (https://www.tirabeauty.com/product/<slug>),
-       price.effective.min, and price.marked.min.
-    2. Falls back to HTML scraping & Schema.org.
-    """
     direct_url: Optional[str] = None
     query = ""
     parsed = urllib.parse.urlparse(purchase_url)
@@ -378,6 +528,7 @@ def scrape_tira(
     elif product_name:
         query = f"{brand} {product_name}".strip()
 
+    # 1. Fast Tira Catalog API
     if query:
         api_url = f"https://www.tirabeauty.com/ext/search/application/api/v1.0/products?q={urllib.parse.quote(query)}&page_size=5"
         api_headers = {
@@ -399,11 +550,10 @@ def scrape_tira(
                     price_obj = item.get("price", {})
                     eff = price_obj.get("effective", {})
                     marked = price_obj.get("marked", {})
-
                     eff_price = parse_numeric_price(eff.get("min") or eff.get("max") if isinstance(eff, dict) else eff)
                     marked_price = parse_numeric_price(marked.get("min") or marked.get("max") if isinstance(marked, dict) else marked)
-
                     in_stock = bool(item.get("is_in_stock", True))
+
                     if eff_price and eff_price > 0:
                         return {
                             "price": eff_price,
@@ -414,38 +564,63 @@ def scrape_tira(
             except Exception:
                 pass
 
-    # HTML fallback (either direct page or search result)
-    target_url = direct_url or purchase_url
-    resp = client.get(target_url)
-    if resp and resp.status_code == 200 and resp.text:
-        soup = BeautifulSoup(resp.text, "html.parser")
-        if not direct_url and is_search_url(target_url):
-            for link in soup.select('a[href*="/product/"], a[href*="/p/"]'):
-                href = link.get("href", "")
-                if href and not href.startswith("#"):
-                    direct_url = urllib.parse.urljoin("https://www.tirabeauty.com", href)
-                    break
-        ld_data = extract_schema_org_jsonld(soup)
-        if ld_data and ld_data.get("price"):
-            return ld_data, direct_url
+    # 2. Playwright Headless Chromium Fallback
+    page = browser_mgr.new_page()
+    if page:
+        try:
+            page.goto(purchase_url, wait_until="domcontentloaded", timeout=20000)
+            page.wait_for_timeout(1500)
+
+            eval_result = page.evaluate("""() => {
+                const links = Array.from(document.querySelectorAll('a[href*="/product/"], a[href*="/p/"]'));
+                let resolved = null;
+                for (const link of links) {
+                    const href = link.getAttribute('href');
+                    if (href && !href.startsWith('#')) {
+                        resolved = href.startsWith('http') ? href : 'https://www.tirabeauty.com' + href;
+                        break;
+                    }
+                }
+                const priceEl = document.querySelector('.selling-price, span[class*="sellingPrice"], span[class*="final-price"]');
+                const mrpEl = document.querySelector('.mrp, span[class*="mrp"], span[class*="originalPrice"]');
+                return {
+                    resolvedUrl: resolved,
+                    priceText: priceEl ? priceEl.innerText : null,
+                    mrpText: mrpEl ? mrpEl.innerText : null
+                };
+            }""")
+
+            if eval_result:
+                if eval_result.get("resolvedUrl"):
+                    direct_url = eval_result["resolvedUrl"]
+                if eval_result.get("priceText"):
+                    p = parse_numeric_price(eval_result["priceText"])
+                    m = parse_numeric_price(eval_result.get("mrpText"))
+                    if p and p > 0:
+                        return {
+                            "price": p,
+                            "originalPrice": m if (m and m >= p) else None,
+                            "inStock": True,
+                            "stockStatus": "In Stock",
+                        }, direct_url
+        except Exception as e:
+            logger.debug("Playwright Tira error: %s", e)
+        finally:
+            page.close()
 
     return None, direct_url
 
 
 def scrape_purplle(
     client: ScraperClient,
+    browser_mgr: PlaywrightBrowserManager,
     purchase_url: str,
     product_name: str,
     brand: str,
 ) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
-    """
-    Purplle:
-    1. For search URLs, queries search HTML for non-sponsored organic links skipping ads.
-    2. Falls back to search engine resolution for direct /product/ URL.
-    3. Scrapes live price and MRP via Schema.org and HTML classes.
-    """
     direct_url: Optional[str] = None
 
+    # 1. Fast HTTP parsing
     if is_search_url(purchase_url):
         resp = client.get(purchase_url)
         if resp and resp.status_code == 200 and resp.text:
@@ -464,127 +639,69 @@ def scrape_purplle(
                     direct_url = urllib.parse.urljoin("https://www.purplle.com", href)
                     break
 
-            if not direct_url:
-                match = re.search(r'href=["\'](/(?:product|p|pr)/[^"\']+)["\']', resp.text)
-                if match:
-                    direct_url = urllib.parse.urljoin("https://www.purplle.com", match.group(1))
+    # 2. Playwright Headless Chromium Fallback
+    page = browser_mgr.new_page()
+    if page:
+        try:
+            target = direct_url or purchase_url
+            page.goto(target, wait_until="domcontentloaded", timeout=20000)
+            page.wait_for_timeout(1500)
 
-    # DDG fallback for canonical /product/ link
+            eval_result = page.evaluate("""() => {
+                let resolved = null;
+                const links = Array.from(document.querySelectorAll('a[href*="/product/"], a[href*="/p/"]'));
+                for (const a of links) {
+                    const href = a.getAttribute('href');
+                    if (href && !href.includes('google') && !href.startsWith('#')) {
+                        resolved = href.startsWith('http') ? href : 'https://www.purplle.com' + href;
+                        break;
+                    }
+                }
+                const priceEl = document.querySelector('.pd-price, .actual-price, span[class*="price"]');
+                const mrpEl = document.querySelector('.pd-mrp, .cut-price, span[class*="mrp"]');
+                return {
+                    resolvedUrl: resolved,
+                    priceText: priceEl ? priceEl.innerText : null,
+                    mrpText: mrpEl ? mrpEl.innerText : null
+                };
+            }""")
+
+            if eval_result:
+                if eval_result.get("resolvedUrl") and not direct_url:
+                    direct_url = eval_result["resolvedUrl"]
+                if eval_result.get("priceText"):
+                    p = parse_numeric_price(eval_result["priceText"])
+                    m = parse_numeric_price(eval_result.get("mrpText"))
+                    if p and p > 0:
+                        return {
+                            "price": p,
+                            "originalPrice": m if (m and m >= p) else None,
+                            "inStock": True,
+                            "stockStatus": "In Stock",
+                        }, direct_url
+        except Exception as e:
+            logger.debug("Playwright Purplle error: %s", e)
+        finally:
+            page.close()
+
+    # 3. Search Engine Fallback
     if not direct_url and (is_search_url(purchase_url) or "/product/" not in purchase_url):
         direct_url = resolve_via_search_engine(client, "purplle.com", brand, product_name, "/product/")
-
-    target_url = direct_url or purchase_url
-    if not is_search_url(target_url):
-        resp = client.get(target_url)
-        if resp and resp.status_code == 200 and resp.text:
-            soup = BeautifulSoup(resp.text, "html.parser")
-            ld_data = extract_schema_org_jsonld(soup)
-            if ld_data and ld_data.get("price"):
-                return ld_data, direct_url
-
-            price_elem = soup.select_one(".pd-price, .actual-price, span[class*='price']")
-            mrp_elem = soup.select_one(".pd-mrp, .cut-price, span[class*='mrp']")
-            price = parse_numeric_price(price_elem.get_text(strip=True)) if price_elem else None
-            mrp = parse_numeric_price(mrp_elem.get_text(strip=True)) if mrp_elem else None
-            if price and price > 0:
-                return {
-                    "price": price,
-                    "originalPrice": mrp if (mrp and mrp >= price) else None,
-                    "inStock": True,
-                    "stockStatus": "In Stock",
-                }, direct_url
-
-    return None, direct_url
-
-
-def scrape_amazon(
-    client: ScraperClient,
-    purchase_url: str,
-    product_name: str = "",
-    brand: str = "",
-) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
-    """
-    Amazon India:
-    1. Fetches with Chrome 124 TLS impersonation & Accept-Language: en-IN,en;q=0.9.
-    2. Finds first non-sponsored div[data-component-type="s-search-result"] (excluding .AdHolder).
-    3. Falls back to search engine resolution for direct /dp/<ASIN> URL.
-    4. Extracts live price and availability.
-    """
-    direct_url: Optional[str] = None
-
-    if is_search_url(purchase_url):
-        resp = client.get(purchase_url, headers={"Accept-Language": "en-IN,en;q=0.9"})
-        if resp and resp.status_code == 200 and resp.text:
-            soup = BeautifulSoup(resp.text, "html.parser")
-            search_cards = soup.select('div[data-component-type="s-search-result"]')
-            for card in search_cards:
-                classes = " ".join(card.get("class", []))
-                if "AdHolder" in classes or card.select_one(".s-sponsored-label-info-icon, .puis-sponsored-label-text"):
-                    continue
-
-                asin = card.get("data-asin", "").strip()
-                if asin and len(asin) == 10:
-                    direct_url = f"https://www.amazon.in/dp/{asin}"
-                else:
-                    link = card.select_one('a.a-link-normal.s-no-outline[href*="/dp/"], h2 a[href*="/dp/"]')
-                    if link:
-                        href = link.get("href", "")
-                        dp_m = re.search(r"(/dp/[A-Z0-9]{10})", href)
-                        if dp_m:
-                            direct_url = f"https://www.amazon.in{dp_m.group(1)}"
-                        else:
-                            direct_url = urllib.parse.urljoin("https://www.amazon.in", href)
-
-                whole = card.select_one("span.a-price-whole")
-                orig_elem = card.select_one("span.a-text-price span.a-offscreen")
-                price = parse_numeric_price(whole.get_text(strip=True).rstrip(".")) if whole else None
-                mrp = parse_numeric_price(orig_elem.get_text(strip=True)) if orig_elem else None
-
-                if price and price > 0:
-                    return {
-                        "price": price,
-                        "originalPrice": mrp if (mrp and mrp >= price) else None,
-                        "inStock": True,
-                        "stockStatus": "In Stock",
-                    }, direct_url
-                break
-
-    # DDG fallback for canonical /dp/ link
-    if not direct_url and (is_search_url(purchase_url) or "/dp/" not in purchase_url):
-        direct_url = resolve_via_search_engine(client, "amazon.in", brand, product_name, "/dp/")
-
-    target_url = direct_url or (purchase_url if not is_search_url(purchase_url) else None)
-    if target_url:
-        prod_resp = client.get(target_url, headers={"Accept-Language": "en-IN,en;q=0.9"})
-        if prod_resp and prod_resp.status_code == 200 and prod_resp.text:
-            prod_soup = BeautifulSoup(prod_resp.text, "html.parser")
-            data = extract_amazon_html(prod_soup)
-            if data and data.get("price"):
-                return data, direct_url or target_url
 
     return None, direct_url
 
 
 def scrape_myntra(
     client: ScraperClient,
+    browser_mgr: PlaywrightBrowserManager,
     purchase_url: str,
     product_name: str = "",
     brand: str = "",
 ) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
-    """
-    Myntra:
-    1. Extracts direct product URLs and window.__myx pdpData / searchData prices.
-    2. Falls back to search engine resolution for direct /buy URL.
-    """
     direct_url: Optional[str] = None
     target_url = purchase_url
 
-    if "/buy" not in purchase_url:
-        resolved = resolve_via_search_engine(client, "myntra.com", brand, product_name, "/buy")
-        if resolved:
-            direct_url = resolved
-            target_url = resolved
-
+    # 1. Fast HTTP Myntra window.__myx check
     resp = client.get(target_url)
     if resp and resp.status_code == 200 and resp.text:
         html = resp.text
@@ -594,15 +711,9 @@ def scrape_myntra(
             end = html.find("</script>", idx)
             if end != -1:
                 json_str = html[idx + len("window.__myx = "):end].strip().rstrip(";")
-        else:
-            match = re.search(r"window\.__myx\s*=\s*(\{.*?\});\s*(?:</script>|window\.)", html, re.DOTALL)
-            if match:
-                json_str = match.group(1)
-
         if json_str:
             try:
                 data = json.loads(json_str)
-                # 1. pdpData
                 if "pdpData" in data and isinstance(data["pdpData"], dict):
                     pdp = data["pdpData"]
                     direct_url = target_url
@@ -620,7 +731,6 @@ def scrape_myntra(
                             "stockStatus": "In Stock" if in_stock else "Out of Stock",
                         }, direct_url
 
-                # 2. searchData
                 if "searchData" in data and isinstance(data["searchData"], dict):
                     results = data["searchData"].get("results", {})
                     prods = results.get("products", [])
@@ -644,12 +754,55 @@ def scrape_myntra(
             except Exception:
                 pass
 
+    # 2. Playwright Headless Chromium Fallback
+    page = browser_mgr.new_page()
+    if page:
+        try:
+            page.goto(target_url, wait_until="domcontentloaded", timeout=20000)
+            page.wait_for_timeout(1000)
+
+            eval_result = page.evaluate("""() => {
+                if (window.__myx && window.__myx.pdpData) {
+                    const p = window.__myx.pdpData.price || {};
+                    return {
+                        price: p.discounted || p.price,
+                        mrp: p.mrp,
+                        directUrl: window.location.href
+                    };
+                }
+                const priceEl = document.querySelector('.pdp-price strong, .product-discountedPrice');
+                const mrpEl = document.querySelector('.pdp-mrp s, .product-strike');
+                return {
+                    price: priceEl ? priceEl.innerText : null,
+                    mrp: mrpEl ? mrpEl.innerText : null,
+                    directUrl: window.location.href
+                };
+            }""")
+
+            if eval_result:
+                if eval_result.get("directUrl") and not is_search_url(eval_result["directUrl"]):
+                    direct_url = eval_result["directUrl"]
+                if eval_result.get("price"):
+                    p = parse_numeric_price(eval_result["price"])
+                    m = parse_numeric_price(eval_result.get("mrp"))
+                    if p and p > 0:
+                        return {
+                            "price": p,
+                            "originalPrice": m if (m and m >= p) else None,
+                            "inStock": True,
+                            "stockStatus": "In Stock",
+                        }, direct_url
+        except Exception as e:
+            logger.debug("Playwright Myntra error: %s", e)
+        finally:
+            page.close()
+
+    # 3. Canonical Search Engine Fallback
+    if not direct_url and "/buy" not in purchase_url:
+        direct_url = resolve_via_search_engine(client, "myntra.com", brand, product_name, "/buy")
+
     return None, direct_url
 
-
-# ==============================================================================
-# Universal Helpers
-# ==============================================================================
 
 def extract_schema_org_jsonld(soup: BeautifulSoup) -> Optional[Dict[str, Any]]:
     """Extract price, MRP, and stock status from Schema.org application/ld+json."""
@@ -718,46 +871,6 @@ def extract_schema_org_jsonld(soup: BeautifulSoup) -> Optional[Dict[str, Any]]:
     return None
 
 
-def extract_amazon_html(soup: BeautifulSoup) -> Optional[Dict[str, Any]]:
-    """Extract price and availability from Amazon product detail HTML."""
-    price: Optional[float] = None
-    orig_price: Optional[float] = None
-    in_stock = True
-    stock_status = "In Stock"
-
-    whole = soup.select_one("span.a-price-whole")
-    if whole:
-        price = parse_numeric_price(whole.get_text(strip=True).rstrip("."))
-
-    if not price:
-        offscreen = soup.select_one("span.a-price span.a-offscreen")
-        if offscreen:
-            price = parse_numeric_price(offscreen.get_text(strip=True))
-
-    orig_elem = soup.select_one("span.a-text-price span.a-offscreen, span.basisPrice span.a-offscreen")
-    if orig_elem:
-        orig_price = parse_numeric_price(orig_elem.get_text(strip=True))
-
-    avail_elem = soup.select_one("#availability")
-    if avail_elem:
-        avail_text = avail_elem.get_text(strip=True).lower()
-        if any(w in avail_text for w in ["currently unavailable", "out of stock", "cannot be delivered"]):
-            in_stock = False
-            stock_status = "Out of Stock"
-        elif any(w in avail_text for w in ["in stock", "left in stock"]):
-            in_stock = True
-            stock_status = "In Stock"
-
-    if price and price > 0:
-        return {
-            "price": price,
-            "originalPrice": orig_price if (orig_price and orig_price >= price) else None,
-            "inStock": in_stock,
-            "stockStatus": stock_status,
-        }
-    return None
-
-
 def load_previous_snapshot(snapshot_path: Path) -> Dict[str, Any]:
     """Load previous snapshot to preserve valid prices during temporary network blocks."""
     if snapshot_path.exists():
@@ -782,6 +895,8 @@ def main() -> None:
     prev_products = prev_snapshot.get("products", {})
 
     client = ScraperClient(timeout=15)
+    browser_mgr = PlaywrightBrowserManager()
+
     now_utc = datetime.now(timezone.utc)
     updated_at_iso = now_utc.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
     updated_label_ist = format_ist_label(now_utc)
@@ -802,116 +917,119 @@ def main() -> None:
     total_preserved = 0
     total_fallback = 0
 
-    for p_idx, prod in enumerate(products, start=1):
-        pid = prod["id"]
-        pname = prod["name"]
-        pbrand = prod["brand"]
-        prod_offers_map: Dict[str, Any] = {}
-        prod_offers_list: List[Dict[str, Any]] = []
+    try:
+        for p_idx, prod in enumerate(products, start=1):
+            pid = prod["id"]
+            pname = prod["name"]
+            pbrand = prod["brand"]
+            prod_offers_map: Dict[str, Any] = {}
+            prod_offers_list: List[Dict[str, Any]] = []
 
-        logger.info("[%d/%d] %s (%s)", p_idx, len(products), pid, pname[:50])
+            logger.info("[%d/%d] %s (%s)", p_idx, len(products), pid, pname[:50])
 
-        for offer in prod["storeOffers"]:
-            store_id = offer["storeId"]
-            store_name = offer.get("storeName", store_id.title())
-            purchase_url = offer["purchaseUrl"]
+            for offer in prod["storeOffers"]:
+                store_id = offer["storeId"]
+                store_name = offer.get("storeName", store_id.title())
+                purchase_url = offer["purchaseUrl"]
 
-            if store_id not in store_stats:
-                store_stats[store_id] = {"total": 0, "direct_resolved": 0, "live_scraped": 0, "preserved_cached": 0, "fallback_demo": 0}
-            store_stats[store_id]["total"] += 1
+                if store_id not in store_stats:
+                    store_stats[store_id] = {"total": 0, "direct_resolved": 0, "live_scraped": 0, "preserved_cached": 0, "fallback_demo": 0}
+                store_stats[store_id]["total"] += 1
 
-            prev_prod_data = prev_products.get(pid, {})
-            prev_offer_data = prev_prod_data.get(store_id) or next(
-                (o for o in prev_prod_data.get("offers", []) if o.get("storeId") == store_id),
-                None
-            )
+                prev_prod_data = prev_products.get(pid, {})
+                prev_offer_data = prev_prod_data.get(store_id) or next(
+                    (o for o in prev_prod_data.get("offers", []) if o.get("storeId") == store_id),
+                    None
+                )
 
-            scraped_data: Optional[Dict[str, Any]] = None
-            direct_url: Optional[str] = None
+                scraped_data: Optional[Dict[str, Any]] = None
+                direct_url: Optional[str] = None
 
-            # Dispatch retailer-specific scraper
-            if store_id == "nykaa":
-                scraped_data, direct_url = scrape_nykaa(client, purchase_url, pname, pbrand)
-            elif store_id == "tira":
-                scraped_data, direct_url = scrape_tira(client, purchase_url, pname, pbrand)
-            elif store_id == "purplle":
-                scraped_data, direct_url = scrape_purplle(client, purchase_url, pname, pbrand)
-            elif store_id == "amazon":
-                scraped_data, direct_url = scrape_amazon(client, purchase_url, pname, pbrand)
-            elif store_id == "myntra":
-                scraped_data, direct_url = scrape_myntra(client, purchase_url, pname, pbrand)
-            else:
-                resp = client.get(purchase_url)
-                if resp and resp.status_code == 200 and resp.text:
-                    soup = BeautifulSoup(resp.text, "html.parser")
-                    scraped_data = extract_schema_org_jsonld(soup)
-                    direct_url = purchase_url
+                # Dispatch retailer-specific scraper with Playwright fallback
+                if store_id == "nykaa":
+                    scraped_data, direct_url = scrape_nykaa(client, browser_mgr, purchase_url, pname, pbrand)
+                elif store_id == "tira":
+                    scraped_data, direct_url = scrape_tira(client, browser_mgr, purchase_url, pname, pbrand)
+                elif store_id == "purplle":
+                    scraped_data, direct_url = scrape_purplle(client, browser_mgr, purchase_url, pname, pbrand)
+                elif store_id == "amazon":
+                    scraped_data, direct_url = scrape_amazon(client, browser_mgr, purchase_url, pname, pbrand)
+                elif store_id == "myntra":
+                    scraped_data, direct_url = scrape_myntra(client, browser_mgr, purchase_url, pname, pbrand)
+                else:
+                    resp = client.get(purchase_url)
+                    if resp and resp.status_code == 200 and resp.text:
+                        soup = BeautifulSoup(resp.text, "html.parser")
+                        scraped_data = extract_schema_org_jsonld(soup)
+                        direct_url = purchase_url
 
-            if direct_url and not is_search_url(direct_url):
-                store_stats[store_id]["direct_resolved"] += 1
+                if direct_url and not is_search_url(direct_url):
+                    store_stats[store_id]["direct_resolved"] += 1
 
-            # Strict validation: ONLY mark sourceType='live' if a real numeric price > 0 was scraped
-            if scraped_data and scraped_data.get("price") and scraped_data["price"] > 0:
-                total_live_scraped += 1
-                store_stats[store_id]["live_scraped"] += 1
-                final_offer = {
-                    "storeId": store_id,
-                    "storeName": store_name,
-                    "price": scraped_data["price"],
-                    "originalPrice": scraped_data.get("originalPrice"),
-                    "inStock": scraped_data.get("inStock", True),
-                    "stockStatus": scraped_data.get("stockStatus", "In Stock"),
-                    "purchaseUrl": direct_url or purchase_url,
-                    "resolvedUrl": direct_url,
-                    "sourceType": "live",
-                    "lastChecked": updated_label_ist,
-                    "status": "success",
-                }
-                logger.info("  ✓ [%s] Live: ₹%s (MRP: ₹%s) | Direct: %s",
-                            store_id, final_offer["price"], final_offer["originalPrice"], (direct_url or purchase_url)[:60])
+                # Strict validation: ONLY mark sourceType='live' if a real numeric price > 0 was scraped
+                if scraped_data and scraped_data.get("price") and scraped_data["price"] > 0:
+                    total_live_scraped += 1
+                    store_stats[store_id]["live_scraped"] += 1
+                    final_offer = {
+                        "storeId": store_id,
+                        "storeName": store_name,
+                        "price": scraped_data["price"],
+                        "originalPrice": scraped_data.get("originalPrice"),
+                        "inStock": scraped_data.get("inStock", True),
+                        "stockStatus": scraped_data.get("stockStatus", "In Stock"),
+                        "purchaseUrl": direct_url or purchase_url,
+                        "resolvedUrl": direct_url,
+                        "sourceType": "live",
+                        "lastChecked": updated_label_ist,
+                        "status": "success",
+                    }
+                    logger.info("  ✓ [%s] Live: ₹%s (MRP: ₹%s) | Direct: %s",
+                                store_id, final_offer["price"], final_offer["originalPrice"], (direct_url or purchase_url)[:60])
 
-            elif prev_offer_data and prev_offer_data.get("price") and prev_offer_data["price"] > 0 and prev_offer_data.get("sourceType") == "live":
-                total_preserved += 1
-                store_stats[store_id]["preserved_cached"] += 1
-                final_offer = dict(prev_offer_data)
-                final_offer["sourceType"] = "cached"
-                final_offer["status"] = "preserved_from_previous"
-                final_offer["preservedFrom"] = prev_offer_data.get("lastChecked", updated_label_ist)
-                if direct_url:
-                    final_offer["resolvedUrl"] = direct_url
-                    final_offer["purchaseUrl"] = direct_url
-                logger.info("  ⟳ [%s] Preserved cached: ₹%s (from %s)",
-                            store_id, final_offer["price"], final_offer.get("preservedFrom"))
+                elif prev_offer_data and prev_offer_data.get("price") and prev_offer_data["price"] > 0 and prev_offer_data.get("sourceType") == "live":
+                    total_preserved += 1
+                    store_stats[store_id]["preserved_cached"] += 1
+                    final_offer = dict(prev_offer_data)
+                    final_offer["sourceType"] = "cached"
+                    final_offer["status"] = "preserved_from_previous"
+                    final_offer["preservedFrom"] = prev_offer_data.get("lastChecked", updated_label_ist)
+                    if direct_url:
+                        final_offer["resolvedUrl"] = direct_url
+                        final_offer["purchaseUrl"] = direct_url
+                    logger.info("  ⟳ [%s] Preserved cached: ₹%s (from %s)",
+                                store_id, final_offer["price"], final_offer.get("preservedFrom"))
 
-            else:
-                total_fallback += 1
-                store_stats[store_id]["fallback_demo"] += 1
-                final_offer = {
-                    "storeId": store_id,
-                    "storeName": store_name,
-                    "price": offer.get("price") or prod.get("price"),
-                    "originalPrice": offer.get("originalPrice") or prod.get("originalPrice"),
-                    "inStock": offer.get("inStock", True),
-                    "stockStatus": "In Stock" if offer.get("inStock", True) else "Out of Stock",
-                    "purchaseUrl": direct_url or purchase_url,
-                    "resolvedUrl": direct_url,
-                    "sourceType": "demo",
-                    "status": "catalog_baseline",
-                    "lastChecked": updated_label_ist,
-                }
-                logger.info("  ⚠ [%s] Catalog baseline: ₹%s", store_id, final_offer["price"])
+                else:
+                    total_fallback += 1
+                    store_stats[store_id]["fallback_demo"] += 1
+                    final_offer = {
+                        "storeId": store_id,
+                        "storeName": store_name,
+                        "price": offer.get("price") or prod.get("price"),
+                        "originalPrice": offer.get("originalPrice") or prod.get("originalPrice"),
+                        "inStock": offer.get("inStock", True),
+                        "stockStatus": "In Stock" if offer.get("inStock", True) else "Out of Stock",
+                        "purchaseUrl": direct_url or purchase_url,
+                        "resolvedUrl": direct_url,
+                        "sourceType": "demo",
+                        "status": "catalog_baseline",
+                        "lastChecked": updated_label_ist,
+                    }
+                    logger.info("  ⚠ [%s] Catalog baseline: ₹%s", store_id, final_offer["price"])
 
-            prod_offers_map[store_id] = final_offer
-            prod_offers_list.append(final_offer)
-            time.sleep(0.15)
+                prod_offers_map[store_id] = final_offer
+                prod_offers_list.append(final_offer)
+                time.sleep(0.1)
 
-        results[pid] = {
-            "productId": pid,
-            "productName": pname,
-            "brand": pbrand,
-            "offers": prod_offers_list,
-            **prod_offers_map,
-        }
+            results[pid] = {
+                "productId": pid,
+                "productName": pname,
+                "brand": pbrand,
+                "offers": prod_offers_list,
+                **prod_offers_map,
+            }
+    finally:
+        browser_mgr.close()
 
     snapshot_output = {
         "updatedAt": updated_at_iso,
