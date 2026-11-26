@@ -211,13 +211,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                 {product.priceStatus ? 'Current lowest price' : 'Lowest live price'}
               </span>
               <div className="flex items-baseline space-x-2">
-                <span className="text-xl font-extrabold text-espresso-900 font-sans">
+                <span className="text-xl font-extrabold text-espresso-900 font-sans tabular-nums">
                   {product.price > 0
                     ? `₹${product.price.toLocaleString('en-IN')}`
                     : 'Price unavailable'}
                 </span>
                 {product.originalPrice && product.originalPrice > product.price && (
-                  <span className="text-xs text-espresso-400 line-through">
+                  <span className="text-xs text-espresso-400 line-through tabular-nums">
                     ₹{product.originalPrice.toLocaleString('en-IN')}
                   </span>
                 )}

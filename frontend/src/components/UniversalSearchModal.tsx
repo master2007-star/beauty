@@ -46,10 +46,10 @@ const FIVE_STORES: StoreSearchMeta[] = [
     id: 'nykaa',
     name: 'Nykaa',
     badge: '100% Authentic',
-    colorBg: 'bg-pink-50/70',
-    colorText: 'text-pink-700',
-    borderColor: 'border-pink-200/90',
-    logoBg: 'bg-pink-600',
+    colorBg: 'bg-[#FC2779]/5',
+    colorText: 'text-[#FC2779]',
+    borderColor: 'border-[#FC2779]/20',
+    logoBg: 'bg-[#FC2779]',
     perks: 'Free shipping > ₹499 • 2-4 Days',
     getSearchUrl: (q) => `https://www.nykaa.com/search/result/?q=${encodeURIComponent(q)}`,
   },
@@ -57,10 +57,10 @@ const FIVE_STORES: StoreSearchMeta[] = [
     id: 'amazon',
     name: 'Amazon India',
     badge: 'Fast Prime',
-    colorBg: 'bg-amber-50/70',
-    colorText: 'text-amber-800',
-    borderColor: 'border-amber-200/90',
-    logoBg: 'bg-amber-600',
+    colorBg: 'bg-[#FF9900]/5',
+    colorText: 'text-[#C77800]',
+    borderColor: 'border-[#FF9900]/25',
+    logoBg: 'bg-[#FF9900]',
     perks: 'Free Prime shipping • 1-2 Days',
     getSearchUrl: (q) => `https://www.amazon.in/s?k=${encodeURIComponent(q)}`,
   },
@@ -68,9 +68,9 @@ const FIVE_STORES: StoreSearchMeta[] = [
     id: 'tira',
     name: 'Tira Beauty',
     badge: 'Reliance Luxe',
-    colorBg: 'bg-rose-50/70',
-    colorText: 'text-rose-900',
-    borderColor: 'border-rose-200/90',
+    colorBg: 'bg-[#671A37]/5',
+    colorText: 'text-[#671A37]',
+    borderColor: 'border-[#671A37]/20',
     logoBg: 'bg-[#671A37]',
     perks: 'Free shipping > ₹499 • 1-3 Days',
     getSearchUrl: (q) => `https://www.tirabeauty.com/search?q=${encodeURIComponent(q)}`,
@@ -79,9 +79,9 @@ const FIVE_STORES: StoreSearchMeta[] = [
     id: 'purplle',
     name: 'Purplle',
     badge: 'Best Budget',
-    colorBg: 'bg-purple-50/70',
-    colorText: 'text-purple-700',
-    borderColor: 'border-purple-200/90',
+    colorBg: 'bg-[#78206E]/5',
+    colorText: 'text-[#78206E]',
+    borderColor: 'border-[#78206E]/20',
     logoBg: 'bg-[#78206E]',
     perks: 'Free shipping > ₹399 • 3-5 Days',
     getSearchUrl: (q) => `https://www.purplle.com/search?q=${encodeURIComponent(q)}`,
@@ -90,9 +90,9 @@ const FIVE_STORES: StoreSearchMeta[] = [
     id: 'myntra',
     name: 'Myntra',
     badge: 'Beauty Insider',
-    colorBg: 'bg-rose-50/70',
-    colorText: 'text-rose-700',
-    borderColor: 'border-rose-200/90',
+    colorBg: 'bg-[#EE5F73]/5',
+    colorText: 'text-[#EE5F73]',
+    borderColor: 'border-[#EE5F73]/20',
     logoBg: 'bg-[#EE5F73]',
     perks: 'Free shipping > ₹799 • 2-4 Days',
     getSearchUrl: (q) =>
@@ -106,24 +106,42 @@ const FIVE_STORES: StoreSearchMeta[] = [
 ];
 
 const TRENDING_QUERIES = [
-  'Dot & Key Watermelon Sunscreen',
-  'Minimalist 10% Niacinamide',
+  'Dot & Key Sunscreen',
+  'Minimalist Niacinamide',
+  'Laneige Lip Sleeping Mask',
+  'COSRX Snail Mucin',
+  'Maybelline Sky High',
   'Cetaphil Gentle Skin Cleanser',
-  'Cosrx Snail Mucin 96',
-  'Maybelline Fit Me Matte Foundation',
-  'Forest Essentials Soundarya 24K',
-  'Kama Ayurveda Kumkumadi Serum',
-  'Plum Green Tea Toner',
+  'Soundarya 24K Gold',
 ];
+
+const DEFAULT_WORKER_URL = 'https://pricewise-compare.a4megaboi.workers.dev';
 
 const getInitialWorkerUrl = (): string => {
   return (
     localStorage.getItem('PRICEWISE_WORKER_URL') ||
     localStorage.getItem('pricewise_worker_api') ||
     (import.meta.env.VITE_LIVE_SEARCH_API as string) ||
-    ''
+    DEFAULT_WORKER_URL
   );
 };
+
+function formatRelativeTime(dateStr?: string): string {
+  if (!dateStr) return 'Live Synced';
+  try {
+    const d = new Date(dateStr);
+    const now = Date.now();
+    const diffSec = Math.floor((now - d.getTime()) / 1000);
+    if (diffSec < 60) return 'Updated just now';
+    const diffMin = Math.floor(diffSec / 60);
+    if (diffMin < 60) return `Updated ${diffMin}m ago`;
+    const diffHours = Math.floor(diffMin / 60);
+    if (diffHours < 24) return `Updated ${diffHours}h ago`;
+    return 'Verified in catalog';
+  } catch {
+    return 'Live Synced';
+  }
+}
 
 export const UniversalSearchModal: React.FC<UniversalSearchModalProps> = ({
   isOpen,
@@ -167,7 +185,7 @@ export const UniversalSearchModal: React.FC<UniversalSearchModalProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
-  // Autocomplete matching products in local catalogue (already enriched with live-prices.json)
+  // Autocomplete matching products in local catalogue
   const matchingProducts = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return [];
@@ -179,7 +197,7 @@ export const UniversalSearchModal: React.FC<UniversalSearchModalProps> = ({
         p.subcategory.toLowerCase().includes(q) ||
         p.keyIngredients.some((i) => i.toLowerCase().includes(q))
       );
-    }).slice(0, 6);
+    }).slice(0, 5);
   }, [query, PRODUCTS_DATA]);
 
   const topMatch = matchingProducts[0] || null;
@@ -198,7 +216,7 @@ export const UniversalSearchModal: React.FC<UniversalSearchModalProps> = ({
 
     const timer = setTimeout(() => {
       fetchLiveWebPrices(trimmed);
-    }, 700);
+    }, 650);
 
     return () => clearTimeout(timer);
   }, [query, workerApiUrl]);
@@ -211,7 +229,7 @@ export const UniversalSearchModal: React.FC<UniversalSearchModalProps> = ({
     if (!activeUrl) {
       setWebResults([]);
       setWebBestPrice(null);
-      setWebError(null);
+      setWebError('Please configure your Cloudflare Worker URL in Settings.');
       return;
     }
 
@@ -234,7 +252,7 @@ export const UniversalSearchModal: React.FC<UniversalSearchModalProps> = ({
       setWebResults(validResults);
       setWebBestPrice(data.bestPrice || (validResults[0]?.price ?? null));
     } catch {
-      setWebError('Live Edge Search unavailable. Verify your Cloudflare Worker endpoint in Settings (⚙️).');
+      setWebError('Edge Search temporarily offline. Please verify endpoint or use direct store search.');
       setWebResults([]);
       setWebBestPrice(null);
     } finally {
@@ -295,7 +313,6 @@ export const UniversalSearchModal: React.FC<UniversalSearchModalProps> = ({
     }
   };
 
-  // Helper to map store names to metadata
   const getStoreMeta = (retailerName: string): StoreSearchMeta => {
     const lower = retailerName.toLowerCase();
     const found = FIVE_STORES.find(
@@ -327,42 +344,45 @@ export const UniversalSearchModal: React.FC<UniversalSearchModalProps> = ({
 
   const missingStores = FIVE_STORES.filter((s) => !coveredStoreIds.has(s.id));
 
+  // Highest price among web results for "Save vs highest" calculation
+  const highestWebPrice = webResults.length > 0 ? Math.max(...webResults.map((r) => r.price)) : 0;
+
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 overflow-y-auto bg-espresso-950/70 backdrop-blur-md flex items-start justify-center p-3 sm:p-6 pt-8 sm:pt-14">
+      <div className="fixed inset-0 z-50 overflow-y-auto bg-[#1E1918]/70 backdrop-blur-md flex items-start justify-center p-3 sm:p-6 pt-6 sm:pt-12">
         <motion.div
-          initial={{ opacity: 0, scale: 0.96, y: -15 }}
+          initial={{ opacity: 0, scale: 0.97, y: -12 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.96, y: -15 }}
-          transition={{ duration: 0.25, ease: 'easeOut' }}
-          className="relative w-full max-w-4xl bg-[#FDFCFA] rounded-3xl shadow-2xl border border-stone-200/90 overflow-hidden flex flex-col max-h-[90vh]"
+          exit={{ opacity: 0, scale: 0.97, y: -12 }}
+          transition={{ duration: 0.22, ease: 'easeOut' }}
+          className="relative w-full max-w-4xl bg-[#FAF7F5] rounded-3xl shadow-2xl border border-stone-200 overflow-hidden flex flex-col max-h-[92vh]"
         >
           {/* Header & Search Input */}
-          <div className="p-4 sm:p-6 border-b border-stone-200/80 bg-white/95 backdrop-blur-md sticky top-0 z-20">
+          <div className="p-4 sm:p-6 border-b border-stone-200/90 bg-white/95 backdrop-blur-md sticky top-0 z-20">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center space-x-2.5">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-700 via-rose-600 to-espresso-900 text-ivory flex items-center justify-center font-serif font-bold text-sm shadow-xs">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#B86B5E] via-[#C98991] to-[#1E1918] text-white flex items-center justify-center font-serif font-bold text-sm shadow-xs">
                   5S
                 </div>
                 <div>
-                  <h2 className="font-editorial text-xl sm:text-2xl font-bold text-espresso-950 leading-none">
+                  <h2 className="font-editorial text-xl sm:text-2xl font-bold text-[#1E1918] leading-none">
                     5-Store Universal Beauty Compare
                   </h2>
-                  <span className="text-[10px] tracking-widest uppercase text-espresso-400 font-sans block mt-1">
+                  <span className="text-[10px] tracking-widest uppercase text-stone-500 font-sans block mt-1">
                     Nykaa • Amazon India • Tira Beauty • Purplle • Myntra
                   </span>
                 </div>
               </div>
 
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-1.5">
                 <button
                   type="button"
                   onClick={() => setIsEditingApi((prev) => !prev)}
                   title="Configure Cloudflare Worker Edge Search API"
-                  className={`p-2 rounded-full border transition-all ${
+                  className={`p-2 rounded-full border transition-all min-h-[44px] min-w-[44px] flex items-center justify-center ${
                     isEditingApi
-                      ? 'bg-rose-50 text-rose-700 border-rose-300'
-                      : 'hover:bg-stone-100 text-espresso-400 hover:text-espresso-700 border-transparent'
+                      ? 'bg-rose-50 text-[#B86B5E] border-rose-300'
+                      : 'hover:bg-stone-100 text-stone-500 hover:text-stone-800 border-transparent'
                   }`}
                   aria-label="Worker settings"
                 >
@@ -371,7 +391,7 @@ export const UniversalSearchModal: React.FC<UniversalSearchModalProps> = ({
 
                 <button
                   onClick={onClose}
-                  className="p-2 rounded-full hover:bg-rose-100 text-espresso-400 hover:text-espresso-700 transition-colors"
+                  className="p-2 rounded-full hover:bg-stone-100 text-stone-500 hover:text-stone-900 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
                   aria-label="Close modal"
                 >
                   <X className="w-5 h-5" />
@@ -386,15 +406,15 @@ export const UniversalSearchModal: React.FC<UniversalSearchModalProps> = ({
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: 'auto', opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
-                  className="overflow-hidden mb-3 p-3.5 bg-stone-50 rounded-2xl border border-stone-200 text-xs space-y-2.5"
+                  className="overflow-hidden mb-3 p-3.5 bg-white rounded-2xl border border-stone-200 text-xs space-y-2.5 shadow-xs"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-espresso-800 flex items-center space-x-1.5">
-                      <Globe className="w-3.5 h-3.5 text-rose-600" />
+                    <span className="font-bold text-[#1E1918] flex items-center space-x-1.5">
+                      <Globe className="w-3.5 h-3.5 text-[#B86B5E]" />
                       <span>Cloudflare Worker Live Search Edge Endpoint</span>
                     </span>
-                    <span className="text-[10px] text-espresso-400">
-                      Free serverless deployment
+                    <span className="text-[10px] text-stone-400">
+                      Edge-accelerated comparison
                     </span>
                   </div>
 
@@ -406,40 +426,40 @@ export const UniversalSearchModal: React.FC<UniversalSearchModalProps> = ({
                         setTempApiUrl(e.target.value);
                         setApiStatus('idle');
                       }}
-                      placeholder="https://pricewise-compare.<your-subdomain>.workers.dev"
-                      className="flex-1 px-3 py-2 bg-white rounded-xl border border-stone-300 text-espresso-900 focus:outline-hidden focus:border-rose-500 font-mono text-[11px]"
+                      placeholder="https://pricewise-compare.a4megaboi.workers.dev"
+                      className="flex-1 px-3 py-2 bg-stone-50 rounded-xl border border-stone-300 text-[#1E1918] focus:outline-hidden focus:border-[#B86B5E] font-mono text-[11px]"
                     />
                     <button
                       type="button"
                       onClick={() => testApiConnection(tempApiUrl)}
                       disabled={apiStatus === 'testing'}
-                      className="px-3 py-2 rounded-xl bg-stone-200 hover:bg-stone-300 text-espresso-800 font-semibold text-[11px] transition-colors shrink-0"
+                      className="px-3 py-2 rounded-xl bg-stone-200 hover:bg-stone-300 text-[#1E1918] font-semibold text-[11px] transition-colors shrink-0 min-h-[38px]"
                     >
                       {apiStatus === 'testing' ? 'Testing...' : 'Test'}
                     </button>
                     <button
                       type="button"
                       onClick={handleSaveApiUrl}
-                      className="px-3.5 py-2 rounded-xl bg-espresso-900 hover:bg-espresso-800 text-ivory font-semibold text-[11px] transition-colors shrink-0"
+                      className="px-3.5 py-2 rounded-xl bg-[#1E1918] hover:bg-black text-white font-semibold text-[11px] transition-colors shrink-0 min-h-[38px]"
                     >
                       Save
                     </button>
                   </div>
 
-                  <p className="text-[10px] text-espresso-400">
-                    Paste your <code>*.workers.dev</code> URL here once. It is saved in <code>localStorage</code> (key: <code>PRICEWISE_WORKER_URL</code>) with no app rebuild needed.
+                  <p className="text-[10px] text-stone-500">
+                    Active URL saved in <code>localStorage</code> (key: <code>PRICEWISE_WORKER_URL</code>) — instant updates with zero rebuild.
                   </p>
 
                   {apiStatus === 'valid' && (
-                    <p className="text-[11px] text-emerald-700 flex items-center space-x-1">
-                      <Check className="w-3 h-3 text-emerald-600" />
+                    <p className="text-[11px] text-[#1E6B52] flex items-center space-x-1 font-semibold">
+                      <Check className="w-3 h-3 text-[#1E6B52]" />
                       <span>Worker is online and reachable! Live search active.</span>
                     </p>
                   )}
                   {apiStatus === 'invalid' && (
-                    <p className="text-[11px] text-rose-600 flex items-center space-x-1">
-                      <AlertCircle className="w-3 h-3 text-rose-500" />
-                      <span>Could not reach worker. Verify URL or deploy from /worker.</span>
+                    <p className="text-[11px] text-[#DC2626] flex items-center space-x-1 font-semibold">
+                      <AlertCircle className="w-3 h-3 text-[#DC2626]" />
+                      <span>Could not reach worker. Verify URL or check Cloudflare deployment.</span>
                     </p>
                   )}
                 </motion.div>
@@ -447,21 +467,21 @@ export const UniversalSearchModal: React.FC<UniversalSearchModalProps> = ({
             </AnimatePresence>
 
             {/* Input Form */}
-            <div className="relative flex items-center bg-stone-50/80 rounded-2xl border-2 border-stone-200 focus-within:border-rose-500 focus-within:ring-3 focus-within:ring-rose-200/50 transition-all shadow-inner">
-              <Search className="w-5 h-5 text-espresso-400 ml-4 shrink-0" />
+            <div className="relative flex items-center bg-white rounded-2xl border-2 border-stone-200 focus-within:border-[#B86B5E] focus-within:ring-2 focus-within:ring-[#B86B5E]/30 transition-all shadow-inner">
+              <Search className="w-5 h-5 text-stone-400 ml-4 shrink-0" />
               <input
                 ref={inputRef}
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search any product (e.g. Dot & Key Sunscreen, Minimalist Niacinamide, Snail Mucin)..."
-                className="w-full bg-transparent px-3 py-3.5 text-sm sm:text-base text-espresso-900 placeholder-espresso-400 focus:outline-hidden font-medium"
+                className="w-full bg-transparent px-3 py-3.5 text-sm sm:text-base text-[#1E1918] placeholder-stone-400 focus:outline-hidden font-medium"
               />
               {query && (
                 <button
                   type="button"
                   onClick={() => setQuery('')}
-                  className="p-1.5 mr-2 rounded-full hover:bg-rose-100 text-espresso-400 hover:text-espresso-700 transition-colors"
+                  className="p-1.5 mr-2 rounded-full hover:bg-stone-100 text-stone-400 hover:text-stone-700 transition-colors"
                   aria-label="Clear query"
                 >
                   <X className="w-4 h-4" />
@@ -469,19 +489,55 @@ export const UniversalSearchModal: React.FC<UniversalSearchModalProps> = ({
               )}
               <div className="hidden sm:flex items-center pr-3 shrink-0 space-x-1.5">
                 {isLoadingWeb && (
-                  <RefreshCw className="w-4 h-4 text-rose-500 animate-spin mr-1" />
+                  <RefreshCw className="w-4 h-4 text-[#B86B5E] animate-spin mr-1" />
                 )}
-                <kbd className="px-2 py-0.5 text-[10px] font-bold text-espresso-400 bg-white border border-stone-200 rounded-md shadow-2xs">
+                <kbd className="px-2 py-0.5 text-[10px] font-bold text-stone-400 bg-stone-100 border border-stone-200 rounded-md">
                   ESC
                 </kbd>
               </div>
             </div>
 
-            {/* Trending Chips if query is empty */}
+            {/* Live Store Scanning Status Strip */}
+            <div className="mt-3 flex items-center flex-wrap gap-1.5 text-xs">
+              <span className="text-[11px] font-semibold text-stone-500 mr-1 flex items-center space-x-1">
+                {isLoadingWeb ? (
+                  <RefreshCw className="w-3 h-3 text-[#B86B5E] animate-spin" />
+                ) : (
+                  <Zap className="w-3 h-3 text-[#B86B5E]" />
+                )}
+                <span>{isLoadingWeb ? 'Scanning Stores:' : 'Coverage:'}</span>
+              </span>
+              {FIVE_STORES.map((store) => {
+                const isFound = webResults.some(
+                  (r) => getStoreMeta(r.retailer).id === store.id
+                );
+                return (
+                  <div
+                    key={store.id}
+                    className={`inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border transition-all ${
+                      isLoadingWeb
+                        ? 'bg-stone-100 border-stone-200 text-stone-500 animate-pulse'
+                        : isFound
+                        ? `${store.colorBg} ${store.borderColor} ${store.colorText}`
+                        : 'bg-white border-stone-200 text-stone-400'
+                    }`}
+                  >
+                    <span>{store.name}</span>
+                    {isLoadingWeb ? (
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#B86B5E] animate-ping" />
+                    ) : isFound ? (
+                      <Check className="w-2.5 h-2.5" />
+                    ) : null}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Trending Pills if query is empty */}
             {!query.trim() && (
-              <div className="mt-3 flex items-center flex-wrap gap-1.5 text-xs text-espresso-600">
-                <span className="text-[11px] font-semibold text-espresso-400 flex items-center space-x-1 mr-1">
-                  <TrendingUp className="w-3 h-3 text-rose-500" />
+              <div className="mt-3 flex items-center flex-wrap gap-1.5 text-xs text-stone-600">
+                <span className="text-[11px] font-semibold text-stone-400 flex items-center space-x-1 mr-1">
+                  <TrendingUp className="w-3 h-3 text-[#B86B5E]" />
                   <span>Trending:</span>
                 </span>
                 {TRENDING_QUERIES.map((t) => (
@@ -489,7 +545,7 @@ export const UniversalSearchModal: React.FC<UniversalSearchModalProps> = ({
                     key={t}
                     type="button"
                     onClick={() => setQuery(t)}
-                    className="px-2.5 py-1 rounded-full bg-white hover:bg-rose-50 text-espresso-700 hover:text-rose-600 border border-stone-200 text-xs font-medium transition-all shadow-2xs"
+                    className="px-2.5 py-1 rounded-full bg-white hover:bg-stone-100 text-stone-700 hover:text-[#B86B5E] border border-stone-200 text-xs font-medium transition-all shadow-2xs min-h-[32px]"
                   >
                     {t}
                   </button>
@@ -500,20 +556,20 @@ export const UniversalSearchModal: React.FC<UniversalSearchModalProps> = ({
 
           {/* Modal Body */}
           <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
-            {/* Action Bar */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3.5 sm:p-4 rounded-2xl border border-stone-200/80 shadow-2xs">
-              <div className="flex items-center space-x-2">
-                <div className="p-2 rounded-xl bg-rose-50 text-rose-700">
-                  <Zap className="w-4 h-4" />
+            {/* Top Bar with Scan Button & Open 5 Tabs */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3.5 sm:p-4 rounded-2xl border border-stone-200 shadow-2xs">
+              <div className="flex items-center space-x-2.5">
+                <div className="p-2 rounded-xl bg-[#F3EAE6] text-[#B86B5E]">
+                  <Sparkles className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="font-editorial text-sm sm:text-base font-bold text-espresso-950 leading-tight">
+                  <h3 className="font-editorial text-sm sm:text-base font-bold text-[#1E1918] leading-tight">
                     {query.trim()
-                      ? `Live Comparison for "${query.trim()}"`
-                      : '5-Store Real-Time Beauty Comparison'}
+                      ? `Comparing "${query.trim()}" Across 5 Stores`
+                      : '5-Store Real-Time Beauty Engine'}
                   </h3>
-                  <p className="text-[11px] text-espresso-500">
-                    Live selling prices, discounts & canonical direct product links.
+                  <p className="text-[11px] text-stone-500">
+                    Live selling prices, discounts & canonical direct store links.
                   </p>
                 </div>
               </div>
@@ -524,22 +580,22 @@ export const UniversalSearchModal: React.FC<UniversalSearchModalProps> = ({
                     type="button"
                     onClick={() => fetchLiveWebPrices(query.trim())}
                     disabled={isLoadingWeb}
-                    className="px-3 py-1.5 rounded-xl border border-rose-200 hover:bg-rose-50 text-rose-800 text-xs font-semibold transition-all flex items-center space-x-1 shadow-2xs"
+                    className="px-3.5 py-2 rounded-xl border border-stone-300 hover:border-[#B86B5E] hover:bg-[#F3EAE6] text-[#1E1918] text-xs font-semibold transition-all flex items-center space-x-1.5 shadow-2xs min-h-[44px]"
                   >
                     <RefreshCw
-                      className={`w-3 h-3 ${isLoadingWeb ? 'animate-spin' : ''}`}
+                      className={`w-3.5 h-3.5 text-[#B86B5E] ${isLoadingWeb ? 'animate-spin' : ''}`}
                     />
-                    <span>Scan Web</span>
+                    <span>Scan Live Web</span>
                   </button>
                 )}
 
                 <button
                   type="button"
                   onClick={handleOpenAllStores}
-                  className="px-3.5 py-1.5 rounded-xl bg-espresso-900 hover:bg-espresso-800 text-ivory text-xs font-bold tracking-wide transition-all shadow-xs flex items-center space-x-1.5"
+                  className="px-3.5 py-2 rounded-xl bg-[#1E1918] hover:bg-black text-white text-xs font-bold tracking-wide transition-all shadow-xs flex items-center space-x-1.5 min-h-[44px]"
                 >
-                  <span>Open 5 Tabs</span>
-                  <ExternalLink className="w-3 h-3 text-champagne-300" />
+                  <span>Open All 5 Stores</span>
+                  <ExternalLink className="w-3.5 h-3.5 text-[#E8CAD0]" />
                 </button>
               </div>
             </div>
@@ -547,7 +603,7 @@ export const UniversalSearchModal: React.FC<UniversalSearchModalProps> = ({
             {/* CASE 1: Instant Catalog Match Found (Local Catalog + Live-Prices Sync) */}
             {topMatch && (
               <div className="space-y-4">
-                <div className="p-4 sm:p-5 rounded-3xl bg-white border border-rose-200/90 shadow-soft-lift space-y-4">
+                <div className="p-4 sm:p-5 rounded-3xl bg-white border border-stone-200 shadow-soft-lift space-y-4">
                   {/* Hero Showcase Header of Matched Product */}
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-100 pb-4">
                     <div className="flex items-center space-x-3.5">
@@ -558,31 +614,31 @@ export const UniversalSearchModal: React.FC<UniversalSearchModalProps> = ({
                         className="w-16 h-16 rounded-2xl object-cover border border-stone-200 shadow-2xs"
                       />
                       <div>
-                        <div className="flex items-center space-x-2 text-[10px] uppercase font-bold text-rose-600 mb-0.5">
+                        <div className="flex items-center space-x-2 text-[10px] uppercase font-bold text-[#B86B5E] mb-0.5">
                           <Sparkles className="w-3 h-3" />
                           <span>Exact Verified Product Match</span>
                           <span>•</span>
-                          <span className="text-espresso-400">{topMatch.brand}</span>
+                          <span className="text-stone-500">{topMatch.brand}</span>
                         </div>
-                        <h4 className="font-editorial text-base sm:text-lg font-bold text-espresso-950 leading-tight">
+                        <h4 className="font-editorial text-base sm:text-lg font-bold text-[#1E1918] leading-tight">
                           {topMatch.name}
                         </h4>
-                        <span className="text-[11px] text-espresso-500 font-sans block mt-0.5">
+                        <span className="text-[11px] text-stone-500 font-sans block mt-0.5">
                           {topMatch.quantity || topMatch.subcategory} • Live Synced across authorized Indian retailers
                         </span>
                       </div>
                     </div>
 
                     <div className="flex sm:flex-col items-baseline sm:items-end justify-between sm:justify-center border-t sm:border-t-0 pt-2 sm:pt-0 border-stone-100">
-                      <span className="text-[10px] uppercase tracking-wider text-espresso-400 font-bold block">
+                      <span className="text-[10px] uppercase tracking-wider text-stone-400 font-bold block">
                         Lowest In-Stock Price
                       </span>
                       <div className="flex items-baseline space-x-1.5">
-                        <span className="text-xl sm:text-2xl font-extrabold text-espresso-950 font-sans">
+                        <span className="text-2xl font-extrabold text-[#1E1918] tabular-nums">
                           ₹{topMatch.price.toLocaleString('en-IN')}
                         </span>
                         {topMatch.originalPrice && topMatch.originalPrice > topMatch.price && (
-                          <span className="text-xs text-espresso-400 line-through">
+                          <span className="text-xs text-stone-400 line-through tabular-nums">
                             ₹{topMatch.originalPrice.toLocaleString('en-IN')}
                           </span>
                         )}
@@ -602,9 +658,10 @@ export const UniversalSearchModal: React.FC<UniversalSearchModalProps> = ({
                       if (!offer || offer.price <= 0) return null;
 
                       const isLowest = offer.isLowestPrice || offer.price === topMatch.price;
-                      const savings = offer.originalPrice && offer.originalPrice > offer.price
-                        ? offer.originalPrice - offer.price
-                        : 0;
+                      const savings =
+                        offer.originalPrice && offer.originalPrice > offer.price
+                          ? offer.originalPrice - offer.price
+                          : 0;
                       const savingsPct =
                         offer.originalPrice && offer.originalPrice > offer.price
                           ? Math.round((savings / offer.originalPrice) * 100)
@@ -615,7 +672,7 @@ export const UniversalSearchModal: React.FC<UniversalSearchModalProps> = ({
                           key={store.id}
                           className={`rounded-2xl p-3.5 border transition-all flex flex-col justify-between ${
                             isLowest
-                              ? 'bg-amber-50/50 border-amber-300 ring-2 ring-amber-400/30 shadow-md'
+                              ? 'bg-amber-50/70 border-amber-300 ring-2 ring-amber-400/30 shadow-md'
                               : `${store.colorBg} ${store.borderColor} hover:shadow-xs`
                           }`}
                         >
@@ -628,12 +685,12 @@ export const UniversalSearchModal: React.FC<UniversalSearchModalProps> = ({
                                 {store.name}
                               </span>
                               {isLowest ? (
-                                <span className="inline-flex items-center space-x-0.5 px-1.5 py-0.5 rounded-md bg-amber-500 text-ivory text-[9px] font-extrabold shadow-2xs">
+                                <span className="inline-flex items-center space-x-0.5 px-1.5 py-0.5 rounded-md bg-amber-500 text-white text-[9px] font-extrabold shadow-2xs">
                                   <Crown className="w-2.5 h-2.5 mr-0.5" />
                                   <span>BEST PRICE</span>
                                 </span>
                               ) : (
-                                <span className="text-[9px] font-semibold text-espresso-400">
+                                <span className="text-[9px] font-semibold text-stone-400">
                                   {store.badge}
                                 </span>
                               )}
@@ -642,11 +699,11 @@ export const UniversalSearchModal: React.FC<UniversalSearchModalProps> = ({
                             {/* Live Price */}
                             <div className="my-2">
                               <div className="flex items-baseline space-x-1.5">
-                                <span className="text-xl font-extrabold text-espresso-950 font-sans">
+                                <span className="text-xl font-extrabold text-[#1E1918] tabular-nums">
                                   ₹{offer.price.toLocaleString('en-IN')}
                                 </span>
                                 {offer.originalPrice && offer.originalPrice > offer.price && (
-                                  <span className="text-[10px] text-espresso-400 line-through">
+                                  <span className="text-[10px] text-stone-400 line-through tabular-nums">
                                     ₹{offer.originalPrice.toLocaleString('en-IN')}
                                   </span>
                                 )}
@@ -654,7 +711,7 @@ export const UniversalSearchModal: React.FC<UniversalSearchModalProps> = ({
 
                               <div className="flex items-center space-x-1 mt-1">
                                 {savingsPct > 0 ? (
-                                  <span className="text-[9px] font-bold text-emerald-800 bg-emerald-100/80 px-1.5 py-0.5 rounded-md">
+                                  <span className="text-[9px] font-bold text-[#1E6B52] bg-[#EAF5F0] border border-[#C6E7D8] px-1.5 py-0.5 rounded-md">
                                     Save ₹{savings} ({savingsPct}%)
                                   </span>
                                 ) : (
@@ -665,7 +722,7 @@ export const UniversalSearchModal: React.FC<UniversalSearchModalProps> = ({
                               </div>
                             </div>
 
-                            <p className="text-[10px] text-espresso-500 leading-tight mb-3">
+                            <p className="text-[10px] text-stone-500 leading-tight mb-3">
                               {store.perks}
                             </p>
                           </div>
@@ -675,10 +732,10 @@ export const UniversalSearchModal: React.FC<UniversalSearchModalProps> = ({
                             href={offer.purchaseUrl || store.getSearchUrl(topMatch.name)}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className={`w-full py-2 px-2.5 rounded-xl text-xs font-bold tracking-wide transition-all flex items-center justify-center space-x-1.5 shadow-2xs ${
+                            className={`w-full py-2.5 px-3 rounded-xl text-xs font-bold tracking-wide transition-all flex items-center justify-center space-x-1.5 shadow-2xs min-h-[44px] ${
                               isLowest
-                                ? 'bg-amber-600 hover:bg-amber-700 text-white shadow-amber-900/10'
-                                : 'bg-white hover:bg-espresso-900 hover:text-white text-espresso-900 border border-stone-200'
+                                ? 'bg-amber-600 hover:bg-amber-700 text-white'
+                                : 'bg-white hover:bg-[#1E1918] hover:text-white text-[#1E1918] border border-stone-200'
                             }`}
                           >
                             <span>Buy at ₹{offer.price}</span>
@@ -691,8 +748,8 @@ export const UniversalSearchModal: React.FC<UniversalSearchModalProps> = ({
 
                   {/* Compact Direct Search for Stores without an offer */}
                   {missingStores.length > 0 && (
-                    <div className="pt-2 border-t border-stone-100 flex flex-wrap items-center gap-2 text-xs text-espresso-500">
-                      <span className="text-[11px] font-semibold text-espresso-400">
+                    <div className="pt-2 border-t border-stone-100 flex flex-wrap items-center gap-2 text-xs text-stone-500">
+                      <span className="text-[11px] font-semibold text-stone-400">
                         Check remaining stores directly:
                       </span>
                       {missingStores.map((ms) => (
@@ -701,10 +758,10 @@ export const UniversalSearchModal: React.FC<UniversalSearchModalProps> = ({
                           href={ms.getSearchUrl(topMatch.name)}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="px-2.5 py-1 rounded-lg bg-stone-100 hover:bg-stone-200 text-espresso-800 text-[11px] font-semibold transition-colors flex items-center space-x-1"
+                          className="px-2.5 py-1 rounded-lg bg-stone-100 hover:bg-stone-200 text-[#1E1918] text-[11px] font-semibold transition-colors flex items-center space-x-1 min-h-[36px]"
                         >
                           <span>{ms.name}</span>
-                          <ExternalLink className="w-2.5 h-2.5 text-espresso-400" />
+                          <ExternalLink className="w-2.5 h-2.5 text-stone-400" />
                         </a>
                       ))}
                     </div>
@@ -718,14 +775,14 @@ export const UniversalSearchModal: React.FC<UniversalSearchModalProps> = ({
               <div className="space-y-4">
                 {/* Section Header */}
                 <div className="flex items-center justify-between">
-                  <h4 className="font-editorial text-base sm:text-lg font-bold text-espresso-950 flex items-center space-x-2">
-                    <Globe className="w-4 h-4 text-rose-600" />
+                  <h4 className="font-editorial text-base sm:text-lg font-bold text-[#1E1918] flex items-center space-x-2">
+                    <Globe className="w-4 h-4 text-[#B86B5E]" />
                     <span>
                       Live Web Compare Across 5 Retailers ({webResults.length})
                     </span>
                   </h4>
-                  <span className="text-[11px] text-espresso-400">
-                    Fetched via Cloudflare Edge API
+                  <span className="text-[11px] text-stone-400">
+                    Direct Cloudflare Edge API
                   </span>
                 </div>
 
@@ -735,16 +792,16 @@ export const UniversalSearchModal: React.FC<UniversalSearchModalProps> = ({
                     {[1, 2, 3].map((n) => (
                       <div
                         key={n}
-                        className="p-4 rounded-2xl bg-white border border-stone-200 animate-pulse space-y-3"
+                        className="p-4 rounded-2xl bg-white border border-stone-200 shimmer-active space-y-3"
                       >
                         <div className="flex justify-between items-center">
                           <div className="w-20 h-5 bg-stone-200 rounded-md" />
-                          <div className="w-12 h-4 bg-stone-100 rounded-md" />
+                          <div className="w-16 h-4 bg-stone-100 rounded-md" />
                         </div>
                         <div className="w-full h-4 bg-stone-200 rounded-md" />
                         <div className="w-2/3 h-4 bg-stone-200 rounded-md" />
                         <div className="w-24 h-6 bg-stone-300 rounded-md" />
-                        <div className="w-full h-9 bg-stone-200 rounded-xl" />
+                        <div className="w-full h-11 bg-stone-200 rounded-xl" />
                       </div>
                     ))}
                   </div>
@@ -760,17 +817,27 @@ export const UniversalSearchModal: React.FC<UniversalSearchModalProps> = ({
                       const savings =
                         r.mrp && r.mrp > r.price ? r.mrp - r.price : 0;
                       const savingsPct =
-                        r.mrp && r.mrp > r.price
+                        r.discountPercent !== undefined && r.discountPercent > 0
+                          ? r.discountPercent
+                          : r.mrp && r.mrp > r.price
                           ? Math.round((savings / r.mrp) * 100)
                           : 0;
+                      const saveVsHighest =
+                        isBestPrice && highestWebPrice > r.price
+                          ? highestWebPrice - r.price
+                          : 0;
+                      const displayTitle = (r.title || r.productTitle || query)
+                        .replace(/&amp;/g, '&')
+                        .replace(/&quot;/g, '"')
+                        .replace(/&#39;/g, "'");
 
                       return (
                         <div
                           key={idx}
                           className={`rounded-2xl p-4 border transition-all flex flex-col justify-between ${
                             isBestPrice
-                              ? 'bg-amber-50/60 border-amber-300 ring-2 ring-amber-400/30 shadow-md'
-                              : 'bg-white border-stone-200/90 hover:shadow-xs'
+                              ? 'bg-amber-50/70 border-amber-300 ring-2 ring-amber-400/30 shadow-md'
+                              : 'bg-white border-stone-200 hover:shadow-xs'
                           }`}
                         >
                           <div>
@@ -782,43 +849,49 @@ export const UniversalSearchModal: React.FC<UniversalSearchModalProps> = ({
                                 {r.retailer}
                               </span>
                               {isBestPrice ? (
-                                <span className="inline-flex items-center space-x-0.5 px-1.5 py-0.5 rounded-md bg-amber-500 text-ivory text-[9px] font-extrabold shadow-2xs">
+                                <span className="inline-flex items-center space-x-0.5 px-2 py-0.5 rounded-md bg-amber-500 text-white text-[9px] font-extrabold shadow-2xs">
                                   <Crown className="w-2.5 h-2.5 mr-0.5" />
-                                  <span>LOWEST ONLINE</span>
+                                  <span>BEST DEAL</span>
                                 </span>
                               ) : (
-                                <span className="text-[9px] font-semibold text-espresso-400">
-                                  {meta.badge}
+                                <span className="text-[9px] font-semibold text-stone-400">
+                                  {formatRelativeTime(r.updatedAt)}
                                 </span>
                               )}
                             </div>
 
                             {/* Exact Matched Product Title */}
-                            <h5 className="text-xs sm:text-sm font-bold text-espresso-900 line-clamp-2 leading-snug mb-2">
-                              {r.productTitle}
+                            <h5 className="text-xs sm:text-sm font-bold text-[#1E1918] line-clamp-2 leading-snug mb-2">
+                              {displayTitle}
                             </h5>
 
                             {/* Price Block */}
                             <div className="my-2.5">
                               <div className="flex items-baseline space-x-2">
-                                <span className="text-xl font-extrabold text-espresso-950 font-sans">
+                                <span className="text-xl font-extrabold text-[#1E1918] tabular-nums">
                                   ₹{r.price.toLocaleString('en-IN')}
                                 </span>
                                 {r.mrp && r.mrp > r.price && (
-                                  <span className="text-xs text-espresso-400 line-through">
+                                  <span className="text-xs text-stone-400 line-through tabular-nums">
                                     ₹{r.mrp.toLocaleString('en-IN')}
                                   </span>
                                 )}
                               </div>
 
-                              <div className="flex items-center space-x-1 mt-1">
-                                {savingsPct > 0 ? (
-                                  <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100/80 px-1.5 py-0.5 rounded-md">
-                                    Save ₹{savings} ({savingsPct}% OFF)
+                              <div className="flex flex-wrap items-center gap-1 mt-1.5">
+                                {savingsPct > 0 && (
+                                  <span className="text-[10px] font-bold text-[#1E6B52] bg-[#EAF5F0] border border-[#C6E7D8] px-1.5 py-0.5 rounded-md">
+                                    Save {savingsPct}% OFF
                                   </span>
-                                ) : (
-                                  <span className="text-[10px] font-bold text-stone-600 bg-stone-100 px-1.5 py-0.5 rounded-md">
-                                    Live Price Verified
+                                )}
+                                {saveVsHighest > 0 && (
+                                  <span className="text-[10px] font-bold text-amber-900 bg-amber-100 border border-amber-200 px-1.5 py-0.5 rounded-md">
+                                    Save ₹{saveVsHighest} vs highest
+                                  </span>
+                                )}
+                                {r.source === 'snapshot' && (
+                                  <span className="text-[9px] font-semibold text-stone-500 bg-stone-100 px-1.5 py-0.5 rounded-md">
+                                    Verified Snapshot
                                   </span>
                                 )}
                               </div>
@@ -827,17 +900,17 @@ export const UniversalSearchModal: React.FC<UniversalSearchModalProps> = ({
 
                           {/* Direct Canonical Buy Button */}
                           <a
-                            href={r.productUrl}
+                            href={r.url || r.productUrl || meta.getSearchUrl(query)}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className={`w-full mt-3 py-2 px-3 rounded-xl text-xs font-bold tracking-wide transition-all flex items-center justify-center space-x-1.5 shadow-2xs ${
+                            className={`w-full mt-3 py-2.5 px-3 rounded-xl text-xs font-bold tracking-wide transition-all flex items-center justify-center space-x-1.5 shadow-2xs min-h-[44px] ${
                               isBestPrice
                                 ? 'bg-amber-600 hover:bg-amber-700 text-white'
-                                : 'bg-espresso-900 hover:bg-espresso-800 text-ivory'
+                                : 'bg-[#1E1918] hover:bg-black text-white'
                             }`}
                           >
                             <span>Buy on {r.retailer} at ₹{r.price}</span>
-                            <ExternalLink className="w-3 h-3 shrink-0" />
+                            <ExternalLink className="w-3.5 h-3.5 shrink-0" />
                           </a>
                         </div>
                       );
@@ -845,41 +918,17 @@ export const UniversalSearchModal: React.FC<UniversalSearchModalProps> = ({
                   </div>
                 )}
 
-                {/* If worker URL is not configured yet */}
-                {!workerApiUrl && !topMatch && (
-                  <div className="p-4 sm:p-5 text-center bg-white rounded-2xl border border-dashed border-rose-200/90 space-y-2.5">
-                    <div className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-rose-50 text-rose-700 text-xs font-semibold">
-                      <Globe className="w-3.5 h-3.5" />
-                      <span>Free Cloudflare Worker Live Search</span>
-                    </div>
-                    <p className="text-xs sm:text-sm font-bold text-espresso-950">
-                      Connect your Cloudflare Worker URL for live web prices
-                    </p>
-                    <p className="text-xs text-espresso-500 max-w-md mx-auto">
-                      Deployed your worker? Paste your <code>*.workers.dev</code> endpoint once in Settings to scan Nykaa, Amazon India, Tira, Purplle, and Myntra live.
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => setIsEditingApi(true)}
-                      className="px-3.5 py-1.5 rounded-xl bg-espresso-900 hover:bg-espresso-800 text-ivory text-xs font-bold transition-all shadow-xs inline-flex items-center space-x-1.5"
-                    >
-                      <Settings className="w-3.5 h-3.5" />
-                      <span>Paste Worker URL in Settings</span>
-                    </button>
-                  </div>
-                )}
-
                 {/* If web search returned no direct match or offline error */}
                 {!isLoadingWeb && hasSearchedWeb && webResults.length === 0 && !topMatch && (
                   <div className="p-6 text-center bg-white rounded-2xl border border-stone-200 space-y-2">
-                    <p className="text-sm font-semibold text-espresso-800">
-                      No automated prices indexed for "{query}" yet
+                    <p className="text-sm font-semibold text-[#1E1918]">
+                      No live prices indexed for "{query}" yet
                     </p>
-                    <p className="text-xs text-espresso-500 max-w-md mx-auto">
+                    <p className="text-xs text-stone-500 max-w-md mx-auto">
                       Use the direct links below to search "{query}" live on Nykaa, Amazon India, Tira, Purplle, and Myntra.
                     </p>
                     {webError && (
-                      <p className="text-[11px] text-amber-700 bg-amber-50 py-1.5 px-3 rounded-lg inline-block border border-amber-200">
+                      <p className="text-[11px] text-amber-800 bg-amber-50 py-1.5 px-3 rounded-lg inline-block border border-amber-200">
                         {webError}
                       </p>
                     )}
@@ -888,9 +937,9 @@ export const UniversalSearchModal: React.FC<UniversalSearchModalProps> = ({
 
                 {/* Compact Direct Search for Remaining Retailers */}
                 {!isLoadingWeb && missingStores.length > 0 && (
-                  <div className="p-3 bg-stone-50 rounded-2xl border border-stone-200/90 flex flex-wrap items-center justify-between gap-2 text-xs">
-                    <span className="text-[11px] font-semibold text-espresso-600 flex items-center space-x-1.5">
-                      <ShoppingBag className="w-3.5 h-3.5 text-rose-500" />
+                  <div className="p-3 bg-white rounded-2xl border border-stone-200 flex flex-wrap items-center justify-between gap-2 text-xs">
+                    <span className="text-[11px] font-semibold text-stone-600 flex items-center space-x-1.5">
+                      <ShoppingBag className="w-3.5 h-3.5 text-[#B86B5E]" />
                       <span>Direct 1-click search for "{query}":</span>
                     </span>
                     <div className="flex flex-wrap items-center gap-1.5">
@@ -900,10 +949,10 @@ export const UniversalSearchModal: React.FC<UniversalSearchModalProps> = ({
                           href={ms.getSearchUrl(query)}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="px-2.5 py-1 rounded-lg bg-white hover:bg-rose-50 text-espresso-800 hover:text-rose-700 text-[11px] font-semibold border border-stone-200 transition-colors flex items-center space-x-1 shadow-2xs"
+                          className="px-2.5 py-1.5 rounded-lg bg-stone-100 hover:bg-[#F3EAE6] text-[#1E1918] hover:text-[#B86B5E] text-[11px] font-semibold border border-stone-200 transition-colors flex items-center space-x-1 min-h-[36px]"
                         >
                           <span>{ms.name}</span>
-                          <ExternalLink className="w-2.5 h-2.5 text-espresso-400" />
+                          <ExternalLink className="w-2.5 h-2.5 text-stone-400" />
                         </a>
                       ))}
                     </div>
@@ -914,13 +963,13 @@ export const UniversalSearchModal: React.FC<UniversalSearchModalProps> = ({
 
             {/* Other Matching Catalog Products (if user typed brand or category) */}
             {matchingProducts.length > 1 && (
-              <div className="space-y-3 pt-2 border-t border-stone-200/70">
+              <div className="space-y-3 pt-2 border-t border-stone-200">
                 <div className="flex items-center justify-between">
-                  <h4 className="font-editorial text-sm sm:text-base font-bold text-espresso-950 flex items-center space-x-1.5">
-                    <Layers className="w-4 h-4 text-rose-500" />
+                  <h4 className="font-editorial text-sm sm:text-base font-bold text-[#1E1918] flex items-center space-x-1.5">
+                    <Layers className="w-4 h-4 text-[#B86B5E]" />
                     <span>Other Catalog Matches ({matchingProducts.length - 1})</span>
                   </h4>
-                  <span className="text-xs text-espresso-400">
+                  <span className="text-xs text-stone-400">
                     Click to switch product
                   </span>
                 </div>
@@ -937,7 +986,7 @@ export const UniversalSearchModal: React.FC<UniversalSearchModalProps> = ({
                       <div
                         key={p.id}
                         onClick={() => handleSelectProductItem(p)}
-                        className="p-3 rounded-2xl bg-white border border-stone-200 hover:border-rose-400 hover:shadow-xs cursor-pointer transition-all flex items-center space-x-3 group"
+                        className="p-3 rounded-2xl bg-white border border-stone-200 hover:border-[#B86B5E] hover:shadow-xs cursor-pointer transition-all flex items-center space-x-3 group min-h-[64px]"
                       >
                         <ProductImage
                           compact
@@ -947,26 +996,26 @@ export const UniversalSearchModal: React.FC<UniversalSearchModalProps> = ({
                         />
 
                         <div className="flex-1 min-w-0">
-                          <span className="text-[9px] font-bold uppercase tracking-wider text-rose-600 block">
+                          <span className="text-[9px] font-bold uppercase tracking-wider text-[#B86B5E] block">
                             {p.brand}
                           </span>
-                          <h5 className="text-xs font-bold text-espresso-900 truncate group-hover:text-rose-600 transition-colors">
+                          <h5 className="text-xs font-bold text-[#1E1918] truncate group-hover:text-[#B86B5E] transition-colors">
                             {p.name}
                           </h5>
 
                           <div className="flex items-center space-x-2 mt-1">
-                            <span className="text-xs font-extrabold text-espresso-950 font-sans">
+                            <span className="text-xs font-extrabold text-[#1E1918] tabular-nums">
                               ₹{p.price.toLocaleString('en-IN')}
                             </span>
                             {savingsPct > 0 && (
-                              <span className="text-[9px] font-bold text-emerald-800 bg-emerald-100/80 px-1.5 py-0.5 rounded-md">
+                              <span className="text-[9px] font-bold text-[#1E6B52] bg-[#EAF5F0] px-1.5 py-0.5 rounded-md">
                                 {savingsPct}% OFF
                               </span>
                             )}
                           </div>
                         </div>
 
-                        <div className="p-1.5 rounded-full bg-stone-100 group-hover:bg-rose-600 group-hover:text-white text-espresso-400 transition-all shrink-0">
+                        <div className="p-1.5 rounded-full bg-stone-100 group-hover:bg-[#B86B5E] group-hover:text-white text-stone-400 transition-all shrink-0">
                           <ArrowRight className="w-3.5 h-3.5" />
                         </div>
                       </div>

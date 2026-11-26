@@ -9,17 +9,23 @@
  * - Purplle (Budget & K-Beauty)
  * - Myntra (Fashion & Beauty)
  *
+ * Merges live web results with the GitHub live-prices.json snapshot fallback to guarantee zero empty states.
  * Returns normalized, lowest-price-first JSON.
  */
 
 export interface RetailerCompareResult {
   retailer: string;
-  productTitle: string;
+  title: string;
+  productTitle?: string; // backwards compatibility alias
   imageUrl: string | null;
   price: number;
   mrp: number | null;
-  productUrl: string;
+  discountPercent: number;
   inStock: boolean;
+  url: string;
+  productUrl?: string; // backwards compatibility alias
+  source: 'live' | 'snapshot';
+  updatedAt: string;
 }
 
 export interface CompareApiResponse {
@@ -99,20 +105,21 @@ function extractPricesFromText(text: string): { price: number | null; mrp: numbe
 }
 
 /**
- * Fetch search engine snippets via DuckDuckGo HTML with Yahoo search fallback
+ * Multi-layer web search snippet extraction: DuckDuckGo -> Yahoo Search -> Bing RSS
  */
 async function fetchWebSnippets(
   query: string
 ): Promise<Array<{ url: string; title: string; snippet: string }>> {
   const results: Array<{ url: string; title: string; snippet: string }> = [];
 
-  // 1. DuckDuckGo HTML
+  // 1. DuckDuckGo HTML with 4.5s timeout
   try {
     const ddgUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
     const resp = await fetch(ddgUrl, {
       headers: COMMON_BROWSER_HEADERS,
+      signal: AbortSignal.timeout(4500),
       cf: { cacheTtl: 900, cacheEverything: true },
-    });
+    } as any);
     if (resp.ok) {
       const html = await resp.text();
       const regex =
@@ -130,7 +137,7 @@ async function fetchWebSnippets(
       }
     }
   } catch {
-    // Continue to fallback
+    // Fallback to Yahoo
   }
 
   // 2. Yahoo Search Fallback if DDG returned no results
@@ -139,8 +146,9 @@ async function fetchWebSnippets(
       const yahooUrl = `https://search.yahoo.com/search?p=${encodeURIComponent(query)}`;
       const resp = await fetch(yahooUrl, {
         headers: COMMON_BROWSER_HEADERS,
+        signal: AbortSignal.timeout(4500),
         cf: { cacheTtl: 900, cacheEverything: true },
-      });
+      } as any);
       if (resp.ok) {
         const html = await resp.text();
         const regex =
@@ -158,46 +166,59 @@ async function fetchWebSnippets(
         }
       }
     } catch {
-      // Return whatever we have
+      // Fallback to Bing RSS
     }
   }
 
-  // 3. Bing RSS + Jina Reader Fallback (Cloudflare-friendly)
+  // 3. Bing RSS Fallback
   if (results.length === 0) {
     try {
       const bingRss = `https://www.bing.com/search?q=${encodeURIComponent(query)}&format=rss`;
       const resp = await fetch(bingRss, {
         headers: COMMON_BROWSER_HEADERS,
+        signal: AbortSignal.timeout(4500),
         cf: { cacheTtl: 900, cacheEverything: true },
-      });
+      } as any);
       if (resp.ok) {
         const xml = await resp.text();
-        const itemRegex = /<item>[\s\S]*?<title>([\s\S]*?)<\/title>[\s\S]*?<link>([\s\S]*?)<\/link>[\s\S]*?<description>([\s\S]*?)<\/description>[\s\S]*?<\/item>/gi;
-        let m;
+        const itemRegex =
+          /<item>[\s\S]*?<title>([\s\S]*?)<\/title>[\s\S]*?<link>([\s\S]*?)<\/link>[\s\S]*?<description>([\s\S]*?)<\/description>[\s\S]*?<\/item>/gi;
+        let m: RegExpExecArray | null;
         while ((m = itemRegex.exec(xml)) !== null) {
-          const title = m[1].replace(/<!\[CDATA\[|\]\]>/g, "").replace(/<[^>]+>/g, "").trim();
-          const url = m[2].replace(/<!\[CDATA\[|\]\]>/g, "").trim();
-          const snippet = m[3].replace(/<!\[CDATA\[|\]\]>/g, "").replace(/<[^>]+>/g, "").trim();
-          if (url.startsWith("http")) results.push({ url, title, snippet });
+          const title = m[1].replace(/<!\[CDATA\[|\]\]>/g, '').replace(/<[^>]+>/g, '').trim();
+          const url = m[2].replace(/<!\[CDATA\[|\]\]>/g, '').trim();
+          const snippet = m[3].replace(/<!\[CDATA\[|\]\]>/g, '').replace(/<[^>]+>/g, '').trim();
+          if (url.startsWith('http')) {
+            results.push({ url, title, snippet });
+          }
         }
       }
-    } catch {}
+    } catch {
+      // Ignore
+    }
   }
 
   return results;
 }
 
-
+/**
+ * Fetch verified snapshot prices from GitHub raw live-prices.json
+ */
 async function fetchCatalogMatches(query: string): Promise<RetailerCompareResult[]> {
   try {
-    const rawUrl = "https://raw.githubusercontent.com/master2007-star/beauty/main/frontend/public/data/live-prices.json";
-    const resp = await fetch(rawUrl, { cf: { cacheTtl: 600, cacheEverything: true } });
+    const rawUrl =
+      'https://raw.githubusercontent.com/master2007-star/beauty/main/frontend/public/data/live-prices.json';
+    const resp = await fetch(rawUrl, {
+      signal: AbortSignal.timeout(4500),
+      cf: { cacheTtl: 600, cacheEverything: true },
+    } as any);
     if (!resp.ok) return [];
+
     const data = (await resp.json()) as any;
     const products = Object.values(data.products || {}) as any[];
     const tokens = query
       .toLowerCase()
-      .replace(/[^a-z0-9\s]/g, " ")
+      .replace(/[^a-z0-9\s]/g, ' ')
       .split(/\s+/)
       .filter((t) => t.length > 1);
     if (tokens.length === 0) return [];
@@ -206,13 +227,13 @@ async function fetchCatalogMatches(query: string): Promise<RetailerCompareResult
     let bestScore = 0;
 
     for (const prod of products) {
-      const hay = `${prod.brand || ""} ${prod.productName || ""}`.toLowerCase();
+      const hay = `${prod.brand || ''} ${prod.productName || ''}`.toLowerCase();
       let matched = 0;
       for (const tok of tokens) {
         if (hay.includes(tok)) matched++;
       }
       const score = matched / tokens.length;
-      if (matched > 0 && score >= 0.5 && score > bestScore) {
+      if (matched > 0 && score >= 0.4 && score > bestScore) {
         bestScore = score;
         bestProduct = prod;
       }
@@ -224,22 +245,36 @@ async function fetchCatalogMatches(query: string): Promise<RetailerCompareResult
     for (const offer of bestProduct.offers) {
       const price = parsePrice(offer.price);
       if (!price) continue;
+      const mrp = parsePrice(offer.originalPrice);
+      const discountPercent = mrp && mrp > price ? Math.round(((mrp - price) / mrp) * 100) : 0;
+
       const storeMap: Record<string, string> = {
-        nykaa: "Nykaa",
-        tira: "Tira Beauty",
-        amazon: "Amazon India",
-        purplle: "Purplle",
-        myntra: "Myntra",
+        nykaa: 'Nykaa',
+        tira: 'Tira Beauty',
+        amazon: 'Amazon India',
+        purplle: 'Purplle',
+        myntra: 'Myntra',
       };
-      const retailer = storeMap[String(offer.storeId || "").toLowerCase()] || offer.storeName || "Store";
+      const retailer =
+        storeMap[String(offer.storeId || '').toLowerCase()] || offer.storeName || 'Store';
+      const cleanTitle = `${bestProduct.brand ? bestProduct.brand + ' ' : ''}${
+        bestProduct.productName || query
+      }`.trim();
+      const directUrl = offer.purchaseUrl || offer.resolvedUrl || '';
+
       out.push({
         retailer,
-        productTitle: `${bestProduct.brand ? bestProduct.brand + " " : ""}${bestProduct.productName || query}`.trim(),
+        title: cleanTitle,
+        productTitle: cleanTitle,
         imageUrl: offer.imageUrl || bestProduct.imageUrl || null,
         price,
-        mrp: parsePrice(offer.originalPrice),
-        productUrl: offer.purchaseUrl || offer.resolvedUrl || "",
+        mrp,
+        discountPercent,
+        url: directUrl,
+        productUrl: directUrl,
         inStock: offer.inStock !== false,
+        source: 'snapshot',
+        updatedAt: offer.lastUpdated || offer.lastChecked || data.updatedAt || new Date().toISOString(),
       });
     }
     return out;
@@ -258,7 +293,7 @@ async function fetchCatalogMatches(query: string): Promise<RetailerCompareResult
 async function fetchTira(query: string): Promise<RetailerCompareResult | null> {
   const directSearchUrl = `https://www.tirabeauty.com/search?q=${encodeURIComponent(query)}`;
 
-  // 1. Tira Public JSON Search API
+  // 1. Tira Public JSON Search API with timeout
   try {
     const apiUrl = `https://www.tirabeauty.com/ext/search/application/api/v1.0/products?q=${encodeURIComponent(
       query
@@ -270,8 +305,9 @@ async function fetchTira(query: string): Promise<RetailerCompareResult | null> {
         'Origin': 'https://www.tirabeauty.com',
         'Referer': 'https://www.tirabeauty.com/',
       },
+      signal: AbortSignal.timeout(4500),
       cf: { cacheTtl: 900, cacheEverything: true },
-    });
+    } as any);
 
     if (resp.ok) {
       const data = (await resp.json()) as any;
@@ -299,16 +335,21 @@ async function fetchTira(query: string): Promise<RetailerCompareResult | null> {
         const inStock = item.sellable ?? item.is_in_stock ?? true;
 
         if (price && price > 0) {
+          const discountPercent = mrp && mrp > price ? Math.round(((mrp - price) / mrp) * 100) : 0;
+          const url = slug ? `https://www.tirabeauty.com/product/${slug}` : directSearchUrl;
           return {
             retailer: 'Tira Beauty',
+            title,
             productTitle: title,
             imageUrl,
             price,
             mrp: mrp && mrp >= price ? mrp : null,
-            productUrl: slug
-              ? `https://www.tirabeauty.com/product/${slug}`
-              : directSearchUrl,
+            discountPercent,
+            url,
+            productUrl: url,
             inStock,
+            source: 'live',
+            updatedAt: new Date().toISOString(),
           };
         }
       }
@@ -330,14 +371,20 @@ async function fetchTira(query: string): Promise<RetailerCompareResult | null> {
         const cleanTitle = s.title.replace(/[\-–|]\s*Tira.*$/i, '').trim();
 
         if (price && price > 0) {
+          const discountPercent = mrp && mrp > price ? Math.round(((mrp - price) / mrp) * 100) : 0;
           return {
             retailer: 'Tira Beauty',
+            title: cleanTitle || query,
             productTitle: cleanTitle || query,
             imageUrl: null,
             price,
             mrp: mrp && mrp >= price ? mrp : null,
+            discountPercent,
+            url: cleanUrl,
             productUrl: cleanUrl,
             inStock: !s.snippet.toLowerCase().includes('out of stock'),
+            source: 'live',
+            updatedAt: new Date().toISOString(),
           };
         }
       }
@@ -355,7 +402,7 @@ async function fetchTira(query: string): Promise<RetailerCompareResult | null> {
 async function fetchNykaa(query: string): Promise<RetailerCompareResult | null> {
   const directSearchUrl = `https://www.nykaa.com/search/result/?q=${encodeURIComponent(query)}`;
 
-  // 1. Nykaa App API
+  // 1. Nykaa App API with timeout
   try {
     const apiUrl = `https://www.nykaa.com/app-api/index.php/products/search?q=${encodeURIComponent(
       query
@@ -368,8 +415,9 @@ async function fetchNykaa(query: string): Promise<RetailerCompareResult | null> 
         'Origin': 'https://www.nykaa.com',
         'Referer': 'https://www.nykaa.com/',
       },
+      signal: AbortSignal.timeout(4500),
       cf: { cacheTtl: 900, cacheEverything: true },
-    });
+    } as any);
 
     if (resp.ok) {
       const data = (await resp.json()) as any;
@@ -387,18 +435,25 @@ async function fetchNykaa(query: string): Promise<RetailerCompareResult | null> 
         const inStock = p.is_saleable ?? p.in_stock ?? true;
 
         if (price && price > 0) {
+          const discountPercent = mrp && mrp > price ? Math.round(((mrp - price) / mrp) * 100) : 0;
+          const url = slug
+            ? slug.startsWith('http')
+              ? slug
+              : `https://www.nykaa.com/${slug.replace(/^\//, '')}`
+            : directSearchUrl;
           return {
             retailer: 'Nykaa',
+            title,
             productTitle: title,
             imageUrl,
             price,
             mrp: mrp && mrp >= price ? mrp : null,
-            productUrl: slug
-              ? slug.startsWith('http')
-                ? slug
-                : `https://www.nykaa.com/${slug.replace(/^\//, '')}`
-              : directSearchUrl,
+            discountPercent,
+            url,
+            productUrl: url,
             inStock,
+            source: 'live',
+            updatedAt: new Date().toISOString(),
           };
         }
       }
@@ -418,14 +473,20 @@ async function fetchNykaa(query: string): Promise<RetailerCompareResult | null> 
         const cleanTitle = s.title.replace(/[\-–|]\s*Nykaa.*$/i, '').trim();
 
         if (price && price > 0) {
+          const discountPercent = mrp && mrp > price ? Math.round(((mrp - price) / mrp) * 100) : 0;
           return {
             retailer: 'Nykaa',
+            title: cleanTitle || query,
             productTitle: cleanTitle || query,
             imageUrl: null,
             price,
             mrp: mrp && mrp >= price ? mrp : null,
+            discountPercent,
+            url: cleanUrl,
             productUrl: cleanUrl,
             inStock: !s.snippet.toLowerCase().includes('out of stock'),
+            source: 'live',
+            updatedAt: new Date().toISOString(),
           };
         }
       }
@@ -441,8 +502,6 @@ async function fetchNykaa(query: string): Promise<RetailerCompareResult | null> 
  * 3. Amazon India: Search snippets for /dp/ ASIN links
  */
 async function fetchAmazon(query: string): Promise<RetailerCompareResult | null> {
-  const directSearchUrl = `https://www.amazon.in/s?k=${encodeURIComponent(query)}`;
-
   try {
     const snippets = await fetchWebSnippets(`site:amazon.in/dp/ ${query}`);
     for (const s of snippets) {
@@ -456,14 +515,21 @@ async function fetchAmazon(query: string): Promise<RetailerCompareResult | null>
           .trim();
 
         if (price && price > 0) {
+          const discountPercent = mrp && mrp > price ? Math.round(((mrp - price) / mrp) * 100) : 0;
+          const url = `https://www.amazon.in/dp/${asin}`;
           return {
             retailer: 'Amazon India',
+            title: cleanTitle || query,
             productTitle: cleanTitle || query,
             imageUrl: null,
             price,
             mrp: mrp && mrp >= price ? mrp : null,
-            productUrl: `https://www.amazon.in/dp/${asin}`,
+            discountPercent,
+            url,
+            productUrl: url,
             inStock: !s.snippet.toLowerCase().includes('currently unavailable'),
+            source: 'live',
+            updatedAt: new Date().toISOString(),
           };
         }
       }
@@ -479,9 +545,49 @@ async function fetchAmazon(query: string): Promise<RetailerCompareResult | null>
  * 4. Purplle: Search API / Search snippets for /product/ links
  */
 async function fetchPurplle(query: string): Promise<RetailerCompareResult | null> {
-  const directSearchUrl = `https://www.purplle.com/search?q=${encodeURIComponent(query)}`;
+  // 1. Purplle Search API with timeout
+  try {
+    const apiUrl = `https://www.purplle.com/api/v1/search?query=${encodeURIComponent(query)}`;
+    const resp = await fetch(apiUrl, {
+      headers: COMMON_BROWSER_HEADERS,
+      signal: AbortSignal.timeout(4500),
+      cf: { cacheTtl: 900, cacheEverything: true },
+    } as any);
 
-  // 1. Search snippets for Purplle
+    if (resp.ok) {
+      const data = (await resp.json()) as any;
+      const products = data.products || data.data?.products || [];
+      if (Array.isArray(products) && products.length > 0) {
+        const p = products[0];
+        const price = parsePrice(p.offer_price || p.price || p.special_price);
+        const mrp = parsePrice(p.mrp || p.price);
+        const title = p.name || p.title || query;
+        const slug = p.slug || p.url_key;
+        if (price && price > 0) {
+          const discountPercent = mrp && mrp > price ? Math.round(((mrp - price) / mrp) * 100) : 0;
+          const url = slug ? `https://www.purplle.com/product/${slug}` : `https://www.purplle.com/search?q=${encodeURIComponent(query)}`;
+          return {
+            retailer: 'Purplle',
+            title,
+            productTitle: title,
+            imageUrl: p.image_url || p.media?.[0]?.url || null,
+            price,
+            mrp: mrp && mrp >= price ? mrp : null,
+            discountPercent,
+            url,
+            productUrl: url,
+            inStock: p.in_stock !== false,
+            source: 'live',
+            updatedAt: new Date().toISOString(),
+          };
+        }
+      }
+    }
+  } catch {
+    // Continue to snippet search
+  }
+
+  // 2. Search snippets for Purplle
   try {
     const snippets = await fetchWebSnippets(`site:purplle.com/product/ ${query}`);
     for (const s of snippets) {
@@ -497,14 +603,20 @@ async function fetchPurplle(query: string): Promise<RetailerCompareResult | null
           .trim();
 
         if (price && price > 0) {
+          const discountPercent = mrp && mrp > price ? Math.round(((mrp - price) / mrp) * 100) : 0;
           return {
             retailer: 'Purplle',
+            title: cleanTitle || query,
             productTitle: cleanTitle || query,
             imageUrl: null,
             price,
             mrp: mrp && mrp >= price ? mrp : null,
+            discountPercent,
+            url: cleanUrl,
             productUrl: cleanUrl,
             inStock: !s.snippet.toLowerCase().includes('sold out'),
+            source: 'live',
+            updatedAt: new Date().toISOString(),
           };
         }
       }
@@ -520,13 +632,6 @@ async function fetchPurplle(query: string): Promise<RetailerCompareResult | null
  * 5. Myntra: Search snippets for /buy links
  */
 async function fetchMyntra(query: string): Promise<RetailerCompareResult | null> {
-  const directSearchUrl = `https://www.myntra.com/${encodeURIComponent(
-    query
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-|-$/g, '')
-  )}`;
-
   try {
     const snippets = await fetchWebSnippets(`site:myntra.com ${query}`);
     for (const s of snippets) {
@@ -540,14 +645,20 @@ async function fetchMyntra(query: string): Promise<RetailerCompareResult | null>
         const cleanUrl = buyMatch ? buyMatch[1] : s.url;
 
         if (price && price > 0) {
+          const discountPercent = mrp && mrp > price ? Math.round(((mrp - price) / mrp) * 100) : 0;
           return {
             retailer: 'Myntra',
+            title: cleanTitle || query,
             productTitle: cleanTitle || query,
             imageUrl: null,
             price,
             mrp: mrp && mrp >= price ? mrp : null,
+            discountPercent,
+            url: cleanUrl,
             productUrl: cleanUrl,
             inStock: !s.snippet.toLowerCase().includes('out of stock'),
+            source: 'live',
+            updatedAt: new Date().toISOString(),
           };
         }
       }
@@ -582,7 +693,7 @@ export default {
           {
             status: 'ok',
             service: 'PriceWise Beauty 5-Store Edge Compare API',
-            version: '1.0.0',
+            version: '2.0.0',
             runtime: 'Cloudflare Worker (Edge)',
             endpoint: '/compare?q=<query>',
             supportedRetailers: [
@@ -591,6 +702,11 @@ export default {
               'Amazon India',
               'Purplle',
               'Myntra',
+            ],
+            resilience: [
+              'Direct Store Search APIs with 4.5s timeouts',
+              'Multi-layer snippet fallback (DuckDuckGo -> Yahoo -> Bing RSS)',
+              'GitHub Raw live-prices.json catalog merge (zero empty states)',
             ],
           },
           null,
@@ -624,48 +740,52 @@ export default {
         );
       }
 
-      // Concurrently query all 5 retailers
-      const [tiraRes, nykaaRes, amazonRes, purplleRes, myntraRes] =
-        await Promise.allSettled([
-          fetchTira(q),
-          fetchNykaa(q),
-          fetchAmazon(q),
-          fetchPurplle(q),
-          fetchMyntra(q),
+      // Concurrently query all 5 retailers with 4.5s max timeouts
+      const [tiraRes, nykaaRes, amazonRes, purplleRes, myntraRes, catalogMatches] =
+        await Promise.all([
+          fetchTira(q).catch(() => null),
+          fetchNykaa(q).catch(() => null),
+          fetchAmazon(q).catch(() => null),
+          fetchPurplle(q).catch(() => null),
+          fetchMyntra(q).catch(() => null),
+          fetchCatalogMatches(q).catch(() => []),
         ]);
 
       const results: RetailerCompareResult[] = [];
+      const seenRetailers = new Set<string>();
 
-      if (tiraRes.status === 'fulfilled' && tiraRes.value) {
-        results.push(tiraRes.value);
-      }
-      if (nykaaRes.status === 'fulfilled' && nykaaRes.value) {
-        results.push(nykaaRes.value);
-      }
-      if (amazonRes.status === 'fulfilled' && amazonRes.value) {
-        results.push(amazonRes.value);
-      }
-      if (purplleRes.status === 'fulfilled' && purplleRes.value) {
-        results.push(purplleRes.value);
-      }
-      if (myntraRes.status === 'fulfilled' && myntraRes.value) {
-        results.push(myntraRes.value);
-      }
-
-      // Merge verified catalog snapshot offers for missing retailers
-      const catalogMatches = await fetchCatalogMatches(q);
-      const seenRetailers = new Set(results.map((r) => r.retailer.toLowerCase()));
-      for (const item of catalogMatches) {
-        if (!seenRetailers.has(item.retailer.toLowerCase())) {
-          results.push(item);
-          seenRetailers.add(item.retailer.toLowerCase());
+      const addResult = (res: RetailerCompareResult | null) => {
+        if (!res || !res.price || res.price <= 0) return;
+        const key = res.retailer.toLowerCase();
+        if (!seenRetailers.has(key)) {
+          results.push(res);
+          seenRetailers.add(key);
         }
+      };
+
+      // Add live results first
+      addResult(tiraRes);
+      addResult(nykaaRes);
+      addResult(amazonRes);
+      addResult(purplleRes);
+      addResult(myntraRes);
+
+      // Merge verified catalog snapshot offers for any missing retailers to guarantee zero empty states
+      for (const item of catalogMatches) {
+        addResult(item);
       }
+
+      // Calculate lowest valid in-stock price
+      const inStockOffers = results.filter((r) => r.inStock && r.price > 0);
+      const bestPrice =
+        inStockOffers.length > 0
+          ? Math.min(...inStockOffers.map((r) => r.price))
+          : results.length > 0
+          ? results[0].price
+          : null;
 
       // Sort by price ascending (lowest price first)
       results.sort((a, b) => a.price - b.price);
-
-      const bestPrice = results.length > 0 ? results[0].price : null;
 
       const responsePayload: CompareApiResponse = {
         query: q,

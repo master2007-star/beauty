@@ -204,11 +204,11 @@ export const WishlistDrawer: React.FC<WishlistDrawerProps> = ({
                             {prod.name}
                           </h4>
                           <div className="flex items-baseline space-x-2 mt-1">
-                            <span className="text-sm font-extrabold font-sans text-espresso-950">
+                            <span className="text-sm font-extrabold font-sans text-espresso-950 tabular-nums">
                               ₹{prod.price.toLocaleString('en-IN')}
                             </span>
                             {prod.originalPrice && prod.originalPrice > prod.price && (
-                              <span className="text-[11px] text-espresso-400 line-through">
+                              <span className="text-[11px] text-espresso-400 line-through tabular-nums">
                                 ₹{prod.originalPrice.toLocaleString('en-IN')}
                               </span>
                             )}
@@ -343,14 +343,14 @@ export const WishlistDrawer: React.FC<WishlistDrawerProps> = ({
                             <div className="mt-1 flex items-baseline justify-between">
                               <div>
                                 <span className="text-[10px] text-espresso-400 block">Current Lowest:</span>
-                                <span className="text-sm font-extrabold text-espresso-950 font-sans">
+                                <span className="text-sm font-extrabold text-espresso-950 font-sans tabular-nums">
                                   ₹{product.price.toLocaleString('en-IN')}
                                 </span>
                               </div>
 
                               <div className="text-right">
                                 <span className="text-[10px] text-espresso-400 block">Your Target:</span>
-                                <span className="text-xs font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
+                                <span className="text-xs font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200 tabular-nums">
                                   ₹{tracking.targetPrice.toLocaleString('en-IN')}
                                 </span>
                               </div>
@@ -416,7 +416,7 @@ export const WishlistDrawer: React.FC<WishlistDrawerProps> = ({
             <div className="p-4 sm:p-5 border-t border-rose-200 bg-white/85 space-y-3">
               <div className="flex items-center justify-between text-xs text-espresso-600">
                 <span>Vault Estimated Total:</span>
-                <span className="text-base font-bold font-sans text-espresso-950">
+                <span className="text-base font-bold font-sans text-espresso-950 tabular-nums">
                   ₹{totalValue.toLocaleString('en-IN')}
                 </span>
               </div>
@@ -424,7 +424,7 @@ export const WishlistDrawer: React.FC<WishlistDrawerProps> = ({
               {totalSavings > 0 && (
                 <div className="flex items-center justify-between text-xs text-sage-800 bg-sage-50 px-3 py-1.5 rounded-xl border border-sage-200">
                   <span>Total Discount Savings:</span>
-                  <strong className="font-bold">Save ₹{totalSavings.toLocaleString('en-IN')}</strong>
+                  <strong className="font-bold tabular-nums">Save ₹{totalSavings.toLocaleString('en-IN')}</strong>
                 </div>
               )}
 

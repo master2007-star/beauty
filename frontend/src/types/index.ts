@@ -311,12 +311,17 @@ export interface RecommendedProduct {
 
 export interface WebCompareResult {
   retailer: string;
-  productTitle: string;
+  title: string;
+  productTitle?: string;
   imageUrl?: string | null;
   price: number;
   mrp?: number | null;
-  productUrl: string;
+  discountPercent?: number;
   inStock: boolean;
+  url: string;
+  productUrl?: string;
+  source?: 'live' | 'snapshot';
+  updatedAt?: string;
 }
 
 export interface WebCompareResponse {

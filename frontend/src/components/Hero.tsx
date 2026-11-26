@@ -59,10 +59,9 @@ export const Hero: React.FC<HeroProps> = ({
   const trendingTags = [
     'Dot & Key Sunscreen',
     'Minimalist Niacinamide',
-    'Cetaphil Cleanser',
-    'Cosrx Snail Mucin',
+    'Laneige Lip Sleeping Mask',
+    'COSRX Snail Mucin',
     'Maybelline Sky High',
-    'Soundarya 24K Gold',
   ];
 
   return (
@@ -133,9 +132,9 @@ export const Hero: React.FC<HeroProps> = ({
                   />
                   <button
                     type="submit"
-                    className="px-5 py-2.5 rounded-full bg-espresso-800 hover:bg-espresso-950 text-ivory text-xs sm:text-sm font-semibold tracking-wide transition-all shrink-0 hover:shadow-md flex items-center space-x-1.5"
+                    className="px-5 py-2.5 rounded-full bg-espresso-800 hover:bg-espresso-950 text-ivory text-xs sm:text-sm font-semibold tracking-wide transition-all shrink-0 hover:shadow-md flex items-center space-x-1.5 min-h-[44px]"
                   >
-                    <span>Compare 5 Stores</span>
+                    <span>Scan Live Web</span>
                     <Sparkles className="w-3.5 h-3.5 text-champagne-300" />
                   </button>
                 </div>

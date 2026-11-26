@@ -181,11 +181,11 @@ export function LiveRetailerPriceComparison({
                 {isLive && offer.price > 0 ? (
                   <div>
                     <div className="flex items-baseline space-x-2">
-                      <span className="text-2xl font-black text-espresso-950 font-sans">
+                      <span className="text-2xl font-black text-espresso-950 font-sans tabular-nums">
                         ₹{offer.price.toLocaleString('en-IN')}
                       </span>
                       {offer.originalPrice && offer.originalPrice > offer.price && (
-                        <span className="text-sm font-normal text-espresso-400 line-through">
+                        <span className="text-sm font-normal text-espresso-400 line-through tabular-nums">
                           ₹{offer.originalPrice.toLocaleString('en-IN')}
                         </span>
                       )}
@@ -216,7 +216,7 @@ export function LiveRetailerPriceComparison({
                   href={href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`w-full sm:w-auto inline-flex items-center justify-center gap-1.5 rounded-2xl px-5 py-3 text-xs sm:text-sm font-bold tracking-wide transition-all shadow-xs ${
+                  className={`w-full sm:w-auto inline-flex items-center justify-center gap-1.5 rounded-2xl px-5 py-3 min-h-[44px] text-xs sm:text-sm font-bold tracking-wide transition-all shadow-xs ${
                     isBestDeal
                       ? 'bg-espresso-900 hover:bg-espresso-950 text-ivory shadow-md'
                       : 'bg-white hover:bg-rose-50 text-espresso-800 border border-rose-200'

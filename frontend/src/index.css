@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --color-canvas: #FAF7F5;
+  --color-surface: #F3EAE6;
+  --color-ink: #1E1918;
+  --color-terracotta: #B86B5E;
+  --color-emerald: #1E6B52;
+}
+
 @layer base {
   html {
     scroll-behavior: smooth;
@@ -11,14 +19,32 @@
   }
 
   body {
-    background-color: #FAF7F2;
-    color: #302724;
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: 'Plus Jakarta Sans', Inter, system-ui, sans-serif;
   }
 
   /* Custom beauty editorial headings */
   h1, h2, h3, .font-editorial {
-    font-family: 'Cormorant Garamond', 'Playfair Display', serif;
+    font-family: 'Cormorant Garamond', 'Playfair Display', Georgia, serif;
+    letter-spacing: -0.015em;
+  }
+
+  /* Tabular figures for pricing and numerical comparisons */
+  .tabular-nums, .price-numeric {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Themed focus rings for strict WCAG AA keyboard accessibility */
+  *:focus-visible {
+    outline: 2px solid #B86B5E;
+    outline-offset: 2px;
+  }
+
+  /* Editorial text selection */
+  ::selection {
+    background-color: #E8CAD0;
+    color: #1E1918;
   }
 }
 
@@ -40,7 +66,7 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #FAF7F2;
+  background: #FAF7F5;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -52,22 +78,52 @@
   background: #C98991;
 }
 
-/* Glassmorphism & luxury borders */
+/* Luxury surfaces and subtle atmospheric borders */
 .glass-panel {
-  background: rgba(250, 247, 242, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(201, 137, 145, 0.15);
+  background: rgba(250, 247, 245, 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(184, 107, 94, 0.15);
 }
 
 .luxury-border {
-  border: 1px solid rgba(214, 188, 138, 0.25);
+  border: 1px solid rgba(214, 188, 138, 0.3);
 }
 
 .champagne-gradient {
-  background: linear-gradient(135deg, #FAF7F2 0%, #F5EFE0 50%, #FAF7F2 100%);
+  background: linear-gradient(135deg, #FAF7F5 0%, #F3EAE6 50%, #FAF7F5 100%);
 }
 
 .rose-gradient {
   background: linear-gradient(135deg, #FAF3F4 0%, #F4E5E7 100%);
+}
+
+/* Shimmer Loading Animation */
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.shimmer-active {
+  position: relative;
+  overflow: hidden;
+}
+
+.shimmer-active::after {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  transform: translateX(-100%);
+  background-image: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0,
+    rgba(255, 255, 255, 0.6) 20%,
+    rgba(255, 255, 255, 0.8) 60%,
+    rgba(255, 255, 255, 0)
+  );
+  animation: shimmer 2s infinite;
+  content: '';
 }

@@ -44,6 +44,7 @@ export const DiscoveryHomePage: React.FC<DiscoveryHomePageProps> = ({
   // Search & Filter State
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedBrand, setSelectedBrand] = useState<string | 'all'>('all');
+  const [selectedStore, setSelectedStore] = useState<'all' | 'nykaa' | 'amazon' | 'tira' | 'purplle' | 'myntra'>('all');
   const [selectedSkinType, setSelectedSkinType] = useState<string | 'all'>('all');
   const [selectedBudget, setSelectedBudget] = useState<'all' | 'under-500' | '500-1000' | '1000-2500' | 'above-2500'>('all');
   const [sortBy, setSortBy] = useState<'featured' | 'price-asc' | 'price-desc' | 'name-asc' | 'rating' | 'best-deal'>('featured');
@@ -71,6 +72,17 @@ export const DiscoveryHomePage: React.FC<DiscoveryHomePageProps> = ({
       if (activeCategory !== 'all' && product.category !== activeCategory) return false;
       if (activeSubcategory !== 'all' && product.subcategory !== activeSubcategory) return false;
       if (selectedBrand !== 'all' && product.brand !== selectedBrand) return false;
+
+      if (selectedStore !== 'all') {
+        const hasStore = product.storeOffers.some(
+          (o) =>
+            (o.storeId.toLowerCase() === selectedStore ||
+              o.storeName.toLowerCase().includes(selectedStore)) &&
+            o.inStock &&
+            o.price > 0
+        );
+        if (!hasStore) return false;
+      }
 
       if (selectedSkinType !== 'all') {
         if (!product.skinType) return false;
@@ -112,7 +124,7 @@ export const DiscoveryHomePage: React.FC<DiscoveryHomePageProps> = ({
       }
       return (b.isTrending ? 1 : 0) - (a.isTrending ? 1 : 0);
     });
-  }, [PRODUCTS_DATA, activeCategory, activeSubcategory, selectedBrand, selectedSkinType, selectedBudget, searchQuery, sortBy]);
+  }, [PRODUCTS_DATA, activeCategory, activeSubcategory, selectedBrand, selectedStore, selectedSkinType, selectedBudget, searchQuery, sortBy]);
 
   const bestDeals = useMemo(() => {
     return PRODUCTS_DATA.filter((p) => p.isBestDeal || (p.originalPrice && p.originalPrice > p.price));
@@ -129,6 +141,7 @@ export const DiscoveryHomePage: React.FC<DiscoveryHomePageProps> = ({
     setActiveCategory('all');
     setActiveSubcategory('all');
     setSelectedBrand('all');
+    setSelectedStore('all');
     setSelectedSkinType('all');
     setSelectedBudget('all');
     setSearchQuery('');
@@ -139,6 +152,7 @@ export const DiscoveryHomePage: React.FC<DiscoveryHomePageProps> = ({
     activeCategory !== 'all' ||
     activeSubcategory !== 'all' ||
     selectedBrand !== 'all' ||
+    selectedStore !== 'all' ||
     selectedSkinType !== 'all' ||
     selectedBudget !== 'all' ||
     searchQuery.trim() ||
@@ -308,11 +322,55 @@ export const DiscoveryHomePage: React.FC<DiscoveryHomePageProps> = ({
             </div>
           </div>
 
+          {/* Row 3: Store Filter Pill Strip */}
+          <div className="pt-2 border-t border-rose-100/70">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-espresso-400">
+                Filter By Store
+              </span>
+              <span className="text-[10px] text-espresso-400">
+                5 Indian Retailers
+              </span>
+            </div>
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+              {[
+                { id: 'all', label: 'All Stores' },
+                { id: 'nykaa', label: 'Nykaa' },
+                { id: 'amazon', label: 'Amazon India' },
+                { id: 'tira', label: 'Tira Beauty' },
+                { id: 'purplle', label: 'Purplle' },
+                { id: 'myntra', label: 'Myntra' },
+              ].map((s) => {
+                const isActive = selectedStore === s.id;
+                return (
+                  <button
+                    key={s.id}
+                    type="button"
+                    onClick={() => setSelectedStore(s.id as any)}
+                    className={`min-h-[38px] px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all ${
+                      isActive
+                        ? 'bg-espresso-800 text-ivory shadow-xs'
+                        : 'bg-ivory-100 text-espresso-700 hover:bg-champagne-100 hover:text-espresso-900 border border-rose-200/60'
+                    }`}
+                  >
+                    {s.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           {/* Active Filter Pills & Reset Button */}
           {hasActiveFilters && (
             <div className="pt-2 border-t border-rose-100 flex flex-wrap items-center justify-between gap-2">
               <div className="flex flex-wrap items-center gap-1.5 text-xs text-espresso-500">
                 <span className="font-semibold text-espresso-700">Active Filters:</span>
+                {selectedStore !== 'all' && (
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center space-x-1">
+                    <span className="capitalize">Store: {selectedStore}</span>
+                    <button onClick={() => setSelectedStore('all')}>✕</button>
+                  </span>
+                )}
                 {activeCategory !== 'all' && (
                   <span className="px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200 flex items-center space-x-1">
                     <span>Dept: {activeCategory}</span>
