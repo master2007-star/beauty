@@ -10,6 +10,7 @@ interface NavbarProps {
   wishlistCount: number;
   unreadAlertCount?: number;
   onOpenWishlist: () => void;
+  onOpenPriceAlerts?: () => void;
   onSelectCategory?: (category: ProductCategory | 'all') => void;
   onScrollToSection?: (sectionId: string) => void;
   onOpenSearch?: () => void;
@@ -20,6 +21,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   wishlistCount,
   unreadAlertCount = 0,
   onOpenWishlist,
+  onOpenPriceAlerts,
   onSelectCategory,
   onScrollToSection,
   onOpenSearch,
@@ -184,19 +186,36 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </button>
               )}
 
-              {/* Price Alerts Link with Badge */}
-              <Link
-                to="/watchlist"
-                aria-label="View price alerts"
-                className="relative p-2 rounded-full bg-white border border-rose-200/70 hover:border-rose-400 text-espresso-600 hover:text-rose-600 transition-all shadow-xs"
-              >
-                <Bell className="w-4 h-4 text-espresso-600" />
-                {unreadAlertCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-rose-500 text-ivory text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center shadow-xs">
-                    {unreadAlertCount}
-                  </span>
-                )}
-              </Link>
+              {/* Price Alerts Button with Badge */}
+              {onOpenPriceAlerts ? (
+                <button
+                  type="button"
+                  onClick={onOpenPriceAlerts}
+                  aria-label="View price-drop alerts"
+                  title="View active price alerts and target hit drops"
+                  className="relative p-2 rounded-full bg-white border border-rose-200/70 hover:border-rose-400 text-espresso-600 hover:text-rose-600 transition-all shadow-xs"
+                >
+                  <Bell className="w-4 h-4 text-espresso-600" />
+                  {unreadAlertCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-rose-500 text-ivory text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center shadow-xs animate-pulse">
+                      {unreadAlertCount}
+                    </span>
+                  )}
+                </button>
+              ) : (
+                <Link
+                  to="/watchlist"
+                  aria-label="View price alerts"
+                  className="relative p-2 rounded-full bg-white border border-rose-200/70 hover:border-rose-400 text-espresso-600 hover:text-rose-600 transition-all shadow-xs"
+                >
+                  <Bell className="w-4 h-4 text-espresso-600" />
+                  {unreadAlertCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-rose-500 text-ivory text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center shadow-xs animate-pulse">
+                      {unreadAlertCount}
+                    </span>
+                  )}
+                </Link>
+              )}
 
               {/* Wishlist Drawer Button */}
               <button

@@ -236,6 +236,64 @@ function useTrackerState() {
     [trackedProducts]
   );
 
+  const getTargetPrice = useCallback(
+    (productId: string): number | undefined => {
+      const record = trackedProducts.find((item) => item.productId === productId && item.isTracking);
+      return record?.targetPrice;
+    },
+    [trackedProducts]
+  );
+
+  const isTargetReached = useCallback(
+    (productId: string): boolean => {
+      const record = trackedProducts.find((item) => item.productId === productId && item.isTracking);
+      if (!record || !record.targetPrice) return false;
+      const product = PRODUCTS_DATA.find((p) => p.id === productId);
+      return Boolean(product && product.price > 0 && product.price <= record.targetPrice);
+    },
+    [trackedProducts, PRODUCTS_DATA]
+  );
+
+  const activeTargetHitCount = trackedProducts.filter((item) => {
+    if (!item.isTracking || !item.targetPrice) return false;
+    const product = PRODUCTS_DATA.find((p) => p.id === item.productId);
+    return Boolean(product && product.price > 0 && product.price <= item.targetPrice);
+  }).length;
+
+  // Automatically check live-synced prices against target price alerts
+  useEffect(() => {
+    if (!ready.current || PRODUCTS_DATA.length === 0) return;
+    trackedProducts.forEach((item) => {
+      if (!item.isTracking || !item.targetPrice) return;
+      const product = PRODUCTS_DATA.find((p) => p.id === item.productId);
+      if (product && product.price > 0 && product.price <= item.targetPrice) {
+        setAlerts((prev) => {
+          const alreadyAlerted = prev.some(
+            (a) => a.productId === item.productId && a.currentPrice === product.price && a.alertType === 'target_reached'
+          );
+          if (alreadyAlerted) return prev;
+          const bestStore = product.storeOffers.find((o) => o.price === product.price)?.storeName || product.storeOffers[0]?.storeName || 'Lowest Store';
+          const newAlert: PriceAlertNotification = {
+            id: `alert-hit-${item.productId}-${Date.now()}`,
+            trackingId: item.id,
+            productId: item.productId,
+            productName: product.name,
+            productImage: product.image,
+            alertType: 'target_reached',
+            currentPrice: product.price,
+            targetPrice: item.targetPrice,
+            storeName: bestStore,
+            message: `🎯 Target Price Hit! ${product.name} is now ₹${product.price.toLocaleString('en-IN')} on ${bestStore} (Target: ₹${item.targetPrice.toLocaleString('en-IN')})!`,
+            timestamp: 'Just now',
+            isRead: false,
+            deliveryStatus: 'in_app_delivered',
+          };
+          return [newAlert, ...prev];
+        });
+      }
+    });
+  }, [PRODUCTS_DATA, trackedProducts]);
+
   const markAlertAsRead = useCallback((alertId: string) => {
     setAlerts((prev) =>
       prev.map((a) => (a.id === alertId ? { ...a, isRead: true } : a))
@@ -257,11 +315,14 @@ function useTrackerState() {
     trackedProducts,
     alerts,
     unreadAlertCount,
+    activeTargetHitCount,
     startTracking,
     updateTargetPrice,
     stopTracking,
     isTracking,
     getTrackedRecord,
+    getTargetPrice,
+    isTargetReached,
     markAlertAsRead,
     markAllAlertsAsRead,
     clearAlert,

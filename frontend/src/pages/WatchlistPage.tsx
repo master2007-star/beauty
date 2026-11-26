@@ -6,10 +6,11 @@ import {
   Trash2,
   ArrowRight,
   ShieldAlert,
-  CheckCircle2,
   Clock,
   CloudOff,
   UserCheck,
+  ExternalLink,
+  Sparkles,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -18,6 +19,7 @@ import { ProductImage } from '../components/ProductImage';
 import { useWishlist } from '../hooks/useWishlist';
 import { usePriceTracker } from '../hooks/usePriceTracker';
 import { PriceTrackingModal } from '../components/PriceTrackingModal';
+import { getRetailerProductUrl } from '../utils/productLinks';
 import type { Product } from '../types';
 
 export const WatchlistPage: React.FC = () => {
@@ -160,10 +162,24 @@ export const WatchlistPage: React.FC = () => {
                     const diff = currentPrice - targetPrice;
                     const isTargetReached = currentPrice > 0 && currentPrice <= targetPrice;
 
+                    const lowestOffer = product.storeOffers.reduce(
+                      (min, o) => (o.price < min.price ? o : min),
+                      product.storeOffers[0]
+                    );
+                    const purchaseHref = getRetailerProductUrl(
+                      product,
+                      lowestOffer?.storeName || 'Nykaa',
+                      lowestOffer?.purchaseUrl
+                    );
+
                     return (
                       <div
                         key={tracking.id}
-                        className="p-5 rounded-3xl bg-white border border-rose-200/90 shadow-soft-lift flex flex-col justify-between space-y-4"
+                        className={`p-5 rounded-3xl transition-all flex flex-col justify-between space-y-4 border ${
+                          isTargetReached
+                            ? 'bg-gradient-to-br from-emerald-50/70 via-teal-50/60 to-white border-emerald-300 ring-2 ring-emerald-400/30 shadow-luxury-card'
+                            : 'bg-white border-rose-200/90 shadow-soft-lift'
+                        }`}
                       >
                         <div className="flex items-start space-x-4">
                           <ProductImage compact
@@ -201,11 +217,13 @@ export const WatchlistPage: React.FC = () => {
 
                         {/* Progress Status Bar */}
                         <div className="pt-2 border-t border-rose-100 text-xs">
-                          {currentPrice <= 0 ? <p className="text-espresso-600">Waiting for a verified current price.</p> : isTargetReached ? (
-                            <div className="flex items-center space-x-1.5 text-sage-800 bg-sage-50 px-3 py-1.5 rounded-xl border border-sage-200">
-                              <CheckCircle2 className="w-4 h-4 text-sage-600 shrink-0" />
+                          {currentPrice <= 0 ? (
+                            <p className="text-espresso-600">Waiting for a verified current price.</p>
+                          ) : isTargetReached ? (
+                            <div className="flex items-center space-x-1.5 text-emerald-900 bg-emerald-100/80 px-3 py-1.5 rounded-xl border border-emerald-300">
+                              <Sparkles className="w-4 h-4 text-amber-500 shrink-0" />
                               <span className="font-bold">
-                                🎯 Target Met! Current price is ₹{Math.abs(diff)} below target.
+                                🎯 Target Met! Current lowest is ₹{Math.abs(diff)} below target.
                               </span>
                             </div>
                           ) : (
@@ -224,8 +242,8 @@ export const WatchlistPage: React.FC = () => {
                           )}
                         </div>
 
-                        {/* Action buttons */}
-                        <div className="flex items-center justify-between pt-1">
+                        {/* Action buttons with 1-click Buy at Lowest Store */}
+                        <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-rose-100/60">
                           <button
                             onClick={() => setSelectedProductForModal(product)}
                             className="text-xs text-rose-600 hover:text-rose-700 font-semibold"
@@ -241,11 +259,26 @@ export const WatchlistPage: React.FC = () => {
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
+
+                            <a
+                              href={purchaseHref}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center space-x-1 shadow-xs transition-colors ${
+                                isTargetReached
+                                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                                  : 'bg-ivory-200 hover:bg-ivory-300 text-espresso-800'
+                              }`}
+                            >
+                              <span>Buy on {lowestOffer?.storeName || 'Store'}</span>
+                              <ExternalLink className="w-3 h-3 ml-0.5" />
+                            </a>
+
                             <Link
                               to={`/product/${product.slug || product.id}`}
-                              className="px-3.5 py-1.5 rounded-xl bg-espresso-800 text-ivory text-xs font-bold flex items-center space-x-1 hover:bg-espresso-950 transition-colors"
+                              className="px-3 py-1.5 rounded-xl bg-espresso-800 text-ivory text-xs font-bold flex items-center space-x-1 hover:bg-espresso-950 transition-colors"
                             >
-                              <span>View Product</span>
+                              <span>Details</span>
                               <ArrowRight className="w-3 h-3" />
                             </Link>
                           </div>

@@ -192,6 +192,17 @@ export const ProductDetailPage: React.FC = () => {
 
             {/* Price Box */}
             <div className="bg-white p-5 rounded-3xl border border-rose-200/80 shadow-soft-lift space-y-3">
+              {isTracked && trackingRecord?.targetPrice && product.price > 0 && product.price <= trackingRecord.targetPrice && (
+                <div className="p-3 rounded-2xl bg-gradient-to-r from-emerald-50 via-teal-50 to-white border border-emerald-300 flex items-center justify-between text-xs text-emerald-950 shadow-xs animate-pulse">
+                  <div className="flex items-center space-x-2">
+                    <Sparkles className="w-4 h-4 text-amber-500 shrink-0" />
+                    <span>
+                      <strong>Price Drop Hit! Target Reached:</strong> Current lowest ₹{product.price.toLocaleString('en-IN')} meets your alert threshold of ₹{trackingRecord.targetPrice.toLocaleString('en-IN')}.
+                    </span>
+                  </div>
+                </div>
+              )}
+
               <span className="text-xs font-bold uppercase tracking-wider text-espresso-400 block">
                 Lowest Available Offer
               </span>

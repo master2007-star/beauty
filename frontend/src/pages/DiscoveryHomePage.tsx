@@ -23,6 +23,8 @@ interface DiscoveryHomePageProps {
   setActiveCategory: (cat: ProductCategory | 'all') => void;
   activeSubcategory: Subcategory | 'all';
   setActiveSubcategory: (sub: Subcategory | 'all') => void;
+  onOpenUniversalSearch?: (query?: string) => void;
+  onOpenPriceTracker?: (product: Product) => void;
 }
 
 export const DiscoveryHomePage: React.FC<DiscoveryHomePageProps> = ({
@@ -33,6 +35,8 @@ export const DiscoveryHomePage: React.FC<DiscoveryHomePageProps> = ({
   setActiveCategory,
   activeSubcategory,
   setActiveSubcategory,
+  onOpenUniversalSearch,
+  onOpenPriceTracker,
 }) => {
   const navigate = useNavigate();
   const { products: PRODUCTS_DATA } = useCatalogue();
@@ -149,6 +153,8 @@ export const DiscoveryHomePage: React.FC<DiscoveryHomePageProps> = ({
         onSearch={(query: string) => setSearchQuery(query)}
         onExploreClick={() => scrollToSection('catalog')}
         onDupesClick={() => scrollToSection('dupes')}
+        onOpenUniversalSearch={onOpenUniversalSearch}
+        onSelectProduct={(p) => navigate(`/product/${p.slug || p.id}`)}
       />
 
       {/* 2. Visual Categories Navigation */}
@@ -379,6 +385,7 @@ export const DiscoveryHomePage: React.FC<DiscoveryHomePageProps> = ({
                 onToggleWishlist={toggleWishlist}
                 onViewProduct={() => navigate(`/product/${product.slug || product.id}`)}
                 onComparePrices={() => onSelectProduct(product)}
+                onOpenPriceTracker={onOpenPriceTracker}
                 onViewAlternative={(p) => {
                   if (p.dupeId) {
                     const dupe = PRODUCTS_DATA.find((x) => x.id === p.dupeId);

@@ -17,6 +17,8 @@ import { Navbar } from './components/Navbar';
 import { ScrollToTop } from './components/ScrollToTop';
 import { WishlistDrawer } from './components/WishlistDrawer';
 import { ProductDetailModal } from './components/ProductDetailModal';
+import { PriceTrackingModal } from './components/PriceTrackingModal';
+import { UniversalSearchModal } from './components/UniversalSearchModal';
 import { AuthModal } from './components/AuthModal';
 import { Footer } from './components/Footer';
 
@@ -37,10 +39,20 @@ export const AppContent: React.FC = () => {
   // Modal & Drawer State
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
+  const [wishlistDrawerTab, setWishlistDrawerTab] = useState<'watchlist' | 'alerts'>('watchlist');
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchInitialQuery, setSearchInitialQuery] = useState('');
+  const [trackingProductForModal, setTrackingProductForModal] = useState<Product | null>(null);
 
   // Hooks
   const { wishlist, toggleWishlist, isWishlisted, clearWishlist, wishlistCount } = useWishlist();
-  const { unreadAlertCount } = usePriceTracker();
+  const {
+    unreadAlertCount,
+    activeTargetHitCount,
+    getTrackedRecord,
+    startTracking,
+    stopTracking,
+  } = usePriceTracker();
 
   const handleSelectAlternativeProduct = (productId: string) => {
     const target = PRODUCTS_DATA.find((p) => p.id === productId);
@@ -61,9 +73,23 @@ export const AppContent: React.FC = () => {
       {/* Global Navigation Header */}
       <Navbar
         wishlistCount={wishlistCount}
-        unreadAlertCount={unreadAlertCount}
-        onOpenWishlist={() => setIsWishlistOpen(true)}
-        onSelectCategory={(cat) => { setActiveCategory(cat); setActiveSubcategory('all'); }}
+        unreadAlertCount={unreadAlertCount + activeTargetHitCount}
+        onOpenWishlist={() => {
+          setWishlistDrawerTab('watchlist');
+          setIsWishlistOpen(true);
+        }}
+        onOpenPriceAlerts={() => {
+          setWishlistDrawerTab('alerts');
+          setIsWishlistOpen(true);
+        }}
+        onOpenSearch={() => {
+          setSearchInitialQuery('');
+          setIsSearchOpen(true);
+        }}
+        onSelectCategory={(cat) => {
+          setActiveCategory(cat);
+          setActiveSubcategory('all');
+        }}
         onScrollToSection={scrollToSection}
         activeCategory={activeCategory}
       />
@@ -83,6 +109,11 @@ export const AppContent: React.FC = () => {
                 setActiveCategory={setActiveCategory}
                 activeSubcategory={activeSubcategory}
                 setActiveSubcategory={setActiveSubcategory}
+                onOpenUniversalSearch={(q) => {
+                  setSearchInitialQuery(q || '');
+                  setIsSearchOpen(true);
+                }}
+                onOpenPriceTracker={(p) => setTrackingProductForModal(p)}
               />
             }
           />
@@ -99,23 +130,58 @@ export const AppContent: React.FC = () => {
         </Routes>
       </div>
 
-      {/* Slide-out Wishlist Drawer */}
+      {/* Slide-out Wishlist & Price Alerts Drawer */}
       <AnimatePresence>
         {isWishlistOpen && (
           <WishlistDrawer
             isOpen={isWishlistOpen}
             onClose={() => setIsWishlistOpen(false)}
+            initialTab={wishlistDrawerTab}
             wishlistIds={wishlist}
             allProducts={PRODUCTS_DATA}
             onRemoveFromWishlist={toggleWishlist}
             onClearWishlist={clearWishlist}
             onViewProduct={(p) => {
               setIsWishlistOpen(false);
-              setSelectedProduct(p);
+              navigate(`/product/${p.slug || p.id}`);
             }}
             onExploreProducts={() => {
               setIsWishlistOpen(false);
               scrollToSection('catalog');
+            }}
+            onOpenPriceTrackerModal={(p) => setTrackingProductForModal(p)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* 5-Store Universal Quick-Compare Search Modal */}
+      <AnimatePresence>
+        {isSearchOpen && (
+          <UniversalSearchModal
+            isOpen={isSearchOpen}
+            onClose={() => setIsSearchOpen(false)}
+            initialQuery={searchInitialQuery}
+            onSelectProduct={(p) => {
+              setIsSearchOpen(false);
+              navigate(`/product/${p.slug || p.id}`);
+            }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Price-Drop Alert & Target Price Modal */}
+      <AnimatePresence>
+        {trackingProductForModal && (
+          <PriceTrackingModal
+            isOpen={Boolean(trackingProductForModal)}
+            onClose={() => setTrackingProductForModal(null)}
+            product={trackingProductForModal}
+            existingRecord={getTrackedRecord(trackingProductForModal.id)}
+            onSaveTarget={(target, note) => {
+              startTracking(trackingProductForModal.id, target, note);
+            }}
+            onRemoveTracking={() => {
+              stopTracking(trackingProductForModal.id);
             }}
           />
         )}
@@ -125,7 +191,10 @@ export const AppContent: React.FC = () => {
       <AnimatePresence>
         {selectedProduct && (
           <ProductDetailModal
-            product={PRODUCTS_DATA.find((product) => product.id === selectedProduct.id) || selectedProduct}
+            product={
+              PRODUCTS_DATA.find((product) => product.id === selectedProduct.id) ||
+              selectedProduct
+            }
             onClose={() => setSelectedProduct(null)}
             isWishlisted={isWishlisted(selectedProduct.id)}
             onToggleWishlist={toggleWishlist}
@@ -148,7 +217,11 @@ export const App: React.FC = () => {
     <BrowserRouter basename={import.meta.env.BASE_URL}>
       <ScrollToTop />
       <AuthProvider>
-        <PriceProvider><PriceTrackerProvider><AppContent /></PriceTrackerProvider></PriceProvider>
+        <PriceProvider>
+          <PriceTrackerProvider>
+            <AppContent />
+          </PriceTrackerProvider>
+        </PriceProvider>
       </AuthProvider>
     </BrowserRouter>
   );
