@@ -3,40 +3,36 @@ import { useState, type ImgHTMLAttributes } from 'react';
 interface ProductImageProps extends ImgHTMLAttributes<HTMLImageElement> {
   src: string;
   alt: string;
-  compact?: boolean;
   brand?: string;
+  frameClassName?: string;
 }
 
-/** Shared product media: fill the frame without stretching and recover from failed loads. */
-export function ProductImage({ src, alt, brand, className = '', compact: _compact, onError, ...props }: ProductImageProps) {
-  const [failedSrc, setFailedSrc] = useState<string | null>(null);
-  const unavailable = !src || failedSrc === src;
+export function ProductImage({ src, alt, brand, className = '', frameClassName = '', onError, ...props }: ProductImageProps) {
+  const [failed, setFailed] = useState(false);
+  const unavailable = !src || failed;
+  const baseUrl = import.meta.env.BASE_URL || '/';
+  const resolved = src.startsWith('/images/') ? `${baseUrl}${src.slice(1)}` : src;
+  const monogram = (brand || alt || 'B').trim().charAt(0).toUpperCase();
 
   return (
-    <span
-      className={`relative block overflow-hidden bg-white ${className}`}
-      title={props.title}
-      data-product-image={src}
-    >
+    <div className={`relative overflow-hidden ${frameClassName}`}>
       {unavailable ? (
-        <span role="img" aria-label={`${brand || alt} product image unavailable`} className="flex h-full w-full flex-col items-center justify-center gap-3 bg-[#f4ece8] p-4 text-center text-xs leading-snug text-[#6e605c]">
-          <span aria-hidden="true" className="font-editorial text-4xl text-[#b56558]">{(brand || alt).slice(0, 1).toUpperCase()}</span>
-          <span className="max-w-[16ch] text-[10px] font-semibold uppercase tracking-[0.18em]">{brand || 'Beauty'}</span>
-        </span>
+        <div role="img" aria-label={`${brand || alt} image unavailable`} className="flex h-full w-full flex-col items-center justify-center gap-3 bg-gradient-to-br from-champagne to-ivory text-rose">
+          <span aria-hidden="true" className="font-editorial text-6xl font-semibold">{monogram}</span>
+          <span className="max-w-[15ch] text-center text-[10px] font-bold uppercase tracking-[.22em] text-taupe">{brand || 'Beauty'}</span>
+        </div>
       ) : (
         <img
           {...props}
-          src={src.startsWith('/images/') ? `${import.meta.env.BASE_URL}${src.slice(1)}` : src}
+          src={resolved}
           alt={alt}
           referrerPolicy="no-referrer"
+          loading={props.loading || 'lazy'}
           decoding="async"
-          className="block h-full w-full object-cover object-center"
-          onError={(event) => {
-            setFailedSrc(src);
-            onError?.(event);
-          }}
+          className={`block h-full w-full object-cover object-center ${className}`}
+          onError={(event) => { setFailed(true); onError?.(event); }}
         />
       )}
-    </span>
+    </div>
   );
 }
