@@ -1,132 +1,235 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Check, Clock3, ExternalLink, Medal, Store } from 'lucide-react';
-import type { Product } from '../types';
+import { ExternalLink, Crown, Clock, ShieldCheck } from 'lucide-react';
+import { getRetailerProductUrl } from '../utils/productLinks';
+import { useCatalogue } from '../context/PriceContext';
+import type { RetailerOffer } from '../types';
 
-interface CompareResult {
-  retailer: string;
-  price: number;
-  mrp: number | null;
-  inStock: boolean;
-  url: string;
-  source: 'live' | 'snapshot';
-  updatedAt: string;
-}
-interface CompareResponse { results?: CompareResult[]; }
-interface OfferRow { id: string; name: string; price: number; mrp?: number; inStock: boolean; url: string; source: string; updatedAt: string; }
-const STORES = [
-  { id: 'tira', name: 'Tira Beauty' },
-  { id: 'nykaa', name: 'Nykaa' },
-  { id: 'amazon', name: 'Amazon India' },
-  { id: 'purplle', name: 'Purplle' },
-  { id: 'myntra', name: 'Myntra' },
-];
-function storeId(value: string) {
-  const name = value.toLowerCase();
-  if (name.includes('amazon')) return 'amazon';
-  if (name.includes('tira')) return 'tira';
-  if (name.includes('nykaa')) return 'nykaa';
-  if (name.includes('purplle')) return 'purplle';
-  if (name.includes('myntra')) return 'myntra';
-  return name;
-}
-function searchUrl(id: string, query: string) {
-  const encoded = encodeURIComponent(query);
-  if (id === 'tira') return `https://www.tirabeauty.com/search?q=${encoded}`;
-  if (id === 'nykaa') return `https://www.nykaa.com/search/result/?q=${encoded}`;
-  if (id === 'amazon') return `https://www.amazon.in/s?k=${encoded}`;
-  if (id === 'purplle') return `https://www.purplle.com/search?q=${encoded}`;
-  return `https://www.myntra.com/${query.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`;
-}
-function isSearchUrl(url: string) { return /\/search|[?&](q|k)=/i.test(url); }
-function snapshotTime(value?: string) {
-  if (!value) return 'Price snapshot';
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? value : date.toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' });
+interface LiveRetailerPriceComparisonProps {
+  productId?: number;
+  slug: string;
+  productName: string;
+  brand: string;
+  targetVariant: string;
+  fallbackOffers: RetailerOffer[];
 }
 
-export function LiveRetailerPriceComparison({ product }: { product: Product }) {
-  const [apiResults, setApiResults] = useState<CompareResult[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [checkedAt, setCheckedAt] = useState<string | null>(null);
-  useEffect(() => {
-    const controller = new AbortController();
-    const base = (import.meta.env.VITE_COMPARE_API_URL || 'https://pricewise-compare.a4megaboi.workers.dev').replace(/\/$/, '');
-    setLoading(true);
-    fetch(`${base}/compare?q=${encodeURIComponent(`${product.brand} ${product.name}`)}`, { signal: controller.signal })
-      .then((response) => response.ok ? response.json() as Promise<CompareResponse & { updatedAt?: string }> : Promise.reject(new Error('Comparison unavailable')))
-      .then((data) => {
-        setApiResults(Array.isArray(data.results) ? data.results : []);
-        setCheckedAt(data.updatedAt || null);
-      })
-      .catch(() => { if (!controller.signal.aborted) setApiResults([]); })
-      .finally(() => { if (!controller.signal.aborted) setLoading(false); });
-    return () => controller.abort();
-  }, [product.brand, product.name]);
+function isDirectProductUrl(url: string): boolean {
+  if (!url) return false;
+  return ['/p/', '/dp/', '/product/', '/buy'].some((marker) => url.includes(marker));
+}
 
-  const rows = useMemo(() => {
-    const byStore = new Map<string, OfferRow>();
-    for (const offer of product.storeOffers) {
-      const id = storeId(offer.storeId || offer.storeName);
-      byStore.set(id, { id, name: STORES.find((store) => store.id === id)?.name || offer.storeName, price: offer.price || 0, mrp: offer.originalPrice || undefined, inStock: offer.inStock, url: offer.purchaseUrl || '', source: offer.sourceType || 'catalogue', updatedAt: offer.lastUpdated || '' });
-    }
-    for (const result of apiResults) {
-      const id = storeId(result.retailer);
-      if (!STORES.some((store) => store.id === id)) continue;
-      byStore.set(id, { id, name: STORES.find((store) => store.id === id)!.name, price: Number(result.price) || 0, mrp: result.mrp || undefined, inStock: Boolean(result.inStock), url: result.url || '', source: result.source || 'live', updatedAt: result.updatedAt || checkedAt || '' });
-    }
-    return STORES.map((store) => byStore.get(store.id) || { id: store.id, name: store.name, price: 0, inStock: false, url: '', source: 'unavailable', updatedAt: '' }).sort((a, b) => {
-      const aAvailable = a.inStock && a.price > 0;
-      const bAvailable = b.inStock && b.price > 0;
-      if (aAvailable !== bAvailable) return aAvailable ? -1 : 1;
-      return (a.price > 0 ? a.price : Number.MAX_SAFE_INTEGER) - (b.price > 0 ? b.price : Number.MAX_SAFE_INTEGER);
-    });
-  }, [product.storeOffers, apiResults, checkedAt]);
-  const available = rows.filter((row) => row.inStock && row.price > 0);
-  const best = available[0];
-  const highest = available.reduce((max, row) => Math.max(max, row.price), 0);
-  const savings = best && highest > best.price ? highest - best.price : 0;
+const STORE_PALETTES: Record<string, { badge: string; text: string; bg: string }> = {
+  nykaa: { badge: 'Nykaa', text: 'text-pink-700', bg: 'bg-pink-100/80 border-pink-200' },
+  amazon: { badge: 'Amazon India', text: 'text-amber-800', bg: 'bg-amber-100/80 border-amber-200' },
+  tira: { badge: 'Tira Beauty', text: 'text-rose-900', bg: 'bg-rose-100/80 border-rose-200' },
+  purplle: { badge: 'Purplle', text: 'text-purple-700', bg: 'bg-purple-100/80 border-purple-200' },
+  myntra: { badge: 'Myntra', text: 'text-rose-700', bg: 'bg-rose-100/80 border-rose-200' },
+};
+
+export function LiveRetailerPriceComparison({
+  productName,
+  brand,
+  targetVariant,
+  fallbackOffers,
+}: LiveRetailerPriceComparisonProps) {
+  const { liveUpdatedLabel, isLiveLoaded } = useCatalogue();
+  const sorted = [...fallbackOffers].sort(
+    (a, b) => Number(b.inStock) - Number(a.inStock) || a.price - b.price
+  );
+
+  // Only evaluate lowest among verified live offers
+  const liveOffers = sorted.filter(
+    (offer) => offer.sourceType === 'live' && offer.inStock && offer.price > 0
+  );
+  const lowestLive =
+    liveOffers.length > 0
+      ? liveOffers.reduce((min, o) => (o.price < min.price ? o : min), liveOffers[0])
+      : null;
+  const hasLiveOffer = liveOffers.length > 0;
+  const showLiveBadge = hasLiveOffer || isLiveLoaded;
 
   return (
-    <section aria-labelledby="comparison-heading" className="space-y-4">
-      <div className="flex items-end justify-between gap-4">
-        <div><p className="text-[9px] font-bold uppercase tracking-[.17em] text-rose">The price edit</p><h2 id="comparison-heading" className="mt-1 font-editorial text-[30px] font-semibold leading-none sm:text-[34px]">Compare five stores</h2></div>
-        <span className="hidden items-center gap-1.5 text-[10px] text-taupe sm:flex"><span className={`h-1.5 w-1.5 rounded-full ${loading ? 'animate-pulse bg-rose' : 'bg-emerald'}`} />{loading ? 'Checking listings' : 'Comparison updated'}</span>
+    <section
+      className="space-y-5 border-t border-rose-200/80 pt-8"
+      id="retailer-price-comparison-section"
+    >
+      {/* Editorial Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <div className="flex flex-wrap items-center gap-2.5">
+            <h2 className="font-editorial text-2xl sm:text-3xl font-bold text-espresso-950">
+              Retailer Price Intelligence
+            </h2>
+            {showLiveBadge && (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800 border border-emerald-200 shadow-2xs">
+                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                Live Synced
+              </span>
+            )}
+          </div>
+          <p className="mt-1 text-xs sm:text-sm text-espresso-600 font-normal">
+            {showLiveBadge
+              ? `Real-time verified pricing for ${targetVariant}${
+                  liveUpdatedLabel ? ` • Snapshot: ${liveUpdatedLabel}` : ''
+                }. Confirm stock & checkout delivery perks at the retailer.`
+              : `Current verified pricing for ${targetVariant}. Confirm stock & checkout delivery perks at the retailer.`}
+          </p>
+        </div>
+
+        <div className="hidden sm:flex items-center space-x-1.5 text-xs text-espresso-500 shrink-0">
+          <ShieldCheck className="w-4 h-4 text-emerald-600" />
+          <span>5 Authorized Indian Retailers</span>
+        </div>
       </div>
-      <div className="rounded-2xl border border-emerald/20 bg-emerald-tint px-4 py-4 sm:px-5">
-        {best ? <><p className="text-[9px] font-bold uppercase tracking-[.15em] text-emerald">Best available price</p><div className="mt-1 flex flex-wrap items-baseline gap-x-2"><strong className="text-[23px] font-bold tabular-nums text-emerald sm:text-[27px]">₹{best.price.toLocaleString('en-IN')}</strong><span className="text-xs font-semibold text-espresso">at {best.name}</span>{savings > 0 && <span className="text-[10px] text-emerald">Save ₹{savings.toLocaleString('en-IN')} vs highest listed price</span>}</div></> : <><p className="text-[9px] font-bold uppercase tracking-[.15em] text-emerald">Retailer listings</p><p className="mt-1 text-xs font-semibold text-espresso">Check current price and availability with each store.</p></>}
-      </div>
-      <div className="space-y-2.5">
-        {rows.map((row, index) => {
-          const bestDeal = Boolean(best && row.id === best.id);
-          const hasPrice = row.price > 0;
-          const direct = row.url && !isSearchUrl(row.url);
-          const href = direct ? row.url : row.url || searchUrl(row.id, `${product.brand} ${product.name}`);
-          const discount = row.mrp && hasPrice && row.mrp > row.price ? Math.round((row.mrp - row.price) / row.mrp * 100) : 0;
-          const status = !hasPrice || row.source === 'unavailable' ? 'Check store' : row.source === 'demo' || row.source === 'catalogue' ? 'Catalog reference' : row.inStock ? 'In stock' : 'Out of stock';
+
+      {!sorted.length && (
+        <div className="p-8 text-center bg-white rounded-3xl border border-rose-100 text-espresso-700">
+          No retailer offers are currently listed for this product.
+        </div>
+      )}
+
+      {/* Comparison Cards Stack */}
+      <div className="space-y-3">
+        {sorted.map((offer) => {
+          const rawHref = offer.purchaseUrl?.trim();
+          const fallbackHref = getRetailerProductUrl(
+            { name: productName, brand },
+            offer.storeName
+          );
+          const href = rawHref && rawHref.startsWith('http') ? rawHref : fallbackHref;
+          const isLive = offer.sourceType === 'live';
+          const isBestDeal = lowestLive?.storeId === offer.storeId;
+          const updateTime = offer.lastUpdated || liveUpdatedLabel || 'Recently verified';
+          const storeKey = offer.storeId.toLowerCase();
+          const palette = STORE_PALETTES[storeKey] || {
+            badge: offer.storeName,
+            text: 'text-espresso-800',
+            bg: 'bg-ivory-100 border-rose-200',
+          };
+
+          const savingsAmount =
+            offer.originalPrice && offer.originalPrice > offer.price
+              ? offer.originalPrice - offer.price
+              : 0;
+          const savingsPct =
+            offer.originalPrice && offer.originalPrice > offer.price
+              ? Math.round((savingsAmount / offer.originalPrice) * 100)
+              : 0;
+
+          const buttonLabel = isDirectProductUrl(href)
+            ? `Buy on ${offer.storeName}`
+            : `View on ${offer.storeName}`;
+
           return (
-            <article key={row.id} className={`rounded-2xl border bg-white p-3.5 transition-colors sm:p-4 ${bestDeal ? 'border-emerald/45 shadow-[0_8px_24px_-17px_rgba(22,101,75,.65)]' : 'border-line hover:border-rose/30'}`}>
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="flex min-w-0 items-center gap-2.5">
-                  <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-full ${bestDeal ? 'bg-emerald-tint text-emerald' : 'bg-champagne text-rose'}`}><Store aria-hidden="true" className="h-4 w-4" /></span>
-                  <div className="min-w-0"><div className="flex flex-wrap items-center gap-1.5"><h3 className="text-xs font-bold text-espresso sm:text-[13px]">{row.name}</h3>{bestDeal && <span className="inline-flex items-center gap-1 rounded-full bg-emerald px-2 py-1 text-[8px] font-bold tracking-[.1em] text-white"><Medal className="h-3 w-3" />BEST DEAL</span>}</div><p className={`mt-1 text-[9px] font-semibold ${status === 'In stock' ? 'text-emerald' : 'text-taupe'}`}>{status}</p></div>
+            <div
+              key={offer.storeId}
+              className={`rounded-3xl p-4 sm:p-5 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 border ${
+                isBestDeal
+                  ? 'bg-gradient-to-r from-emerald-50/50 via-white to-white border-emerald-300 ring-2 ring-emerald-400/30 shadow-luxury-card'
+                  : 'bg-white border-rose-100 hover:border-rose-300 shadow-soft-lift'
+              }`}
+            >
+              {/* Left Column: Store identity, deal crown, variant metadata */}
+              <div className="min-w-0 flex-1 space-y-1.5">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span
+                    className={`px-2.5 py-0.5 rounded-md text-xs font-extrabold border ${palette.bg} ${palette.text}`}
+                  >
+                    {offer.storeName}
+                  </span>
+
+                  {isBestDeal && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 px-3 py-0.5 text-xs font-bold text-white shadow-xs">
+                      <Crown className="h-3.5 w-3.5 text-amber-100" />
+                      <span>Best Live Deal</span>
+                    </span>
+                  )}
+
+                  {savingsPct > 0 && (
+                    <span className="rounded-full bg-rose-50 px-2.5 py-0.5 text-[11px] font-bold text-rose-700 border border-rose-200">
+                      Save ₹{savingsAmount.toLocaleString('en-IN')} • {savingsPct}% OFF
+                    </span>
+                  )}
                 </div>
-                <div className="ml-auto text-right">
-                  {hasPrice ? <div className="flex items-baseline justify-end gap-1.5"><strong className="text-[17px] font-bold tabular-nums text-espresso sm:text-[19px]">₹{row.price.toLocaleString('en-IN')}</strong>{row.mrp && row.mrp > row.price && <s className="text-[10px] tabular-nums text-taupe">₹{row.mrp.toLocaleString('en-IN')}</s>}</div> : <span className="text-[10px] font-semibold text-taupe">Price not indexed</span>}
-                  {discount > 0 && <span className="mt-0.5 block text-[9px] font-bold text-emerald">{discount}% off</span>}
+
+                <div className="flex flex-wrap items-center gap-3 text-xs text-espresso-600">
+                  <span className="flex items-center space-x-1">
+                    {offer.inStock ? (
+                      <span className="inline-flex items-center space-x-1 text-emerald-700 font-semibold">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        <span>Listed In Stock</span>
+                      </span>
+                    ) : (
+                      <span className="text-rose-600 font-semibold">Listed Out of Stock</span>
+                    )}
+                  </span>
+                  <span>•</span>
+                  <span>{targetVariant}</span>
+                  {isLive && (
+                    <>
+                      <span>•</span>
+                      <span className="flex items-center space-x-1 text-espresso-400">
+                        <Clock className="w-3 h-3" />
+                        <span>Verified {updateTime}</span>
+                      </span>
+                    </>
+                  )}
                 </div>
               </div>
-              <div className="mt-3 flex items-center justify-between gap-2 border-t border-line/80 pt-3">
-                <span className="flex min-w-0 items-center gap-1 truncate text-[9px] text-taupe"><Clock3 aria-hidden="true" className="h-3 w-3 shrink-0" />{row.updatedAt ? snapshotTime(row.updatedAt) : hasPrice ? 'Catalogue price' : 'No listing indexed'}{row.source === 'snapshot' ? ' · snapshot' : row.source === 'live' ? ' · live' : ''}</span>
-                <a href={href} target="_blank" rel="noopener noreferrer" className={`inline-flex min-h-10 shrink-0 items-center justify-center gap-1.5 rounded-full px-3 text-[9px] font-bold transition-colors sm:px-4 sm:text-[10px] ${bestDeal ? 'bg-emerald text-white hover:bg-[#10543D]' : 'bg-espresso text-white hover:bg-rose'}`}>
-                  {direct ? 'Buy on' : 'Search on'} {row.name}<ExternalLink aria-hidden="true" className="h-3 w-3" />
+
+              {/* Middle Column: Price & Delivery Breakdown */}
+              <div className="flex items-baseline md:items-end flex-col md:text-right shrink-0">
+                {isLive && offer.price > 0 ? (
+                  <div>
+                    <div className="flex items-baseline space-x-2">
+                      <span className="text-2xl font-black text-espresso-950 font-sans tabular-nums">
+                        ₹{offer.price.toLocaleString('en-IN')}
+                      </span>
+                      {offer.originalPrice && offer.originalPrice > offer.price && (
+                        <span className="text-sm font-normal text-espresso-400 line-through tabular-nums">
+                          ₹{offer.originalPrice.toLocaleString('en-IN')}
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-[11px] text-espresso-500 block mt-0.5 font-normal">
+                      {offer.isShippingDisclosed === false
+                        ? 'Shipping disclosed at checkout'
+                        : offer.shippingFee === 0
+                        ? 'Free Standard Delivery'
+                        : `+ ₹${offer.shippingFee} Shipping`}
+                    </span>
+                  </div>
+                ) : (
+                  <div>
+                    <span className="inline-block text-xs font-semibold text-espresso-700 bg-rose-50 px-2.5 py-1 rounded-md border border-rose-200">
+                      Check live on store
+                    </span>
+                    <span className="text-[11px] text-espresso-400 block mt-0.5">
+                      Store search check
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Right Column: 1-Click Purchase CTA */}
+              <div className="shrink-0 flex items-center">
+                <a
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`w-full sm:w-auto inline-flex items-center justify-center gap-1.5 rounded-2xl px-5 py-3 min-h-[44px] text-xs sm:text-sm font-bold tracking-wide transition-all shadow-xs ${
+                    isBestDeal
+                      ? 'bg-espresso-900 hover:bg-espresso-950 text-ivory shadow-md'
+                      : 'bg-white hover:bg-rose-50 text-espresso-800 border border-rose-200'
+                  }`}
+                >
+                  <span>{buttonLabel}</span>
+                  <ExternalLink className="h-3.5 w-3.5" />
                 </a>
               </div>
-              {index === 0 && !bestDeal && best && <span className="sr-only"><Check />Best available price is {best.name}</span>}
-            </article>
+            </div>
           );
         })}
       </div>
-      <p className="text-[9px] leading-4 text-taupe">Prices and stock can change. Confirm the final total, product size and seller with the retailer before purchase.</p>
     </section>
   );
 }

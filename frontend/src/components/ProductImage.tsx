@@ -3,36 +3,37 @@ import { useState, type ImgHTMLAttributes } from 'react';
 interface ProductImageProps extends ImgHTMLAttributes<HTMLImageElement> {
   src: string;
   alt: string;
-  brand?: string;
-  frameClassName?: string;
+  compact?: boolean;
 }
 
-export function ProductImage({ src, alt, brand, className = '', frameClassName = '', onError, ...props }: ProductImageProps) {
-  const [failed, setFailed] = useState(false);
-  const unavailable = !src || failed;
-  const baseUrl = import.meta.env.BASE_URL || '/';
-  const resolved = src.startsWith('/images/') ? `${baseUrl}${src.slice(1)}` : src;
-  const monogram = (brand || alt || 'B').trim().charAt(0).toUpperCase();
+/** Shared product media: fill the frame without stretching and recover from failed loads. */
+export function ProductImage({ src, alt, className = '', compact: _compact, onError, ...props }: ProductImageProps) {
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
+  const unavailable = !src || failedSrc === src;
 
   return (
-    <div className={`relative overflow-hidden ${frameClassName}`}>
+    <span
+      className={`relative block overflow-hidden bg-white ${className}`}
+      title={props.title}
+      data-product-image={src}
+    >
       {unavailable ? (
-        <div role="img" aria-label={`${brand || alt} image unavailable`} className="flex h-full w-full flex-col items-center justify-center gap-3 bg-gradient-to-br from-champagne to-ivory text-rose">
-          <span aria-hidden="true" className="font-editorial text-6xl font-semibold">{monogram}</span>
-          <span className="max-w-[15ch] text-center text-[10px] font-bold uppercase tracking-[.22em] text-taupe">{brand || 'Beauty'}</span>
-        </div>
+        <span role="img" aria-label={alt} className="flex h-full w-full items-center justify-center bg-ivory p-2 text-center text-xs leading-snug text-espresso-800">
+          {alt}
+        </span>
       ) : (
         <img
           {...props}
-          src={resolved}
+          src={src.startsWith('/images/') ? `${import.meta.env.BASE_URL}${src.slice(1)}` : src}
           alt={alt}
-          referrerPolicy="no-referrer"
-          loading={props.loading || 'lazy'}
           decoding="async"
-          className={`block h-full w-full object-cover object-center ${className}`}
-          onError={(event) => { setFailed(true); onError?.(event); }}
+          className="block h-full w-full object-cover object-center"
+          onError={(event) => {
+            setFailedSrc(src);
+            onError?.(event);
+          }}
         />
       )}
-    </div>
+    </span>
   );
 }

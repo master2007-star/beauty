@@ -1,219 +1,482 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Search, SlidersHorizontal } from 'lucide-react';
-import { useLocation } from 'react-router-dom';
-import { ProductCard } from '../components/ProductCard';
+import React, { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Search, X } from 'lucide-react';
+
 import { useCatalogue } from '../context/PriceContext';
-import type { Product, ProductCategory, RetailerOffer, Subcategory } from '../types';
+import { CATEGORIES_DATA } from '../data/categories';
+import type { Product, ProductCategory, Subcategory } from '../types';
 
-type CategoryTab = 'All' | 'Sunscreen' | 'Serums' | 'Moisturizers' | 'Lip Care' | 'Makeup';
-type SortOrder = 'discount' | 'price' | 'stores';
-interface SearchProduct {
-  id: string;
-  title: string;
-  brand: string;
-  category: string;
-  imageUrl: string | null;
-  lowestPrice: number | null;
-  mrp: number | null;
-  discountPercent: number;
-  availableStores: string[];
-}
-interface DisplayProduct { product: Product; count: number; remote: boolean; }
-const QUICK_SEARCHES = ['Dot & Key Sunscreen', 'Minimalist Niacinamide', 'COSRX Snail Mucin', 'Laneige Lip Mask', 'Maybelline Sky High'];
-const CATEGORIES: CategoryTab[] = ['All', 'Sunscreen', 'Serums', 'Moisturizers', 'Lip Care', 'Makeup'];
-const RETAILERS: Array<{ id: string; name: RetailerOffer['storeName']; search: (query: string) => string }> = [
-  { id: 'tira', name: 'Tira', search: (q) => `https://www.tirabeauty.com/search?q=${encodeURIComponent(q)}` },
-  { id: 'nykaa', name: 'Nykaa', search: (q) => `https://www.nykaa.com/search/result/?q=${encodeURIComponent(q)}` },
-  { id: 'amazon', name: 'Amazon India', search: (q) => `https://www.amazon.in/s?k=${encodeURIComponent(q)}` },
-  { id: 'purplle', name: 'Purplle', search: (q) => `https://www.purplle.com/search?q=${encodeURIComponent(q)}` },
-  { id: 'myntra', name: 'Myntra', search: (q) => `https://www.myntra.com/${encodeURIComponent(q.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''))}` },
-];
+import { Hero } from '../components/Hero';
+import { CategoryGrid } from '../components/CategoryGrid';
+import { ProductCard } from '../components/ProductCard';
+import { DealSection } from '../components/DealSection';
+import { DupesSection } from '../components/DupesSection';
+import { HowToUseSection } from '../components/HowToUseSection';
+import { ReviewShowcase } from '../components/ReviewShowcase';
 
-function normalize(value: string) { return value.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim(); }
-function inferCategory(item: SearchProduct): ProductCategory {
-  return /mascara|foundation|concealer|blush|eyeliner|makeup|sky high|lipstick/.test(`${item.brand} ${item.title}`.toLowerCase()) ? 'makeup' : 'skincare';
-}
-function inferSubcategory(item: SearchProduct): Subcategory {
-  const text = `${item.brand} ${item.title}`.toLowerCase();
-  if (/sunscreen|spf/.test(text)) return 'Sunscreen';
-  if (/serum|niacinamide|snail mucin/.test(text)) return 'Serums';
-  if (/lip|mucin/.test(text)) return 'Lip Care';
-  if (/mascara|sky high/.test(text)) return 'Mascara';
-  if (/moistur|cream/.test(text)) return 'Moisturiser';
-  if (/foundation/.test(text)) return 'Foundation';
-  if (/concealer/.test(text)) return 'Concealer';
-  if (/blush/.test(text)) return 'Blush';
-  return 'Face Wash';
-}
-function makeRemoteProduct(item: SearchProduct): Product {
-  const fullTitle = `${item.brand} ${item.title}`.trim();
-  return {
-    id: `live-${item.id}`, slug: `live-${item.id}`, name: item.title, brand: item.brand || 'Beauty', brandTier: 'Affordable',
-    category: inferCategory(item), subcategory: inferSubcategory(item), quantity: 'See retailer listing', price: item.lowestPrice || 0,
-    originalPrice: item.mrp || undefined, image: item.imageUrl || '', description: `Compare current listings for ${fullTitle} across five Indian beauty stores. Confirm product size and availability with the retailer.`,
-    keyIngredients: [], howToUse: { routine: 'AM & PM', stepNumber: 1, stepName: 'As directed', instructions: 'Follow the directions on the product packaging.' },
-    storeOffers: RETAILERS.map((store) => ({ storeId: store.id, storeName: store.name, price: 0, shippingFee: null, deliveryDays: 'Check retailer', inStock: false, purchaseUrl: store.search(fullTitle), sourceType: 'unavailable', lastUpdated: 'Not indexed' })),
-  };
-}
-function matchesCategory(product: Product, category: CategoryTab) {
-  if (category === 'All') return true;
-  if (category === 'Makeup') return product.category === 'makeup';
-  if (category === 'Moisturizers') return product.subcategory === 'Moisturiser';
-  return product.subcategory === category;
-}
-function discount(product: Product) { return product.originalPrice && product.price > 0 && product.originalPrice > product.price ? Math.round((product.originalPrice - product.price) / product.originalPrice * 100) : 0; }
-function getApiBase() { return (import.meta.env.VITE_COMPARE_API_URL || 'https://pricewise-compare.a4megaboi.workers.dev').replace(/\/$/, ''); }
-
-async function loadSnapshot(query: string): Promise<SearchProduct[]> {
-  const base = import.meta.env.BASE_URL || '/';
-  const response = await fetch(`${base.endsWith('/') ? base : `${base}/`}data/live-prices.json`);
-  if (!response.ok) throw new Error('Price snapshot is unavailable');
-  const snapshot = await response.json();
-  const tokens = normalize(query).split(' ').filter((token) => token.length > 1);
-  return (Object.values(snapshot.products || {}) as Array<Record<string, unknown>>)
-    .map((entry) => {
-      const offers = (Array.isArray(entry.offers) ? entry.offers : []) as Array<Record<string, unknown>>;
-      const listed = offers.filter((offer) => offer.inStock !== false && Number(offer.price) > 0);
-      const prices = listed.map((offer) => Number(offer.price));
-      const mrps = offers.map((offer) => Number(offer.originalPrice)).filter((price) => price > 0);
-      return {
-        id: String(entry.productId || entry.productName || ''), title: String(entry.productName || ''), brand: String(entry.brand || ''), category: 'beauty',
-        imageUrl: String(entry.imageUrl || entry.image || '') || null, lowestPrice: prices.length ? Math.min(...prices) : null,
-        mrp: mrps.length ? Math.max(...mrps) : null, discountPercent: 0,
-        availableStores: [...new Set(listed.map((offer) => String(offer.storeName || offer.storeId || '')).filter(Boolean))],
-        _search: normalize(`${entry.brand || ''} ${entry.productName || ''}`),
-      };
-    })
-    .filter((item) => !tokens.length || tokens.filter((token) => String((item as SearchProduct & { _search: string })._search).includes(token)).length / tokens.length >= .4)
-    .map(({ _search: _ignored, ...item }) => item as SearchProduct)
-    .slice(0, 60);
+interface DiscoveryHomePageProps {
+  wishlist?: string[];
+  toggleWishlist: (id: string) => void;
+  isWishlisted: (id: string) => boolean;
+  onSelectProduct: (p: Product) => void;
+  activeCategory: ProductCategory | 'all';
+  setActiveCategory: (cat: ProductCategory | 'all') => void;
+  activeSubcategory: Subcategory | 'all';
+  setActiveSubcategory: (sub: Subcategory | 'all') => void;
+  onOpenUniversalSearch?: (query?: string) => void;
+  onOpenPriceTracker?: (product: Product) => void;
 }
 
-interface DiscoveryHomePageProps { searchQuery: string; onSearchQueryChange: (query: string) => void; }
-export function DiscoveryHomePage({ searchQuery, onSearchQueryChange }: DiscoveryHomePageProps) {
-  const { products } = useCatalogue();
-  const location = useLocation();
-  const [category, setCategory] = useState<CategoryTab>('All');
-  const [sort, setSort] = useState<SortOrder>('discount');
-  const [remote, setRemote] = useState<SearchProduct[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [source, setSource] = useState<'live' | 'snapshot'>('live');
-  const [error, setError] = useState(false);
+export const DiscoveryHomePage: React.FC<DiscoveryHomePageProps> = ({
+  toggleWishlist,
+  isWishlisted,
+  onSelectProduct,
+  activeCategory,
+  setActiveCategory,
+  activeSubcategory,
+  setActiveSubcategory,
+  onOpenUniversalSearch,
+  onOpenPriceTracker,
+}) => {
+  const navigate = useNavigate();
+  const { products: PRODUCTS_DATA } = useCatalogue();
 
-  useEffect(() => {
-    if (location.hash !== '#catalog') return;
-    requestAnimationFrame(() => document.getElementById('catalog')?.scrollIntoView({ behavior: 'smooth' }));
-  }, [location.hash]);
+  // Search & Filter State
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedBrand, setSelectedBrand] = useState<string | 'all'>('all');
+  const [selectedStore, setSelectedStore] = useState<'all' | 'nykaa' | 'amazon' | 'tira' | 'purplle' | 'myntra'>('all');
+  const [selectedSkinType, setSelectedSkinType] = useState<string | 'all'>('all');
+  const [selectedBudget, setSelectedBudget] = useState<'all' | 'under-500' | '500-1000' | '1000-2500' | 'above-2500'>('all');
+  const [sortBy, setSortBy] = useState<'featured' | 'price-asc' | 'price-desc' | 'name-asc' | 'rating' | 'best-deal'>('featured');
 
-  useEffect(() => {
-    const controller = new AbortController();
-    const query = searchQuery.trim();
-    const timer = window.setTimeout(async () => {
-      setLoading(true);
-      setError(false);
-      try {
-        const response = await fetch(`${getApiBase()}/search?q=${encodeURIComponent(query)}`, { signal: controller.signal });
-        if (!response.ok) throw new Error('Live search unavailable');
-        const data = await response.json();
-        setRemote(Array.isArray(data.products) ? data.products : []);
-        setSource('live');
-      } catch {
-        if (controller.signal.aborted) return;
-        try {
-          setRemote(await loadSnapshot(query));
-          setSource('snapshot');
-        } catch {
-          setRemote([]);
-          setError(true);
-        }
-      } finally {
-        if (!controller.signal.aborted) setLoading(false);
+  // Extract all distinct brands
+  const allBrands = useMemo(() => {
+    const brandsSet = new Set<string>();
+    PRODUCTS_DATA.forEach((p) => brandsSet.add(p.brand));
+    return Array.from(brandsSet).sort();
+  }, [PRODUCTS_DATA]);
+
+  const skinTypes = [
+    'All Skin Types',
+    'Oily',
+    'Dry',
+    'Sensitive',
+    'Combination',
+    'Acne-Prone',
+    'Normal',
+  ];
+
+  // Filter & Sort Products
+  const filteredProducts = useMemo(() => {
+    return PRODUCTS_DATA.filter((product) => {
+      if (activeCategory !== 'all' && product.category !== activeCategory) return false;
+      if (activeSubcategory !== 'all' && product.subcategory !== activeSubcategory) return false;
+      if (selectedBrand !== 'all' && product.brand !== selectedBrand) return false;
+
+      if (selectedStore !== 'all') {
+        const hasStore = product.storeOffers.some(
+          (o) =>
+            (o.storeId.toLowerCase() === selectedStore ||
+              o.storeName.toLowerCase().includes(selectedStore)) &&
+            o.inStock &&
+            o.price > 0
+        );
+        if (!hasStore) return false;
       }
-    }, 140);
-    return () => { window.clearTimeout(timer); controller.abort(); };
-  }, [searchQuery]);
 
-  const productsToShow = useMemo(() => {
-    const query = normalize(searchQuery);
-    const tokens = query.split(' ').filter((token) => token.length > 1);
-    const local = products.filter((product) => {
-      if (!matchesCategory(product, category)) return false;
-      if (!tokens.length) return true;
-      const text = normalize(`${product.brand} ${product.name} ${product.subcategory} ${product.keyIngredients.join(' ')}`);
-      return tokens.filter((token) => text.includes(token)).length / tokens.length >= .4;
-    }).map((product): DisplayProduct => ({ product, count: product.storeOffers.filter((offer) => offer.price > 0).length || 5, remote: false }));
-    const mappedRemote = remote
-      .filter((item) => matchesCategory(makeRemoteProduct(item), category))
-      .map((item) => {
-        const match = local.find(({ product }) => normalize(product.brand) === normalize(item.brand) && (normalize(product.name).includes(normalize(item.title)) || normalize(item.title).includes(normalize(product.name))));
-        const count = item.availableStores?.length || 5;
-        if (match) {
-          const updated = item.lowestPrice && item.lowestPrice > 0 ? { ...match.product, price: item.lowestPrice, originalPrice: item.mrp || match.product.originalPrice } : match.product;
-          return { product: updated, count, remote: false };
+      if (selectedSkinType !== 'all') {
+        if (!product.skinType) return false;
+        const normalized = product.skinType.toLowerCase();
+        if (selectedSkinType === 'All Skin Types') {
+          if (!normalized.includes('all skin')) return false;
+        } else if (!normalized.includes(selectedSkinType.toLowerCase())) {
+          return false;
         }
-        return { product: makeRemoteProduct(item), count, remote: true };
-      });
-    const seen = new Set<string>();
-    const rows = [...mappedRemote, ...local].filter((row) => {
-      const key = normalize(`${row.product.brand} ${row.product.name}`);
-      if (seen.has(key)) return false;
-      seen.add(key);
+      }
+
+      if (selectedBudget === 'under-500' && product.price > 500) return false;
+      if (selectedBudget === '500-1000' && (product.price < 500 || product.price > 1000)) return false;
+      if (selectedBudget === '1000-2500' && (product.price < 1000 || product.price > 2500)) return false;
+      if (selectedBudget === 'above-2500' && product.price < 2500) return false;
+
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase().trim();
+        const matchesName = product.name.toLowerCase().includes(q);
+        const matchesBrand = product.brand.toLowerCase().includes(q);
+        const matchesCategory = product.category.toLowerCase().includes(q);
+        const matchesSubcat = product.subcategory.toLowerCase().includes(q);
+        const matchesIngredients = product.keyIngredients.some((i) => i.toLowerCase().includes(q));
+        const matchesSkin = product.skinType ? product.skinType.toLowerCase().includes(q) : false;
+        if (!matchesName && !matchesBrand && !matchesCategory && !matchesSubcat && !matchesIngredients && !matchesSkin) {
+          return false;
+        }
+      }
       return true;
+    }).sort((a, b) => {
+      if (sortBy === 'price-asc') return a.price - b.price;
+      if (sortBy === 'price-desc') return b.price - a.price;
+      if (sortBy === 'name-asc') return a.name.localeCompare(b.name);
+      if (sortBy === 'rating') return (b.rating || 0) - (a.rating || 0);
+      if (sortBy === 'best-deal') {
+        const aScore = a.dealScore || (a.originalPrice ? a.originalPrice - a.price : 0);
+        const bScore = b.dealScore || (b.originalPrice ? b.originalPrice - b.price : 0);
+        return bScore - aScore;
+      }
+      return (b.isTrending ? 1 : 0) - (a.isTrending ? 1 : 0);
     });
-    return rows.sort((a, b) => {
-      if (sort === 'price') return (a.product.price || Number.MAX_SAFE_INTEGER) - (b.product.price || Number.MAX_SAFE_INTEGER);
-      if (sort === 'stores') return b.count - a.count || a.product.name.localeCompare(b.product.name);
-      return discount(b.product) - discount(a.product) || a.product.name.localeCompare(b.product.name);
-    });
-  }, [products, remote, category, sort, searchQuery]);
+  }, [PRODUCTS_DATA, activeCategory, activeSubcategory, selectedBrand, selectedStore, selectedSkinType, selectedBudget, searchQuery, sortBy]);
+
+  const bestDeals = useMemo(() => {
+    return PRODUCTS_DATA.filter((p) => p.isBestDeal || (p.originalPrice && p.originalPrice > p.price));
+  }, [PRODUCTS_DATA]);
+
+  const scrollToSection = (sectionId: string) => {
+    const el = document.getElementById(sectionId);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const handleResetFilters = () => {
+    setActiveCategory('all');
+    setActiveSubcategory('all');
+    setSelectedBrand('all');
+    setSelectedStore('all');
+    setSelectedSkinType('all');
+    setSelectedBudget('all');
+    setSearchQuery('');
+    setSortBy('featured');
+  };
+
+  const hasActiveFilters = Boolean(
+    activeCategory !== 'all' ||
+    activeSubcategory !== 'all' ||
+    selectedBrand !== 'all' ||
+    selectedStore !== 'all' ||
+    selectedSkinType !== 'all' ||
+    selectedBudget !== 'all' ||
+    searchQuery.trim() ||
+    sortBy !== 'featured'
+  );
 
   return (
-    <main className="min-h-screen bg-ivory pb-16 text-espresso">
-      <section className="mx-auto max-w-[1440px] px-4 pt-4 sm:px-6 sm:pt-5 lg:px-10" aria-label="Beauty store introduction">
-        <div className="relative overflow-hidden rounded-[1.5rem] border border-line bg-[linear-gradient(110deg,#F3EAE6_0%,#FCF9F7_50%,#F7ECE8_100%)] px-5 py-5 sm:px-8 sm:py-6 lg:flex lg:min-h-[148px] lg:items-center lg:justify-between lg:gap-8 lg:px-10">
-          <div className="relative z-10 max-w-none">
-            <h1 className="text-[25px] font-semibold leading-[1.02] text-espresso sm:text-[34px] lg:text-[36px] xl:whitespace-nowrap xl:text-[40px]">Compare India’s top 5 beauty stores in one click</h1>
-            <p className="mt-2 text-[10px] font-medium tracking-[.08em] text-taupe sm:text-xs">Nykaa <span className="px-1.5 text-rose">•</span> Tira <span className="px-1.5 text-rose">•</span> Amazon <span className="px-1.5 text-rose">•</span> Purplle <span className="px-1.5 text-rose">•</span> Myntra</p>
-          </div>
-          <div className="pointer-events-none absolute -right-10 -top-24 h-52 w-52 rounded-full border border-white/80 lg:right-[27%] lg:top-[-140px] lg:h-72 lg:w-72" />
-        </div>
-        <div className="mt-3 flex items-center gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" aria-label="Popular beauty searches">
-          <span className="shrink-0 pr-1 text-[9px] font-bold uppercase tracking-[.16em] text-taupe">Trending</span>
-          {QUICK_SEARCHES.map((term) => <button key={term} type="button" onClick={() => { setCategory('All'); onSearchQueryChange(term); }} className={`min-h-10 shrink-0 rounded-full border px-3.5 text-[10px] font-semibold transition-colors sm:text-[11px] ${searchQuery === term ? 'border-rose bg-rose text-white' : 'border-line bg-white text-taupe hover:border-rose/50 hover:text-espresso'}`}>{term}</button>)}
-        </div>
-      </section>
+    <main>
+      {/* 1. Hero Campaign Section */}
+      <Hero
+        spotlight={PRODUCTS_DATA[0]}
+        onSearch={(query: string) => setSearchQuery(query)}
+        onExploreClick={() => scrollToSection('catalog')}
+        onDupesClick={() => scrollToSection('dupes')}
+        onOpenUniversalSearch={onOpenUniversalSearch}
+        onSelectProduct={(p) => navigate(`/product/${p.slug || p.id}`)}
+      />
 
-      <section id="catalog" className="sticky top-[var(--site-header-height)] z-30 mt-4 border-y border-line bg-ivory/95 backdrop-blur-md" aria-label="Product filters">
-        <div className="mx-auto flex max-w-[1440px] items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-10">
-          <div className="flex min-w-0 items-center gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" role="group" aria-label="Filter by category">
-            {CATEGORIES.map((tab) => <button key={tab} type="button" aria-pressed={category === tab} onClick={() => setCategory(tab)} className={`min-h-10 shrink-0 rounded-full px-3 text-[10px] font-semibold transition-colors sm:px-4 sm:text-[11px] ${category === tab ? 'bg-espresso text-white' : 'text-taupe hover:bg-champagne hover:text-espresso'}`}>{tab}</button>)}
-          </div>
-          <label className="flex h-10 shrink-0 items-center gap-2 rounded-full border border-line bg-white px-3 text-taupe sm:px-3.5">
-            <SlidersHorizontal aria-hidden="true" className="h-3.5 w-3.5" />
-            <span className="sr-only">Sort products</span>
-            <select value={sort} onChange={(event) => setSort(event.target.value as SortOrder)} className="max-w-[118px] cursor-pointer bg-transparent text-[10px] font-semibold text-espresso outline-none sm:max-w-none sm:text-[11px]">
-              <option value="discount">Biggest % Off</option><option value="price">Lowest Price</option><option value="stores">Most Stores</option>
-            </select>
-          </label>
-        </div>
-      </section>
+      {/* 2. Visual Categories Navigation */}
+      <CategoryGrid
+        selectedSubcategory={activeSubcategory}
+        onSelectSubcategory={(sub: Subcategory) => {
+          setActiveSubcategory(sub);
+          const match = CATEGORIES_DATA.find((c) => c.name === sub);
+          if (match) setActiveCategory(match.category);
+          scrollToSection('catalog');
+        }}
+      />
 
-      <section className="mx-auto max-w-[1440px] px-4 pt-6 sm:px-6 sm:pt-8 lg:px-10" aria-label="Beauty products">
-        <div className="mb-4 flex items-end justify-between gap-4">
-          <div><h2 className="font-editorial text-[27px] font-semibold leading-none sm:text-[32px]">{searchQuery.trim() ? 'Your search edit' : category === 'All' ? 'Beauty worth discovering' : category}</h2><p className="mt-1.5 text-[10px] text-taupe sm:text-[11px]">{searchQuery.trim() ? `Results for “${searchQuery.trim()}”` : 'Thoughtful finds, compared across five stores'}</p></div>
-          <span className="shrink-0 text-[10px] tabular-nums text-taupe sm:text-[11px]" aria-live="polite">{productsToShow.length} products</span>
-        </div>
-        {productsToShow.length > 0 ? (
-          <div className="grid grid-cols-2 gap-3.5 md:grid-cols-3 md:gap-5 lg:grid-cols-4 lg:gap-6">
-            {productsToShow.map(({ product, count, remote: isRemote }) => <ProductCard key={product.id} product={product} storeCount={count} routeProduct={isRemote} />)}
+      {/* 3. Catalog Section with Search, Multi-Filter Toolbar & Sorting */}
+      <section id="catalog" className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between mb-8 gap-4">
+          <div>
+            <div className="flex items-center space-x-2 mb-1">
+              <span className="text-xs font-bold tracking-widest uppercase text-rose-500">
+                Indian Skincare & Makeup Discovery
+              </span>
+              <span className="text-espresso-300">•</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-champagne-100 text-espresso-700 border border-champagne-300">
+                Phase 3 Live
+              </span>
+            </div>
+            <h2 className="font-editorial text-3xl sm:text-4xl font-bold text-espresso-800 tracking-tight">
+              Product Discovery & Price Comparison
+            </h2>
+            <p className="text-espresso-600 text-xs sm:text-sm mt-1">
+              Showing {filteredProducts.length} authentic beauty products with multi-store comparison across Nykaa, Tira, Amazon, Purplle, and Myntra.
+            </p>
           </div>
-        ) : loading ? (
-          <div className="grid grid-cols-2 gap-3.5 md:grid-cols-3 md:gap-5 lg:grid-cols-4 lg:gap-6" aria-label="Loading beauty products" aria-live="polite">{Array.from({ length: 8 }, (_, index) => <div key={index} className="overflow-hidden rounded-[1.1rem] border border-line bg-white p-2.5"><div className="skeleton aspect-[4/5] rounded-xl" /><div className="skeleton mt-3 h-3 w-1/3 rounded" /><div className="skeleton mt-2 h-4 w-4/5 rounded" /><div className="skeleton mt-2 h-4 w-3/5 rounded" /></div>)}</div>
+
+          {/* Quick Department Switcher */}
+          <div className="flex flex-wrap items-center p-1 bg-white rounded-xl border border-rose-200/80 text-xs shadow-2xs">
+            {(['all', 'skincare', 'makeup', 'haircare', 'bodycare'] as const).map((cat) => (
+              <button
+                key={cat}
+                onClick={() => {
+                  setActiveCategory(cat);
+                  setActiveSubcategory('all');
+                }}
+                className={`px-3 py-1.5 rounded-lg font-semibold capitalize transition-colors ${
+                  activeCategory === cat
+                    ? 'bg-espresso-800 text-ivory'
+                    : 'text-espresso-600 hover:text-espresso-900'
+                }`}
+              >
+                {cat === 'all' ? 'All' : cat}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Search & Multi-Filter Control Strip */}
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-rose-200/90 shadow-soft-lift mb-6 space-y-4">
+          {/* Row 1: Search Bar with Clear Button */}
+          <div className="relative w-full">
+            <Search className="w-4 h-4 text-espresso-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="🔍 Search product name, brand, category, or ingredients (e.g. Niacinamide, Sunscreen, Cetaphil, Ruby Woo)..."
+              className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-ivory-100 border border-rose-200 text-xs sm:text-sm text-espresso-800 placeholder-espresso-400 focus:outline-hidden focus:border-rose-400 focus:bg-white transition-all"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-espresso-400 hover:text-rose-500 rounded-full"
+                aria-label="Clear search"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+
+          {/* Row 2: Secondary Dropdown Filters */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
+            {/* Brand Filter */}
+            <div className="relative">
+              <label className="text-[10px] font-bold uppercase tracking-wider text-espresso-400 block mb-1">
+                Brand
+              </label>
+              <select
+                value={selectedBrand}
+                onChange={(e) => setSelectedBrand(e.target.value)}
+                className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-rose-200 bg-ivory-50 text-espresso-800 font-medium focus:outline-hidden focus:border-rose-400 cursor-pointer"
+              >
+                <option value="all">All Brands</option>
+                {allBrands.map((b) => (
+                  <option key={b} value={b}>{b}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Skin Type Filter */}
+            <div className="relative">
+              <label className="text-[10px] font-bold uppercase tracking-wider text-espresso-400 block mb-1">
+                Skin Type
+              </label>
+              <select
+                value={selectedSkinType}
+                onChange={(e) => setSelectedSkinType(e.target.value)}
+                className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-rose-200 bg-ivory-50 text-espresso-800 font-medium focus:outline-hidden focus:border-rose-400 cursor-pointer"
+              >
+                <option value="all">Any Skin Type</option>
+                {skinTypes.map((st) => (
+                  <option key={st} value={st}>{st}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Budget Presets */}
+            <div className="relative">
+              <label className="text-[10px] font-bold uppercase tracking-wider text-espresso-400 block mb-1">
+                Budget Range
+              </label>
+              <select
+                value={selectedBudget}
+                onChange={(e) => setSelectedBudget(e.target.value as any)}
+                className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-rose-200 bg-ivory-50 text-espresso-800 font-medium focus:outline-hidden focus:border-rose-400 cursor-pointer"
+              >
+                <option value="all">Any Budget</option>
+                <option value="under-500">Under ₹500</option>
+                <option value="500-1000">₹500 - ₹1,000</option>
+                <option value="1000-2500">₹1,000 - ₹2,500</option>
+                <option value="above-2500">Luxury (₹2,500+)</option>
+              </select>
+            </div>
+
+            {/* Sorting */}
+            <div className="relative">
+              <label className="text-[10px] font-bold uppercase tracking-wider text-espresso-400 block mb-1">
+                Sort Results
+              </label>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as any)}
+                className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-rose-200 bg-ivory-50 text-espresso-800 font-medium focus:outline-hidden focus:border-rose-400 cursor-pointer"
+              >
+                <option value="featured">✨ Featured</option>
+                <option value="price-asc">💵 Price: Low to High</option>
+                <option value="price-desc">💎 Price: High to Low</option>
+                <option value="name-asc">🔤 Name: A to Z</option>
+                <option value="best-deal">🔥 Best Deal Score</option>
+                <option value="rating">★ Highest Rated</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Row 3: Store Filter Pill Strip */}
+          <div className="pt-2 border-t border-rose-100/70">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-espresso-400">
+                Filter By Store
+              </span>
+              <span className="text-[10px] text-espresso-400">
+                5 Indian Retailers
+              </span>
+            </div>
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+              {[
+                { id: 'all', label: 'All Stores' },
+                { id: 'nykaa', label: 'Nykaa' },
+                { id: 'amazon', label: 'Amazon India' },
+                { id: 'tira', label: 'Tira Beauty' },
+                { id: 'purplle', label: 'Purplle' },
+                { id: 'myntra', label: 'Myntra' },
+              ].map((s) => {
+                const isActive = selectedStore === s.id;
+                return (
+                  <button
+                    key={s.id}
+                    type="button"
+                    onClick={() => setSelectedStore(s.id as any)}
+                    className={`min-h-[38px] px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all ${
+                      isActive
+                        ? 'bg-espresso-800 text-ivory shadow-xs'
+                        : 'bg-ivory-100 text-espresso-700 hover:bg-champagne-100 hover:text-espresso-900 border border-rose-200/60'
+                    }`}
+                  >
+                    {s.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Active Filter Pills & Reset Button */}
+          {hasActiveFilters && (
+            <div className="pt-2 border-t border-rose-100 flex flex-wrap items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center gap-1.5 text-xs text-espresso-500">
+                <span className="font-semibold text-espresso-700">Active Filters:</span>
+                {selectedStore !== 'all' && (
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center space-x-1">
+                    <span className="capitalize">Store: {selectedStore}</span>
+                    <button onClick={() => setSelectedStore('all')}>✕</button>
+                  </span>
+                )}
+                {activeCategory !== 'all' && (
+                  <span className="px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200 flex items-center space-x-1">
+                    <span>Dept: {activeCategory}</span>
+                    <button onClick={() => setActiveCategory('all')}>✕</button>
+                  </span>
+                )}
+                {selectedBrand !== 'all' && (
+                  <span className="px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200 flex items-center space-x-1">
+                    <span>Brand: {selectedBrand}</span>
+                    <button onClick={() => setSelectedBrand('all')}>✕</button>
+                  </span>
+                )}
+                {selectedSkinType !== 'all' && (
+                  <span className="px-2 py-0.5 rounded-full bg-sage-50 text-sage-800 border border-sage-200 flex items-center space-x-1">
+                    <span>Skin: {selectedSkinType}</span>
+                    <button onClick={() => setSelectedSkinType('all')}>✕</button>
+                  </span>
+                )}
+                {selectedBudget !== 'all' && (
+                  <span className="px-2 py-0.5 rounded-full bg-champagne-50 text-champagne-800 border border-champagne-300 flex items-center space-x-1">
+                    <span>Budget: {selectedBudget}</span>
+                    <button onClick={() => setSelectedBudget('all')}>✕</button>
+                  </span>
+                )}
+                {searchQuery.trim() && (
+                  <span className="px-2 py-0.5 rounded-full bg-ivory-200 text-espresso-800 border border-rose-200 flex items-center space-x-1">
+                    <span>Query: "{searchQuery}"</span>
+                    <button onClick={() => setSearchQuery('')}>✕</button>
+                  </span>
+                )}
+              </div>
+
+              <button
+                type="button"
+                onClick={handleResetFilters}
+                className="text-xs font-bold text-rose-600 hover:text-rose-700 underline underline-offset-2 transition-colors ml-auto"
+              >
+                Reset All Filters
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Product Cards Grid or Empty State */}
+        {filteredProducts.length === 0 ? (
+          <div className="text-center py-20 bg-white rounded-3xl border border-rose-100 p-8 shadow-soft-lift max-w-xl mx-auto space-y-4">
+            <div className="w-16 h-16 rounded-full bg-rose-50 text-rose-400 flex items-center justify-center mx-auto text-2xl font-serif">
+              ✦
+            </div>
+            <h3 className="font-editorial text-2xl font-bold text-espresso-800">
+              No matching beauty products found
+            </h3>
+            <p className="text-xs sm:text-sm text-espresso-500 leading-relaxed">
+              We couldn't find any products matching your specific combination of filters. Try clearing your search keyword or switching to "All Brands".
+            </p>
+            <button
+              onClick={handleResetFilters}
+              className="mt-2 px-5 py-2.5 rounded-xl bg-espresso-800 text-ivory text-xs font-semibold hover:bg-espresso-900 transition-colors shadow-xs"
+            >
+              Reset Filters & Show Full Catalog
+            </button>
+          </div>
         ) : (
-          <div className="rounded-3xl border border-line bg-white px-6 py-14 text-center"><span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-champagne text-rose"><Search className="h-5 w-5" /></span><h3 className="mt-4 font-editorial text-2xl font-semibold">{error ? 'The catalogue is taking a moment' : 'No beauty matches yet'}</h3><p className="mx-auto mt-2 max-w-md text-xs leading-5 text-taupe">{error ? 'Live search and the saved catalogue could not be reached. Check your connection and try again.' : 'Try another brand or product, or clear your search to browse every find.'}</p><button type="button" onClick={() => { onSearchQueryChange(''); setCategory('All'); }} className="mt-5 min-h-11 rounded-full bg-espresso px-5 text-[11px] font-semibold text-white hover:bg-rose">Clear search</button></div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-7">
+            {filteredProducts.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                isWishlisted={isWishlisted(product.id)}
+                onToggleWishlist={toggleWishlist}
+                onViewProduct={() => navigate(`/product/${product.slug || product.id}`)}
+                onComparePrices={() => onSelectProduct(product)}
+                onOpenPriceTracker={onOpenPriceTracker}
+                onViewAlternative={(p) => {
+                  if (p.dupeId) {
+                    const dupe = PRODUCTS_DATA.find((x) => x.id === p.dupeId);
+                    if (dupe) navigate(`/product/${dupe.slug || dupe.id}`);
+                  }
+                }}
+              />
+            ))}
+          </div>
         )}
-        <p className="mt-5 text-right text-[9px] text-taupe">{source === 'snapshot' ? 'Showing saved price snapshot' : 'Prices are checked against retailer listings'}</p>
       </section>
+
+      {/* 4. Deals Section */}
+      <DealSection
+        deals={bestDeals}
+        onViewProduct={(p) => navigate(`/product/${p.slug || p.id}`)}
+        onToggleWishlist={toggleWishlist}
+        isWishlisted={isWishlisted}
+      />
+
+      {/* 5. Affordable Alternatives */}
+      <DupesSection
+        onSelectAlternative={(productId) => {
+          const target = PRODUCTS_DATA.find((p) => p.id === productId);
+          if (target) navigate(`/product/${target.slug || target.id}`);
+        }}
+      />
+
+      {/* 6. Educational How to Use / Routine Section */}
+      <HowToUseSection />
+
+      {/* 7. Multi-Platform Reviews Showcase */}
+      <ReviewShowcase />
     </main>
   );
-}
+};
